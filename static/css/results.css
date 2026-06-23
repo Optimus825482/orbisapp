@@ -1,0 +1,520 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ORBIS RESULTS PAGE STYLES
+   Modular CSS for new_result.html
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. CHART STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+#chart-paper {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1/1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+#chart-paper svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container-wrapper {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* AstroChart Theme Overrides */
+.astrochart-bg {
+  fill: transparent !important;
+}
+.astrochart-inner-circle {
+  fill: rgba(30, 41, 59, 0.5) !important;
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+.astrochart-outer-circle {
+  stroke: rgba(255, 255, 255, 0.2) !important;
+}
+.astrochart-house-line {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+.astrochart-aspect-line {
+  stroke-width: 0.5 !important;
+  opacity: 0.6 !important;
+}
+.astrochart-aspect-trine {
+  stroke: #38bdf8 !important;
+}
+.astrochart-aspect-conjunction {
+  stroke: #5b2bee !important;
+}
+.astrochart-aspect-square {
+  stroke: #ef4444 !important;
+}
+.astrochart-aspect-opposition {
+  stroke: #f59e0b !important;
+}
+.astrochart-aspect-sextile {
+  stroke: #10b981 !important;
+}
+
+.chart-selector-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  color: #94a3b8;
+}
+
+.chart-selector-pill.active {
+  background: #5b2bee;
+  color: white;
+  border-color: #5b2bee;
+  box-shadow: 0 4px 12px rgba(91, 43, 238, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. TAB & CARD STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.planet-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.planet-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(91, 43, 238, 0.3);
+  transform: translateY(-2px);
+}
+
+.glass-tab {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.orb-glow {
+  filter: drop-shadow(0 0 15px rgba(91, 43, 238, 0.4));
+}
+
+.chart-circle {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. COSMIC MODAL LOADER STYLES
+   Sayfanın ortasında modal dialog tarzında loader
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Backdrop - yarı saydam arka plan */
+#cosmic-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#cosmic-loader-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Modal Container */
+.cosmic-modal {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  background: linear-gradient(
+    145deg,
+    rgba(30, 27, 75, 0.95) 0%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  border: 1px solid rgba(91, 43, 238, 0.3);
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 0 60px rgba(91, 43, 238, 0.2),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.4s ease-out;
+  overflow: hidden;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Glow effect behind modal */
+.cosmic-modal::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(91, 43, 238, 0.1) 0%,
+    transparent 50%
+  );
+  animation: cosmicGlow 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cosmicGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+/* Orbis Avatar - Üstte */
+.cosmic-avatar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.cosmic-avatar-ring {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.cosmic-avatar-ring::before,
+.cosmic-avatar-ring::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.cosmic-avatar-ring::before {
+  border-color: rgba(91, 43, 238, 0.4);
+  animation: cosmicSpin 8s linear infinite;
+}
+
+.cosmic-avatar-ring::after {
+  inset: -4px;
+  border-color: rgba(168, 85, 247, 0.3);
+  animation: cosmicSpin 6s linear infinite reverse;
+}
+
+.cosmic-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(91, 43, 238, 0.6);
+  box-shadow: 0 0 30px rgba(91, 43, 238, 0.4);
+  animation: avatarPulse 2s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(91, 43, 238, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(91, 43, 238, 0.6), 0 0 80px rgba(91, 43, 238, 0.2);
+  }
+}
+
+@keyframes cosmicSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Greeting Text */
+.cosmic-greeting {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  position: relative;
+  padding: 0 0.5rem;
+}
+
+.cosmic-greeting h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.cosmic-greeting p {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.9);
+  line-height: 1.5;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Scrolling Messages Container */
+.cosmic-messages {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cosmic-messages-inner {
+  position: absolute;
+  width: 100%;
+  animation: scrollMessages 12s linear infinite;
+}
+
+@keyframes scrollMessages {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.cosmic-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.cosmic-message-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  background: rgba(91, 43, 238, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+
+.cosmic-message-icon span {
+  font-size: 16px;
+}
+
+.cosmic-message-text {
+  flex: 1;
+}
+
+.cosmic-message-text strong {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.125rem;
+}
+
+.cosmic-message-text small {
+  font-size: 0.625rem;
+  color: rgba(148, 163, 184, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Progress Bar */
+.cosmic-progress {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.cosmic-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.cosmic-progress-label span {
+  font-size: 0.6875rem;
+  color: rgba(148, 163, 184, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cosmic-progress-label strong {
+  font-size: 0.75rem;
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.cosmic-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cosmic-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #5b2bee 0%, #a78bfa 50%, #ec4899 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.cosmic-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progressShine 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Floating Stars */
+.cosmic-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cosmic-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: starTwinkle 2s ease-in-out infinite;
+}
+
+.cosmic-star:nth-child(1) {
+  top: 10%;
+  left: 15%;
+  animation-delay: 0s;
+}
+.cosmic-star:nth-child(2) {
+  top: 20%;
+  right: 20%;
+  animation-delay: 0.3s;
+}
+.cosmic-star:nth-child(3) {
+  top: 60%;
+  left: 10%;
+  animation-delay: 0.6s;
+}
+.cosmic-star:nth-child(4) {
+  top: 80%;
+  right: 15%;
+  animation-delay: 0.9s;
+}
+.cosmic-star:nth-child(5) {
+  top: 40%;
+  right: 8%;
+  animation-delay: 1.2s;
+}
+
+@keyframes starTwinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}

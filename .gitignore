@@ -1,0 +1,94 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Secrets
+.env
+.flaskenv
+instance/
+
+# Firebase Admin SDK (ASLA COMMIT ETME!)
+*-firebase-adminsdk-*.json
+firebase-adminsdk*.json
+serviceAccountKey.json
+
+# Google Play Developer API service account
+play-service-account*.json
+
+# Google Services (ASLA COMMIT ETME!)
+google-services.json
+google-services*.json
+
+# Keystore / signing secrets (ASLA COMMIT ETME!)
+*.jks
+*.keystore
+key.properties
+*.pem
+
+# Google OAuth Client Secrets (ASLA COMMIT ETME!)
+client_secret_*.json
+client_secret*.json
+
+# Flask
+instance/
+.webassets-cache
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Static files
+static/debug/
+static/semantic/dist/
+
+# Templates backup
+*.bak
+*.backup
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Project specific
+ephe/
+sessions/
+aa.json
+sonuclar.md
+term.txt
+ASD.txt
+calculate_astro_data.txt
+.vercel
+
+# Auto Claude data directory
+.auto-claude/
+
+# One-time init scripts (contain hardcoded AI provider config that
+# triggers GitHub Push Protection false positives; init manually on server)
+scripts/init_ai_settings.py
+scripts/init_pricing.py
+scripts/init_stats_counter.py
+scripts/run_pricing.py

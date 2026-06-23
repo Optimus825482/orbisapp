@@ -1,0 +1,307 @@
+{% extends "layout.html" %} {% block title %}Çerez Politikası - ORBIS{% endblock
+%} {% block content %}
+<div class="min-h-screen py-12 px-4">
+  <div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div
+        class="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/10 rounded-full mb-4"
+      >
+        <span class="material-icons-round text-orange-400 text-sm">cookie</span>
+        <span
+          class="text-[10px] uppercase tracking-widest text-orange-400 font-bold"
+          >Çerezler</span
+        >
+      </div>
+      <h1 class="text-3xl font-display font-bold text-white mb-2">
+        Çerez Politikası
+      </h1>
+      <p class="text-slate-400 text-sm">Son güncelleme: 10 Ocak 2026</p>
+    </div>
+
+    <!-- Content -->
+    <div
+      class="bg-surface-dark/40 backdrop-blur-xl rounded-3xl p-8 border border-white/5 space-y-8"
+    >
+      <!-- Çerez Nedir -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-orange-400">help</span>
+          Çerez Nedir?
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          Çerezler, web sitelerinin tarayıcınıza yerleştirdiği küçük metin
+          dosyalarıdır. Bu dosyalar, tercihlerinizi hatırlamak, oturum yönetimi
+          sağlamak ve site kullanımını analiz etmek için kullanılır.
+        </p>
+      </section>
+
+      <!-- Kullandığımız Çerezler -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-primary">list</span>
+          Kullandığımız Çerez Türleri
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Zorunlu Çerezler -->
+          <div
+            class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5"
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <span class="material-icons-round text-emerald-400"
+                >check_circle</span
+              >
+              <h3 class="font-bold text-white">Zorunlu Çerezler</h3>
+              <span
+                class="text-[9px] bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full uppercase"
+                >Her Zaman Aktif</span
+              >
+            </div>
+            <p class="text-slate-300 text-sm mb-3">
+              Web sitesinin temel işlevleri için gereklidir. Bu çerezler olmadan
+              site düzgün çalışmaz.
+            </p>
+            <div class="bg-black/20 rounded-lg p-3">
+              <table class="w-full text-xs">
+                <tr class="border-b border-white/5">
+                  <td class="py-2 text-slate-400">session</td>
+                  <td class="py-2 text-slate-300">Oturum yönetimi</td>
+                  <td class="py-2 text-slate-500">Oturum</td>
+                </tr>
+                <tr class="border-b border-white/5">
+                  <td class="py-2 text-slate-400">csrf_token</td>
+                  <td class="py-2 text-slate-300">Güvenlik</td>
+                  <td class="py-2 text-slate-500">Oturum</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-slate-400">cookie_consent</td>
+                  <td class="py-2 text-slate-300">Çerez tercihi</td>
+                  <td class="py-2 text-slate-500">1 yıl</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Analitik Çerezler -->
+          <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="material-icons-round text-blue-400">analytics</span>
+              <h3 class="font-bold text-white">Analitik Çerezler</h3>
+              <span
+                class="text-[9px] bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded-full uppercase"
+                >İsteğe Bağlı</span
+              >
+            </div>
+            <p class="text-slate-300 text-sm mb-3">
+              Site kullanımını anlamamıza ve iyileştirmemize yardımcı olur.
+            </p>
+            <div class="bg-black/20 rounded-lg p-3">
+              <table class="w-full text-xs">
+                <tr class="border-b border-white/5">
+                  <td class="py-2 text-slate-400">_ga</td>
+                  <td class="py-2 text-slate-300">Google Analytics</td>
+                  <td class="py-2 text-slate-500">2 yıl</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-slate-400">_gid</td>
+                  <td class="py-2 text-slate-300">Google Analytics</td>
+                  <td class="py-2 text-slate-500">24 saat</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Reklam Çerezleri -->
+          <div
+            class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5"
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <span class="material-icons-round text-amber-400">ads_click</span>
+              <h3 class="font-bold text-white">Reklam Çerezleri</h3>
+              <span
+                class="text-[9px] bg-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full uppercase"
+                >İsteğe Bağlı</span
+              >
+            </div>
+            <p class="text-slate-300 text-sm mb-3">
+              Size ilgi alanlarınıza uygun reklamlar göstermek için kullanılır.
+            </p>
+            <div class="bg-black/20 rounded-lg p-3">
+              <table class="w-full text-xs">
+                <tr class="border-b border-white/5">
+                  <td class="py-2 text-slate-400">IDE</td>
+                  <td class="py-2 text-slate-300">Google DoubleClick</td>
+                  <td class="py-2 text-slate-500">1 yıl</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-slate-400">NID</td>
+                  <td class="py-2 text-slate-300">Google Ads</td>
+                  <td class="py-2 text-slate-500">6 ay</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Fonksiyonel Çerezler -->
+          <div
+            class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-5"
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <span class="material-icons-round text-purple-400">tune</span>
+              <h3 class="font-bold text-white">Fonksiyonel Çerezler</h3>
+              <span
+                class="text-[9px] bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded-full uppercase"
+                >İsteğe Bağlı</span
+              >
+            </div>
+            <p class="text-slate-300 text-sm mb-3">
+              Tercihlerinizi hatırlamak ve gelişmiş özellikler sunmak için
+              kullanılır.
+            </p>
+            <div class="bg-black/20 rounded-lg p-3">
+              <table class="w-full text-xs">
+                <tr class="border-b border-white/5">
+                  <td class="py-2 text-slate-400">theme</td>
+                  <td class="py-2 text-slate-300">Tema tercihi</td>
+                  <td class="py-2 text-slate-500">1 yıl</td>
+                </tr>
+                <tr>
+                  <td class="py-2 text-slate-400">language</td>
+                  <td class="py-2 text-slate-300">Dil tercihi</td>
+                  <td class="py-2 text-slate-500">1 yıl</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobil Uygulama -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-cyan-400">smartphone</span>
+          Mobil Uygulama
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          ORBIS mobil uygulamasında çerez yerine
+          <strong class="text-white">localStorage</strong> ve
+          <strong class="text-white">cihaz depolama alanı</strong>
+          kullanılmaktadır. Bu veriler cihazınızda yerel olarak saklanır ve
+          benzer amaçlarla kullanılır.
+        </p>
+      </section>
+
+      <!-- Çerez Yönetimi -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-teal-400">settings</span>
+          Çerez Tercihlerinizi Yönetme
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Çerez tercihlerinizi aşağıdaki yöntemlerle yönetebilirsiniz:
+        </p>
+        <div class="space-y-3">
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">Tarayıcı Ayarları</h4>
+            <p class="text-slate-400 text-xs">
+              Tarayıcınızın ayarlar menüsünden çerezleri engelleyebilir veya
+              silebilirsiniz.
+            </p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">
+              Google Reklam Ayarları
+            </h4>
+            <p class="text-slate-400 text-xs">
+              <a
+                href="https://adssettings.google.com"
+                target="_blank"
+                class="text-primary hover:underline"
+                >adssettings.google.com</a
+              >
+              adresinden Google reklam kişiselleştirmesini kapatabilirsiniz.
+            </p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">Çerez Onay Aracı</h4>
+            <p class="text-slate-400 text-xs">
+              Sitemizi ilk ziyaretinizde gösterilen çerez banner'ından
+              tercihlerinizi belirleyebilirsiniz.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Uyarı -->
+      <section>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <span class="material-icons-round text-amber-400 mt-0.5"
+              >warning</span
+            >
+            <div>
+              <h4 class="font-bold text-amber-200 text-sm mb-1">
+                Önemli Uyarı
+              </h4>
+              <p class="text-amber-200/80 text-xs leading-relaxed">
+                Zorunlu çerezleri devre dışı bırakmanız durumunda web sitemizin
+                bazı özellikleri düzgün çalışmayabilir. Analitik ve reklam
+                çerezlerini reddetmeniz hizmet kalitemizi etkilemez ancak size
+                özelleştirilmiş içerik sunamayız.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- İletişim -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-primary">mail</span>
+          İletişim
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Çerez politikamız hakkında sorularınız için:
+        </p>
+        <div
+          class="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 border border-primary/30"
+        >
+          <p class="text-slate-300 text-sm">
+            E-posta:
+            <a
+              href="mailto:privacy@orbis.app"
+              class="text-primary hover:underline"
+              >privacy@orbis.app</a
+            >
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8 space-x-4">
+      <a
+        href="{{ url_for('legal.privacy_policy') }}"
+        class="text-slate-400 hover:text-white transition-colors text-sm"
+      >
+        Gizlilik Politikası
+      </a>
+      <span class="text-slate-600">•</span>
+      <a
+        href="{{ url_for('legal.terms_of_service') }}"
+        class="text-slate-400 hover:text-white transition-colors text-sm"
+      >
+        Kullanım Şartları
+      </a>
+      <span class="text-slate-600">•</span>
+      <a
+        href="{{ url_for('main.index') }}"
+        class="text-slate-400 hover:text-white transition-colors text-sm"
+      >
+        Ana Sayfa
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

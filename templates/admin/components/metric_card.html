@@ -1,0 +1,41 @@
+{# ─── MetricCard component ───────────────────────────
+   Usage:
+     {% import 'admin/components/metric_card.html' as metric %}
+     {{ metric.card(
+         label='Toplam Kullanıcı',
+         value=12034,
+         trend=12.5,
+         trend_dir='up',
+         icon='group',
+         sparkline=[10, 12, 11, 14, 18, 22, 25]
+     ) }}
+#}
+{% macro card(label, value, trend=None, trend_dir='flat', icon=None, sparkline=None, compare_label='vs önceki dönem', data_key=None) %}
+<div class="metric" role="group" aria-label="{{ label }}"{% if data_key %} data-key="{{ data_key }}"{% endif %}>
+  <div class="metric-head">
+    <span class="metric-label">{{ label }}</span>
+    {% if icon %}
+    <span class="metric-icon" aria-hidden="true">
+      <span class="material-symbols-outlined">{{ icon }}</span>
+    </span>
+    {% endif %}
+  </div>
+  <div class="metric-value tabular" data-count-up="{{ value }}">{{ value }}</div>
+  <div class="metric-foot">
+    {% if trend is not none %}
+    <span class="trend trend--{{ trend_dir }}" aria-label="{{ trend_dir }} {{ trend }}%">
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {%- if trend_dir == 'up' -%}trending_up{%- elif trend_dir == 'down' -%}trending_down{%- else -%}trending_flat{%- endif -%}
+      </span>
+      {{ trend }}%
+    </span>
+    {% else %}
+    <span></span>
+    {% endif %}
+    <span class="metric-compare">{{ compare_label }}</span>
+  </div>
+  {% if sparkline %}
+  <div class="metric-spark" id="spark-{{ range(1000, 99999) | random }}" data-chart='{"type":"sparkline","values":{{ sparkline | tojson }}}'></div>
+  {% endif %}
+</div>
+{% endmacro %}

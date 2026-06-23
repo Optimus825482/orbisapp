@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+
+{% block title %}Kayıt Ol{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/@opencage/autocomplete@1.0.0/dist/autocomplete.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@opencage/autocomplete@1.0.0/dist/autocomplete.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h1 class="text-2xl font-bold mb-6 text-center">Kayıt Ol</h1>
+    <form id="registerForm" method="POST" action="{{ url_for('register') }}">
+        <!-- Adım 1: Ad Soyad -->
+        <div class="form-step" id="step-1">
+            <h2 class="text-xl font-semibold mb-4">Adınız Soyadınız</h2>
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700">Ad Soyad:</label>
+                <input type="text" name="name" id="name" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <button type="button"
+                class="next-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                İleri
+            </button>
+        </div>
+
+        <!-- Adım 2: Doğum Tarihi ve Saati -->
+        <div class="form-step hidden" id="step-2">
+            <h2 class="text-xl font-semibold mb-4">Doğum Tarihi ve Saati</h2>
+            <div class="mb-4">
+                <label for="birth_date" class="block text-sm font-medium text-gray-700">Doğum Tarihi:</label>
+                <input type="date" name="birth_date" id="birth_date" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div class="mb-4">
+                <label for="birth_time" class="block text-sm font-medium text-gray-700">Doğum Saati:</label>
+                <input type="time" name="birth_time" id="birth_time" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div class="flex justify-between">
+                <button type="button"
+                    class="prev-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">Geri</button>
+                <button type="button"
+                    class="next-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">İleri</button>
+            </div>
+        </div>
+
+        <!-- Adım 3: Doğum Yeri -->
+        <div class="form-step hidden" id="step-3">
+            <h2 class="text-xl font-semibold mb-4">Doğum Yeri</h2>
+            <div class="mb-4">
+                <label for="birth_place" class="block text-sm font-medium text-gray-700">Doğum Yeri:</label>
+                <input type="text" name="birth_place" id="birth_place" list="birth_place_suggestions" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Doğum yerinizi girin">
+                <datalist id="birth_place_suggestions"></datalist>
+            </div>
+            <div class="flex justify-between">
+                <button type="button"
+                    class="prev-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">Geri</button>
+                <button type="button"
+                    class="next-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">İleri</button>
+            </div>
+        </div>
+
+        <!-- Adım 4: Kullanıcı Bilgileri (Kullanıcı Adı, E-posta, Şifre ve Şifre Tekrar) -->
+        <div class="form-step hidden" id="step-4">
+            <h2 class="text-xl font-semibold mb-4">Kullanıcı Bilgileri</h2>
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Kullanıcı Adı:</label>
+                <input type="text" name="username" id="username" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Kullanıcı adınızı girin">
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">E-posta:</label>
+                <input type="email" name="email" id="email" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="E-posta adresinizi girin">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Şifre:</label>
+                <input type="password" name="password" id="password" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Şifrenizi girin">
+            </div>
+            <div class="mb-4">
+                <label for="password_confirm" class="block text-sm font-medium text-gray-700">Şifre Tekrar:</label>
+                <input type="password" name="password_confirm" id="password_confirm" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Şifrenizi tekrar girin">
+            </div>
+            <div class="flex justify-between">
+                <button type="button"
+                    class="prev-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">Geri</button>
+                <button type="submit"
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">Kayıt Ol</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const steps = document.querySelectorAll(".form-step");
+        let currentStep = 0;
+
+        function showStep(index) {
+            steps.forEach((step, i) => {
+                if (i === index) {
+                    step.classList.remove("hidden");
+                    // Aktif adımdaki input alanlarına required ekle
+                    step.querySelectorAll("input").forEach(input => {
+                        input.setAttribute("required", true);
+                    });
+                } else {
+                    step.classList.add("hidden");
+                    // Gizli adımlardaki input alanlarının required özelliğini kaldır
+                    step.querySelectorAll("input").forEach(input => {
+                        input.removeAttribute("required");
+                    });
+                }
+            });
+        }
+
+        function validateCurrentStep() {
+            const currentStepElement = steps[currentStep];
+            const inputs = currentStepElement.querySelectorAll('input[required]');
+            return Array.from(inputs).every(input => input.value.trim() !== '');
+        }
+
+        function goToNextStep() {
+            if (currentStep < steps.length - 1 && validateCurrentStep()) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function goToPrevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        // Enter tuşu ile ilerleme
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Formun otomatik submit olmasını engelle
+
+                const activeElement = document.activeElement;
+
+                // Eğer son adımda ve submit butonu seçili değilse
+                if (currentStep === steps.length - 1 && activeElement.type !== 'submit') {
+                    // Submit butonunu bul ve tıkla
+                    const submitButton = steps[currentStep].querySelector('button[type="submit"]');
+                    if (submitButton) submitButton.click();
+                } else {
+                    // Diğer adımlarda bir sonraki adıma geç
+                    goToNextStep();
+                }
+            }
+        });
+
+        // Next butonları için event listener
+        document.querySelectorAll(".next-button").forEach(button => {
+            button.addEventListener("click", goToNextStep);
+        });
+
+        // Previous butonları için event listener
+        document.querySelectorAll(".prev-button").forEach(button => {
+            button.addEventListener("click", goToPrevStep);
+        });
+
+        // Tab tuşu son input'ta ise next butona focus olsun
+        steps.forEach((step, stepIndex) => {
+            const inputs = step.querySelectorAll('input');
+            const lastInput = inputs[inputs.length - 1];
+            const nextButton = step.querySelector('.next-button');
+
+            if (lastInput && nextButton) {
+                lastInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Tab' && !e.shiftKey) {
+                        e.preventDefault();
+                        nextButton.focus();
+                    }
+                });
+            }
+        });
+
+        showStep(currentStep);
+
+        // OpenCage Autocomplete
+        const birthPlaceInput = document.getElementById('birth_place');
+        const suggestionsList = document.getElementById('birth_place_suggestions');
+        const apiKey = '{{ opencage_api_key }}';
+        let timeoutId;
+
+        birthPlaceInput.addEventListener('input', function () {
+            const query = this.value;
+
+            // Önceki timeout'u temizle
+            clearTimeout(timeoutId);
+
+            // Aramayı hemen başlat
+            if (query.length > 0) {
+                // API çağrısını 500ms geciktir (her tuş vuruşunda çağrı yapmamak için)
+                timeoutId = setTimeout(() => {
+                    fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&language=tr&limit=5`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Önceki önerileri temizle
+                            suggestionsList.innerHTML = '';
+
+                            if (data.results && data.results.length > 0) {
+                                data.results.forEach(result => {
+                                    const option = document.createElement('option');
+                                    option.value = result.formatted;
+                                    // Koordinatları data özelliği olarak sakla
+                                    option.setAttribute('data-lat', result.geometry.lat);
+                                    option.setAttribute('data-lng', result.geometry.lng);
+                                    suggestionsList.appendChild(option);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('OpenCage API Hatası:', error);
+                        });
+                }, 500);
+            }
+        });
+
+        // Seçilen yerin koordinatlarını saklamak için gizli input'lar ekle
+        birthPlaceInput.addEventListener('change', function () {
+            const selectedOption = Array.from(suggestionsList.options).find(
+                option => option.value === this.value
+            );
+
+            if (selectedOption) {
+                const lat = selectedOption.getAttribute('data-lat');
+                const lng = selectedOption.getAttribute('data-lng');
+
+                // Varsa önceki gizli input'ları kaldır
+                document.querySelectorAll('.location-coords').forEach(el => el.remove());
+
+                // Yeni gizli input'lar ekle
+                const latInput = document.createElement('input');
+                latInput.type = 'hidden';
+                latInput.name = 'latitude';
+                latInput.value = lat;
+                latInput.className = 'location-coords';
+
+                const lngInput = document.createElement('input');
+                lngInput.type = 'hidden';
+                lngInput.name = 'longitude';
+                lngInput.value = lng;
+                lngInput.className = 'location-coords';
+
+                birthPlaceInput.parentNode.appendChild(latInput);
+                birthPlaceInput.parentNode.appendChild(lngInput);
+            }
+        });
+    });
+</script>
+{% endblock %}

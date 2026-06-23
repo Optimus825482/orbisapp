@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Astro AI{% endblock %}</title>
+
+    <!-- Semantic UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+    />
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/custom.css') }}"
+    />
+
+    <!-- Core Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
+
+    {% block head %}{% endblock %}
+  </head>
+
+  <body>
+    <!-- Top Menu -->
+    <div class="ui fixed inverted menu">
+      <div class="ui container">
+        <a href="{{ url_for('main.index') }}" class="header item">
+          <i class="chart line icon"></i>
+          Astro AI
+        </a>
+        <a href="{{ url_for('main.index') }}" class="item">Ana Sayfa</a>
+        <a href="{{ url_for('main.dashboard') }}" class="item">Dashboard</a>
+        <a href="{{ url_for('main.show_results') }}" class="item"> Sonuçlar </a>
+
+        <div class="right menu">
+          <div class="item">
+            <button class="ui basic inverted button" id="themeToggle">
+              <i class="moon icon"></i>
+              Tema
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ui main container" style="margin-top: 6em">
+      {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <div class="ui inverted vertical footer segment">
+      <div class="ui center aligned container">
+        <p>&copy; 2024 Astro AI. Tüm hakları saklıdır.</p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

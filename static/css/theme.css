@@ -1,0 +1,1002 @@
+:root {
+  /* Updated Color Palette */
+  --cyber-black: #0d0d0d;
+  --cyber-gray: #1f1f1f;
+  --cyber-light: #e0e0e0;
+  --cyber-pastel-pink: #ff99ac;
+  --cyber-pastel-blue: #80d0ff;
+  --cyber-pastel-purple: #b388ff;
+  --cyber-pastel-green: #a5d6a7;
+  --cyber-pastel-yellow: #ffcc80;
+  
+  --cyber-shadow: 0 4px 20px rgba(128, 208, 255, 0.2);
+  --cyber-gradient: linear-gradient(135deg, var(--cyber-pastel-blue) 0%, var(--cyber-pastel-purple) 100%);
+  --cyber-font: 'Space Grotesk', sans-serif;
+}
+
+:root {
+  /* Daha kontrastlı renk paleti */
+  --primary-dark: #000000;      /* Temel koyu renk */
+  --primary-light: #ffffff;     /* Temel açık renk */
+  --accent-blue: #00aaff;       /* Parlak mavi vurgu */
+  --accent-orange: #ffa500;     /* Parlak turuncu vurgu */
+  --accent-green: #00cc66;      /* Parlak yeşil vurgu */
+  --shadow-color: rgba(0, 170, 255, 0.3);
+  --font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Tema Değişkenleri */
+:root {
+  /* Dark Theme */
+  --dark-cyber-black: #0d0d0d;
+  --dark-cyber-gray: #1f1f1f;
+  --dark-cyber-light: #e0e0e0;
+  --dark-cyber-pastel-pink: #ff99ac;
+  --dark-cyber-pastel-blue: #80d0ff;
+  --dark-cyber-pastel-purple: #b388ff;
+  --dark-cyber-pastel-green: #a5d6a7;
+  --dark-cyber-pastel-yellow: #ffcc80;
+  
+  /* Light Theme */
+  --light-cyber-black: #ffffff;
+  --light-cyber-gray: #f5f5f5;
+  --light-cyber-light: #0d0d0d;
+  --light-cyber-pastel-pink: #ff6699;
+  --light-cyber-pastel-blue: #0099ff;
+  --light-cyber-pastel-purple: #8e24aa;
+  --light-cyber-pastel-green: #43a047;
+  --light-cyber-pastel-yellow: #ffb300;
+}
+
+/* Tema Uygulaması */
+[data-theme="dark"] {
+  --cyber-black: var(--dark-cyber-black);
+  --cyber-gray: var(--dark-cyber-gray);
+  --cyber-light: var(--dark-cyber-light);
+  --cyber-pastel-pink: var(--dark-cyber-pastel-pink);
+  --cyber-pastel-blue: var(--dark-cyber-pastel-blue);
+  --cyber-pastel-purple: var(--dark-cyber-pastel-purple);
+  --cyber-pastel-green: var(--dark-cyber-pastel-green);
+  --cyber-pastel-yellow: var(--dark-cyber-pastel-yellow);
+}
+
+[data-theme="light"] {
+  --cyber-black: var(--light-cyber-black);
+  --cyber-gray: var(--light-cyber-gray);
+  --cyber-light: var(--light-cyber-light);
+  --cyber-pastel-pink: var(--light-cyber-pastel-pink);  
+  --cyber-pastel-blue: var(--light-cyber-pastel-blue);
+  --cyber-pastel-purple: var(--light-cyber-pastel-purple);
+  --cyber-pastel-green: var(--light-cyber-pastel-green);
+  --cyber-pastel-yellow: var(--light-cyber-pastel-yellow);
+}
+
+/* Dark Tema */
+[data-theme="dark"] {
+  --background: var(--primary-dark);
+  --text-color: var(--primary-light);
+  --button-bg: var(--accent-blue);
+  --button-hover: #0088cc;
+  --navbar-bg: #111111;
+  --card-bg: #1a1a1a;
+}
+
+/* Light Tema */
+[data-theme="light"] {
+  --background: var(--primary-light);
+  --text-color: #000000;
+  --button-bg: var(--accent-blue);
+  --button-hover: #0077cc;
+  --navbar-bg: #ffffff;
+  --card-bg: #f5f5f5;
+}
+
+/* Temel Stiller */
+body {
+  background-color: var(--cyber-black);
+  color: var(--cyber-light);
+  font-family: var(--cyber-font);
+  line-height: 1.6;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+
+/* Navbar */
+.navbar {
+  background-color: var(--cyber-gray);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(137, 221, 255, 0.1);
+}
+
+.navbar, .cyber-navbar {
+  background-color: var(--navbar-bg);
+  border-bottom: 1px solid var(--accent-blue);
+}
+
+/* Navbar Styles */
+.cyber-navbar {
+    background: var(--cyber-gray);
+    border-bottom: 1px solid rgba(137, 221, 255, 0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cyber-pastel-blue);
+    text-decoration: none;
+}
+
+.brand-icon {
+    font-size: 1.8rem;
+}
+
+.brand-text {
+    background: var(--cyber-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+}
+
+.menu-items {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--cyber-light);
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+    background: rgba(137, 221, 255, 0.1);
+    color: var(--cyber-pastel-blue);
+}
+
+.menu-item.active {
+    background: var(--cyber-gradient);
+    color: var(--cyber-black);
+}
+
+.menu-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(137, 221, 255, 0.1);
+}
+
+.mobile-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.mobile-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--cyber-pastel-blue);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .mobile-toggle {
+        display: flex;
+    }
+
+    .navbar-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--cyber-gray);
+        padding: 1rem;
+        display: none;
+    }
+
+    .navbar-menu.active {
+        display: block;
+    }
+
+    .menu-items {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .menu-divider {
+        width: 100%;
+        height: 1px;
+        margin: 0.5rem 0;
+    }
+
+    .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+
+    .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+    }
+}
+
+/* Kartlar */
+.card {
+  background-color: var(--cyber-gray);
+  border: 1px solid rgba(137, 221, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: var(--cyber-shadow);
+  transition: transform 0.3s ease;
+}
+
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-shadow: 0 4px 20px var(--shadow-color);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Butonlar */
+.btn-cyber {
+  background: var(--cyber-gradient);
+  border: none;
+  color: var(--cyber-black);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-cyber {
+  background: var(--button-bg);
+  color: var(--primary-dark);
+}
+
+.btn-cyber:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(137, 221, 255, 0.2);
+}
+
+.btn-cyber:hover {
+  background: var(--button-hover);
+}
+
+/* Form Elemanları */
+.form-control {
+  background-color: var(--cyber-black);
+  border: 1px solid var(--cyber-pastel-blue);
+  color: var(--cyber-light);
+  border-radius: 6px;
+}
+
+.form-control:focus {
+  background-color: var(--cyber-gray);
+  border-color: var(--cyber-pastel-purple);
+  box-shadow: 0 0 0 2px rgba(187, 154, 247, 0.2);
+}
+
+/* Form Tasarımı */
+.cyber-form {
+    background: var(--cyber-gray);
+    border: 1px solid rgba(137, 221, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--cyber-shadow);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: var(--cyber-pastel-blue);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(26, 27, 38, 0.6);
+    border: 1px solid rgba(137, 221, 255, 0.2);
+    border-radius: 8px;
+    color: var(--cyber-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: rgba(26, 27, 38, 0.8);
+    border-color: var(--cyber-pastel-blue);
+    box-shadow: 0 0 0 2px rgba(137, 221, 255, 0.1);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: rgba(169, 177, 214, 0.5);
+}
+
+.location-search {
+    position: relative;
+}
+
+.location-results {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: var(--cyber-gray);
+    border: 1px solid rgba(137, 221, 255, 0.2);
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: var(--cyber-shadow);
+}
+
+.location-result-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(137, 221, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.location-result-item:hover {
+    background: rgba(137, 221, 255, 0.1);
+    color: var(--cyber-pastel-blue);
+}
+
+.btn-cyber {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 1rem;
+}
+
+/* Form animasyonları */
+@keyframes formFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+    animation: formFadeIn 0.3s ease forwards;
+    animation-delay: calc(var(--index) * 0.1s);
+    opacity: 0;
+}
+
+/* Tablolar */
+.table {
+  background-color: var(--cyber-gray);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th {
+  background-color: rgba(137, 221, 255, 0.1);
+  color: var(--cyber-pastel-blue);
+  font-weight: 500;
+}
+
+.table td {
+  border-color: rgba(169, 177, 214, 0.1);
+}
+
+/* Gezegen Kartları */
+.planet-card {
+  background: var(--cyber-gray);
+  border: 1px solid rgba(137, 221, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.planet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--cyber-shadow);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  border: 3px solid var(--cyber-gray);
+  border-top: 3px solid var(--cyber-pastel-blue);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal-content {
+  background-color: var(--cyber-gray);
+  border: 1px solid rgba(137, 221, 255, 0.1);
+  border-radius: 12px;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(137, 221, 255, 0.1);
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(137, 221, 255, 0.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cyber-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cyber-pastel-blue);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyber-pastel-purple);
+}
+
+/* Astro Kart Tasarımı */
+.astro-card {
+    background: var(--cyber-gray);
+    border: 1px solid rgba(137, 221, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.astro-card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-shadow: 0 4px 20px var(--shadow-color);
+}
+
+.astro-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--cyber-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.astro-card:hover::before {
+    opacity: 1;
+}
+
+.astro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--cyber-shadow);
+}
+
+/* Gezegen Başlığı */
+.planet-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(137, 221, 255, 0.1);
+}
+
+.planet-symbol {
+    font-size: 1.5rem;
+    color: var(--cyber-pastel-blue);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(137, 221, 255, 0.1);
+    border-radius: 50%;
+}
+
+.planet-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--cyber-light);
+}
+
+/* Gezegen Detayları */
+.planet-details {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.detail-label {
+    color: var(--cyber-pastel-purple);
+    font-size: 0.875rem;
+}
+
+.detail-value {
+    color: var(--cyber-light);
+    font-weight: 500;
+}
+
+/* Retrograd Badge */
+.retrograde-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--cyber-pastel-pink);
+    color: var(--cyber-black);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Gezegen Grid Düzeni */
+.planets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+/* Responsive Düzenlemeler */
+@media (max-width: 768px) {
+    .planets-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .astro-card {
+        padding: 1.25rem;
+    }
+    
+    .planet-header {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* Mobil Uyumluluk İyileştirmeleri */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .cyber-form-container {
+    max-width: 100%;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-cyber {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .info-banner .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .planets-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .aspect-card {
+    padding: 0.75rem;
+  }
+}
+
+/* Tema Geçiş Animasyonu */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Element Renkleri */
+.element-fire { color: var(--cyber-pastel-pink); }
+.element-earth { color: var(--cyber-pastel-green); }
+.element-air { color: var(--cyber-pastel-blue); }
+.element-water { color: var(--cyber-pastel-purple); }
+
+/* Form Page Layout */
+.form-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.cyber-form-wrapper {
+    width: 100%;
+    max-width: 600px;
+    background: linear-gradient(145deg, rgba(36, 40, 59, 0.8), rgba(26, 27, 38, 0.9));
+    border: 1px solid rgba(137, 221, 255, 0.2);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+/* Form Header */
+.form-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.form-title-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-icon {
+    font-size: 2.5rem;
+}
+
+.form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--cyber-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.form-subtitle {
+    color: var(--cyber-light);
+    opacity: 0.8;
+    font-size: 0.95rem;
+}
+
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Form Controls */
+.input-wrapper {
+    position: relative;
+}
+
+.form-control {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(26, 27, 38, 0.6);
+    border: 1px solid rgba(137, 221, 255, 0.3);
+    border-radius: 12px;
+    color: var(--cyber-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: rgba(26, 27, 38, 0.8);
+    border-color: var(--cyber-pastel-blue);
+    box-shadow: 0 0 0 3px rgba(137, 221, 255, 0.1);
+}
+
+.focus-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--cyber-gradient);
+    transition: width 0.3s ease;
+}
+
+.form-control:focus ~ .focus-border {
+    width: 100%;
+}
+
+/* Submit Button */
+.btn-cyber {
+    width: 100%;
+    padding: 1.25rem;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    border-radius: 12px;
+    background: var(--cyber-gradient);
+    border: none;
+    color: var(--cyber-black);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-cyber {
+  background: var(--button-bg);
+  color: var(--primary-dark);
+}
+
+.btn-cyber:hover {
+  background: var(--button-hover);
+}
+
+.btn-cyber:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(137, 221, 255, 0.2);
+}
+
+.btn-cyber:active {
+    transform: translateY(0);
+}
+
+/* Pulse Animation */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(137, 221, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(137, 221, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(137, 221, 255, 0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cyber-form-wrapper {
+        padding: 1.5rem;
+    }
+    
+    .form-title {
+        font-size: 1.75rem;
+    }
+    
+    .form-icon {
+        font-size: 2rem;
+    }
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.typing-indicator span {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--cyber-pastel-blue);
+    animation: typing 1s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
+/* Birth Info Card Styles */
+.birthInfoCard {
+    background: linear-gradient(135deg, var(--cyber-black) 0%, var(--cyber-gray) 100%);
+    border: 1px solid rgba(137, 221, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    margin-top: 2rem;
+}
+
+.birthInfoCard .card-title {
+    color: var(--cyber-pastel-blue);
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    background: var(--cyber-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.birthInfoCard .input-field label {
+    color: var(--cyber-pastel-blue);
+}
+
+.birthInfoCard .input-field input {
+    color: var(--cyber-light);
+    border-bottom: 1px solid var(--cyber-pastel-blue) !important;
+}
+
+.birthInfoCard .input-field input:focus {
+    border-bottom: 1px solid var(--cyber-pastel-purple) !important;
+    box-shadow: 0 1px 0 0 var(--cyber-pastel-purple) !important;
+}
+
+.birthInfoCard .input-field input:focus + label {
+    color: var(--cyber-pastel-purple) !important;
+}
+
+.birthInfoCard .btn-large {
+    background: var(--cyber-gradient);
+    border-radius: 12px;
+    margin-top: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.birthInfoCard .btn-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(137, 221, 255, 0.3);
+}
+
+/* Semantic UI tema özelleştirmeleri */
+:root {
+    /* Tema renkleri */
+    --primary-color: #2185d0;
+    --secondary-color: #1b1c1d;
+    --success-color: #21ba45;
+    --error-color: #db2828;
+    
+    /* Dark tema renkleri */
+    --dark-bg: #1b1c1d;
+    --dark-text: #ffffff;
+    --dark-link: #54c8ff;
+    
+    /* Light tema renkleri */
+    --light-bg: #ffffff;
+    --light-text: #1b1c1d;
+    --light-link: #2185d0;
+}
+
+/* Dark tema */
+[data-theme="dark"] {
+    /* Arka plan */
+    .ui.segment,
+    .ui.card,
+    .ui.modal {
+        background: var(--dark-bg);
+        color: var(--dark-text);
+    }
+    
+    /* Butonlar */
+    .ui.button {
+        background: var(--primary-color);
+        color: var(--dark-text);
+    }
+    
+    /* Form elemanları */
+    .ui.input input,
+    .ui.form input,
+    .ui.form textarea {
+        background: rgba(255,255,255,0.1);
+        color: var(--dark-text);
+        border-color: rgba(255,255,255,0.2);
+    }
+}
+
+/* Light tema */
+[data-theme="light"] {
+    /* Arka plan */
+    .ui.segment,
+    .ui.card,
+    .ui.modal {
+        background: var(--light-bg);
+        color: var(--light-text);
+    }
+    
+    /* Butonlar */
+    .ui.button {
+        background: var(--primary-color);
+        color: var(--light-text);
+    }
+}
+
+/* Genel stil geçersiz kılmalar */
+.ui.primary.button {
+    background: var(--primary-color);
+}
+
+.ui.success.button {
+    background: var(--success-color);
+}
+
+.ui.error.message {
+    background: var(--error-color);
+}
+
+/* Animasyonlar */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}

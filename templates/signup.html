@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Kayıt Ol</h2>
+        <form method="post" action="{{ url_for('main.signup') }}">
+            {{ form.csrf_token }}
+            <p>
+                {{ form.username.label }}<br>
+                {{ form.username(size=30) }}
+            </p>
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(size=30) }}
+            </p>
+            <p>
+                {{ form.confirm.label }}<br>
+                {{ form.confirm(size=30) }}
+            </p>
+            <p>
+                {{ form.email.label }}<br>
+                {{ form.email(size=30) }}
+            </p>
+            <p>
+                {{ form.birth_date.label }}<br>
+                {{ form.birth_date }}
+            </p>
+            <p>
+                {{ form.birth_time.label }}<br>
+                {{ form.birth_time }}
+            </p>
+            <p>
+                {{ form.city.label }}<br>
+                {{ form.city(size=30) }}
+            </p>
+            <p><button type="submit">Kayıt Ol</button></p>
+            <a href="{{ url_for('main.signin') }}">Zaten bir hesabınız var mı? Giriş yapın</a>
+        </form>
+    </div>
+</body>
+</html> 

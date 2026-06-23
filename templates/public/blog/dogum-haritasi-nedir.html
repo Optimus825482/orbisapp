@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+{% block title %}Doğum Haritası Nedir? Kapsamlı Rehber - ORBIS Astroloji{% endblock %}
+{% block meta_description %}Doğum haritası nedir, nasıl hesaplanır? Gezegen pozisyonları, ev sistemi, yükselen burç ve
+natal harita hakkında kapsamlı rehber.{% endblock %}
+{% block canonical_path %}/blog/dogum-haritasi-nedir{% endblock %}
+{% block content %}
+<div class="min-h-screen flex flex-col px-4 py-12 max-w-3xl mx-auto">
+
+    <div class="mb-6">
+        <a href="/blog" class="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <span class="material-icons-round text-sm">arrow_back</span> Blog'a Dön
+        </a>
+    </div>
+
+    <article>
+        <header class="mb-8">
+            <h1 class="font-display text-3xl font-bold text-white mb-3">Doğum Haritası Nedir? Kapsamlı Rehber</h1>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+                <time datetime="2025-01-15">15 Ocak 2025</time>
+                <span>•</span>
+                <span>8 dk okuma</span>
+                <span>•</span>
+                <span class="text-primary">Temel Astroloji</span>
+            </div>
+        </header>
+
+        <div class="space-y-6 text-slate-300 text-sm leading-relaxed">
+
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5">
+                <p>
+                    Doğum haritası — diğer adıyla natal harita — astrolojinin en temel ve en güçlü aracıdır.
+                    Bir kişinin doğduğu anın gökyüzü fotoğrafı gibidir: Güneş, Ay ve tüm gezegenler
+                    o anda hangi burçta ve hangi konumdaysa, doğum haritanız da onu yansıtır.
+                </p>
+            </div>
+
+            <h2 class="text-white font-bold text-xl mt-8">Doğum Haritası Nasıl Hesaplanır?</h2>
+            <p>
+                Doğum haritası hesaplamak için üç temel bilgiye ihtiyaç vardır:
+            </p>
+            <ul class="list-none space-y-3 ml-0">
+                <li class="flex items-start gap-3">
+                    <span class="material-icons-round text-primary text-lg mt-0.5">event</span>
+                    <div><strong class="text-white">Doğum Tarihi:</strong> Gün, ay ve yıl bilgisi. Gezegenlerin hangi
+                        burçlarda olduğunu belirler.</div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="material-icons-round text-accent text-lg mt-0.5">schedule</span>
+                    <div><strong class="text-white">Doğum Saati:</strong> Yükselen burç (Ascendant) ve ev pozisyonları
+                        için kritik öneme sahiptir. Mümkün olduğunca kesin olmalıdır.</div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="material-icons-round text-emerald-400 text-lg mt-0.5">place</span>
+                    <div><strong class="text-white">Doğum Yeri:</strong> Coğrafi koordinatlar üzerinden yerel saat
+                        dilimi ve ev hesaplamaları yapılır.</div>
+                </li>
+            </ul>
+            <p>
+                ORBIS, bu bilgileri Swiss Ephemeris kütüphanesi ile işler. Swiss Ephemeris, NASA'nın JPL
+                verileri temelinde çalışan dünyanın en hassas astronomik hesaplama kütüphanesidir.
+                Gezegen pozisyonları arcsaniye (1 derecenin 3600'da biri) hassasiyetinde hesaplanır.
+            </p>
+
+            <h2 class="text-white font-bold text-xl mt-8">Doğum Haritasının Bileşenleri</h2>
+
+            <h3 class="text-white font-bold text-lg mt-6">Gezegenler</h3>
+            <p>
+                Astrolojide "gezegen" terimi, astronomik tanımdan farklı olarak Güneş ve Ay'ı da kapsar.
+                Temel gezegenler şunlardır:
+            </p>
+            <div class="grid grid-cols-2 gap-3 my-4">
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-yellow-400 font-bold text-sm">☀️ Güneş</span>
+                    <p class="text-xs text-slate-400 mt-1">Temel kimlik ve ego</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-blue-300 font-bold text-sm">🌙 Ay</span>
+                    <p class="text-xs text-slate-400 mt-1">Duygular ve içgüdüler</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-orange-400 font-bold text-sm">☿ Merkür</span>
+                    <p class="text-xs text-slate-400 mt-1">İletişim ve düşünce</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-pink-400 font-bold text-sm">♀ Venüs</span>
+                    <p class="text-xs text-slate-400 mt-1">Aşk ve değerler</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-red-400 font-bold text-sm">♂ Mars</span>
+                    <p class="text-xs text-slate-400 mt-1">Enerji ve eylem</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-amber-400 font-bold text-sm">♃ Jüpiter</span>
+                    <p class="text-xs text-slate-400 mt-1">Genişleme ve şans</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-gray-400 font-bold text-sm">♄ Satürn</span>
+                    <p class="text-xs text-slate-400 mt-1">Disiplin ve sorumluluk</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <span class="text-cyan-400 font-bold text-sm">♅ Uranüs</span>
+                    <p class="text-xs text-slate-400 mt-1">Değişim ve yenilik</p>
+                </div>
+            </div>
+
+            <h3 class="text-white font-bold text-lg mt-6">12 Burç</h3>
+            <p>
+                Burçlar gökyüzünün 12 eşit parçasıdır. Her biri 30 derece kaplar ve farklı enerji kalitelerini
+                temsil eder. Gezegenler hangi burçta bulunuyorsa, o burcun enerjisini taşır.
+                Örneğin, Venüs Yay burcundaysa aşk konusunda maceraperest ve özgürlükçü bir yaklaşım
+                beklenir.
+            </p>
+
+            <h3 class="text-white font-bold text-lg mt-6">12 Ev</h3>
+            <p>
+                Evler, yaşamın farklı alanlarını temsil eder. 1. ev benliğiniz ve dış görünüşünüz,
+                7. ev ilişkileriniz, 10. ev kariyer ve toplumsal statünüzü yönetir. Bir gezegen
+                hangi evdeyse, enerjisini o yaşam alanında daha güçlü hissedersiniz.
+            </p>
+
+            <h3 class="text-white font-bold text-lg mt-6">Açılar (Aspektler)</h3>
+            <p>
+                Gezegenler arasındaki açısal ilişkilere "aspekt" denir. Başlıca aspektler:
+            </p>
+            <ul class="space-y-2 ml-4">
+                <li><strong class="text-emerald-400">Kavuşum (0°):</strong> İki gezegen aynı noktada buluşur, enerjileri
+                    birleşir.</li>
+                <li><strong class="text-blue-400">Üçgen (120°):</strong> Uyumlu, doğal yetenek gösteren açı.</li>
+                <li><strong class="text-red-400">Kare (90°):</strong> Gerilim ve mücadele gerektiren açı.</li>
+                <li><strong class="text-purple-400">Karşıt (180°):</strong> Çatışma ve denge arayışı.</li>
+                <li><strong class="text-yellow-400">Altmışlık (60°):</strong> Fırsat ve işbirliği.</li>
+            </ul>
+
+            <h2 class="text-white font-bold text-xl mt-8">Yükselen Burç Nedir?</h2>
+            <p>
+                Yükselen burç (Ascendant), doğum anında doğu ufkunda yükselen burçtur. Doğum saatine
+                göre hesaplanır ve kişinin dış dünyaya nasıl göründüğünü, ilk izlenim bırakma tarzını
+                belirler. Yükselen burç yaklaşık her 2 saatte bir değişir, bu nedenle doğum saatinin
+                doğruluğu çok önemlidir.
+            </p>
+
+            <div class="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-6 border border-white/5 mt-8">
+                <h3 class="text-white font-bold text-lg mb-3">ORBIS ile Doğum Haritanızı Keşfedin</h3>
+                <p class="mb-4">
+                    ORBIS, doğum haritanızı saniyeler içinde hesaplar ve yapay zeka destekli derinlemesine
+                    yorumlar sunar.
+                </p>
+                <a href="/"
+                    class="inline-flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary/80 rounded-xl text-white text-sm font-bold transition-all">
+                    <span class="material-icons-round">rocket_launch</span>
+                    Haritanızı Oluşturun
+                </a>
+            </div>
+        </div>
+    </article>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+        <a href="/blog" class="hover:text-primary transition-colors">Blog</a>
+        <span>•</span>
+        <a href="/hakkimizda" class="hover:text-primary transition-colors">Hakkımızda</a>
+        <span>•</span>
+        <a href="/iletisim" class="hover:text-primary transition-colors">İletişim</a>
+        <span>•</span>
+        <a href="/sss" class="hover:text-primary transition-colors">SSS</a>
+    </div>
+
+    <div class="mt-8 max-w-2xl mx-auto">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+            data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>( adsbygoogle = window.adsbygoogle || [] ).push( {} );</script>
+    </div>
+</div>
+{% endblock %}

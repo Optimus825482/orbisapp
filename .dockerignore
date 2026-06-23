@@ -1,0 +1,69 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Build
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Local configs (bunları Coolify'da ayarlayacaksın)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Mobile app (backend'e gerek yok)
+mobile/
+
+# Node modules (eğer varsa)
+node_modules/
+
+# Documentation (opsiyonel)
+docs/
+
+# Tests (production'da gerek yok)
+tests/
+
+# Vercel specific (artık kullanmıyoruz)
+.vercel/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Secrets (Coolify'da env olarak ayarla)
+*.pem
+*.key
+# Firebase credentials - Coolify'da Base64 env olarak ekle
+# Local test için docker-compose.yml'da volume mount et

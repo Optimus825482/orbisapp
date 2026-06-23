@@ -1,0 +1,1130 @@
+{% extends "layout.html" %} {% block title %}ORBIS - Doğum ve Transit Girişi{%
+endblock %} {% block head %} {{ super() }}
+<style>
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  .location-suggestions {
+    position: absolute;
+    z-index: 50;
+    background-color: #1e293b;
+    width: 100%;
+    margin-top: 0.25rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 15rem;
+    overflow-y: auto;
+  }
+
+  .location-suggestion-item {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    -webkit-tap-highlight-color: rgba(91, 43, 238, 0.3);
+    touch-action: manipulation;
+  }
+
+  .location-suggestion-item:last-child {
+    border-bottom: none;
+  }
+
+  .location-suggestion-item:hover,
+  .location-suggestion-item:active {
+    background-color: rgba(91, 43, 238, 0.2);
+  }
+
+  .flash-message {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages() %} {% if messages %}
+<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md px-4">
+  {% for message in messages %}
+  <div
+    class="flash-message bg-red-500/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl mb-2 shadow-lg border border-red-400/30 flex items-center gap-3">
+    <span class="material-icons-round text-lg">warning</span>
+    <span class="text-sm">{{ message }}</span>
+    <button onclick="this.parentElement.remove()" class="ml-auto text-white/70 hover:text-white">
+      <span class="material-icons-round text-lg">close</span>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %} {% endwith %}
+
+<div class="relative min-h-screen flex flex-col items-center justify-center px-6 py-10 max-w-lg mx-auto w-full">
+  <!-- Geometric Overlay Decor -->
+  <div class="absolute top-[10%] left-0 w-full flex justify-center opacity-20 pointer-events-none">
+    <div class="w-64 h-64 border border-white/20 rounded-full animate-spin-slow"></div>
+  </div>
+
+  <!-- Page Header -->
+  <header class="text-center mb-8 w-full animate-fade-in relative z-10">
+    <h1
+      class="text-5xl font-display font-bold tracking-[0.2em] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-3">
+      ORBIS
+    </h1>
+    <div class="h-[1px] w-24 bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto mb-4"></div>
+    <!-- ORBIS Avatar -->
+    <div class="flex flex-col items-center mb-4">
+      <div class="w-20 h-20 rounded-full border-2 border-primary/30 p-1 mb-2 animate-breathe">
+        <div class="w-full h-full rounded-full overflow-hidden">
+          <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" alt="ORBIS AI"
+            class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <p class="text-[10px] uppercase tracking-[0.4em] text-slate-400 font-bold">
+        Kaderin Geometrisi
+      </p>
+    </div>
+  </header>
+
+  <!-- Entry Form Panel -->
+  <div
+    class="w-full glass-panel rounded-3xl relative p-8 backdrop-blur-2xl z-10 shadow-3xl shadow-black/50 overflow-hidden">
+    <!-- Corner Decors -->
+    <div class="absolute top-0 left-0 w-8 h-8 border-t border-l border-white/20"></div>
+    <div class="absolute top-0 right-0 w-8 h-8 border-t border-r border-white/20"></div>
+    <div class="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-white/20"></div>
+    <div class="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-white/20"></div>
+
+    <form id="orbisForm" method="POST" action="{{ url_for('main.show_results') }}" class="space-y-8">
+      <input type="hidden" id="latitude" name="latitude" />
+      <input type="hidden" id="longitude" name="longitude" />
+      <input type="hidden" id="transit_latitude" name="transit_latitude" />
+      <input type="hidden" id="transit_longitude" name="transit_longitude" />
+
+      <!-- Section: Birth Data -->
+      <div class="space-y-6">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(91,43,238,0.8)]"></span>
+          <h2 class="text-sm font-display font-bold text-white uppercase tracking-[0.2em]">
+            Doğum Bilgileri
+          </h2>
+        </div>
+
+        <div class="group relative">
+          <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">İsim</label>
+          <input type="text" name="name" id="name" required placeholder="İsminiz"
+            class="w-full px-5 py-5 min-h-[56px] bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all font-display rounded-2xl outline-none hover:bg-white/10" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="group relative">
+            <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Doğum
+              Tarihi</label>
+            <div class="relative">
+              <input type="text" name="birth_date" id="birth_date" required placeholder="GG/AA/YYYY" inputmode="numeric"
+                maxlength="10"
+                class="w-full px-5 py-5 min-h-[56px] pr-12 bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all rounded-2xl outline-none hover:bg-white/10" />
+              <button type="button" onclick="openDatePicker('birth_date')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+                <span class="material-icons-round text-xl">calendar_month</span>
+              </button>
+              <input type="date" id="birth_date_picker" class="absolute opacity-0 w-0 h-0"
+                onchange="setDateFromPicker('birth_date')" />
+            </div>
+          </div>
+          <div class="group relative">
+            <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Doğum
+              Saati</label>
+            <div class="relative">
+              <input type="text" name="birth_time" id="birth_time" required placeholder="SS:DD" inputmode="numeric"
+                maxlength="5"
+                class="w-full px-5 py-5 min-h-[56px] pr-12 bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all rounded-2xl outline-none hover:bg-white/10" />
+              <button type="button" onclick="openTimePicker('birth_time')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+                <span class="material-icons-round text-xl">schedule</span>
+              </button>
+              <input type="time" id="birth_time_picker" class="absolute opacity-0 w-0 h-0"
+                onchange="setTimeFromPicker('birth_time')" />
+            </div>
+            <!-- Doğum saati bilinmiyorsa uyarı -->
+            <p class="text-[9px] text-amber-400/80 mt-1.5 ml-1 flex items-center gap-1">
+              <span class="material-icons-round text-[10px]">info</span>
+              Saati bilmiyorsanız 12:00 girebilirsiniz
+            </p>
+          </div>
+        </div>
+
+        <div class="group relative">
+          <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Doğum
+            Yeri</label>
+          <div class="relative">
+            <input type="text" id="suggestionInput" name="birth_place_suggestion" autocomplete="off"
+              placeholder="Şehir Ara..."
+              class="w-full px-5 py-5 min-h-[56px] bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all rounded-2xl outline-none hover:bg-white/10 pl-12" />
+            <span
+              class="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">place</span>
+            <div id="suggestionResults" class="location-suggestions hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider Decor -->
+      <div class="relative py-4 flex items-center justify-center">
+        <div class="w-full h-[1px] bg-white/5"></div>
+        <div
+          class="absolute w-8 h-8 rounded-full border border-white/10 bg-background-dark flex items-center justify-center group pointer-events-none">
+          <span class="material-icons-round text-slate-600 text-xs">keyboard_double_arrow_down</span>
+        </div>
+      </div>
+
+      <!-- Section: Transit Data -->
+      <div class="space-y-6">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="w-2 h-2 border border-accent rounded-full shadow-[0_0_8px_rgba(56,189,248,0.5)]"></span>
+          <h2 class="text-sm font-display font-bold text-white uppercase tracking-[0.2em]">
+            Transit Analizi
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="group relative">
+            <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Transit
+              Tarihi <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="text" name="transit_date" id="transit_date" required placeholder="GG/AA/YYYY"
+                inputmode="numeric" maxlength="10"
+                class="w-full px-5 py-5 min-h-[56px] pr-12 bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-accent/50 focus:border-accent/50 transition-all rounded-2xl outline-none hover:bg-white/10" />
+              <button type="button" onclick="openDatePicker('transit_date')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-accent transition-colors">
+                <span class="material-icons-round text-xl">calendar_month</span>
+              </button>
+              <input type="date" id="transit_date_picker" class="absolute opacity-0 w-0 h-0"
+                onchange="setDateFromPicker('transit_date')" />
+            </div>
+          </div>
+          <div class="group relative">
+            <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Transit Saati
+              <span class="text-red-400">*</span></label>
+            <div class="relative">
+              <input type="text" name="transit_time" id="transit_time" required placeholder="SS:DD" inputmode="numeric"
+                maxlength="5"
+                class="w-full px-5 py-5 min-h-[56px] pr-12 bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-accent/50 focus:border-accent/50 transition-all rounded-2xl outline-none hover:bg-white/10" />
+              <button type="button" onclick="openTimePicker('transit_time')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-accent transition-colors">
+                <span class="material-icons-round text-xl">schedule</span>
+              </button>
+              <input type="time" id="transit_time_picker" class="absolute opacity-0 w-0 h-0"
+                onchange="setTimeFromPicker('transit_time')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="group relative">
+          <label class="block text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2 font-bold ml-1">Transit Yeri
+            <span class="text-red-400">*</span></label>
+          <div class="relative">
+            <input type="text" id="transit_location_search" name="transit_location_search" autocomplete="off" required
+              placeholder="Konum Ara..."
+              class="w-full px-5 py-5 min-h-[56px] bg-white/5 border border-white/10 text-sm text-white focus:ring-1 focus:ring-accent/50 focus:border-accent/50 transition-all rounded-2xl outline-none hover:bg-white/10 pl-12" />
+            <span
+              class="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">public</span>
+            <!-- Konum al butonu -->
+            <button type="button" id="getLocationBtn" onclick="getCurrentLocation()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-accent transition-colors"
+              title="Mevcut konumumu kullan">
+              <span class="material-icons-round text-xl">my_location</span>
+            </button>
+            <div id="transit_location_suggestions" class="location-suggestions hidden"></div>
+          </div>
+          <p class="text-[9px] text-slate-500 mt-1.5 ml-1 flex items-center gap-1">
+            <span class="material-icons-round text-[10px]">info</span>
+            Varsayılan: Bugünkü tarih/saat ve mevcut konumunuz
+          </p>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit"
+        class="w-full group relative mt-8 py-6 px-6 min-h-[56px] bg-primary hover:bg-violet-600 text-white font-bold font-display tracking-[0.2em] uppercase text-xs transition-all duration-500 rounded-2xl shadow-[0_0_30px_rgba(91,43,238,0.3)] overflow-hidden active:scale-[0.98]">
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
+        </div>
+        <span class="relative flex items-center justify-center gap-3">
+          ANALİZİ BAŞLAT
+          <span class="material-icons-round text-lg animate-pulse">auto_awesome</span>
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Privacy Note -->
+  <div
+    class="mt-8 flex items-start gap-4 p-5 rounded-3xl border border-white/5 bg-white/[0.02] max-w-sm backdrop-blur-sm relative z-10 transition-opacity hover:opacity-100 opacity-60">
+    <span class="material-icons-round text-slate-500 text-xl flex-shrink-0">shield</span>
+    <div class="text-[10px] leading-relaxed text-slate-400 font-light">
+      <strong class="text-slate-200 font-bold block mb-1 uppercase tracking-widest">Kozmik Güvenlik</strong>
+      Verileriniz tarayıcınızda şifrelenir. Analiz süreci tamamlandıktan sonra
+      bulut üzerinden temizlenir.
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay"
+  class="fixed inset-0 bg-background-dark/95 backdrop-blur-3xl z-[100] hidden flex flex-col items-center justify-center transition-all duration-500">
+  <div class="relative w-64 h-64 mb-10 flex items-center justify-center">
+    <div class="absolute inset-0 border-[0.5px] border-white/10 rounded-full animate-spin-slow"></div>
+    <div class="absolute inset-8 border-[0.5px] border-primary/20 rounded-full animate-spin-reverse-slow"></div>
+    <div class="w-16 h-16 rounded-full border border-primary/40 flex items-center justify-center animate-breathe">
+      <span class="material-icons-round text-primary text-3xl animate-pulse">all_inclusive</span>
+    </div>
+  </div>
+  <div class="text-center space-y-4">
+    <h3 class="text-2xl font-display font-bold tracking-widest text-white uppercase">
+      Hesaplanıyor
+    </h3>
+    <p id="loading-message" class="text-xs text-slate-400 font-light tracking-[0.2em] animate-pulse">
+      Yıldızların konumu taranıyor...
+    </p>
+  </div>
+</div>
+
+<!-- AdSense Banner (Web Only) -->
+<div id="adsense-banner-container" class="web-ads-only max-w-lg mx-auto px-4 mt-8">
+  <ins class="adsbygoogle" style="display: block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+    data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>
+    // AdSense yalnızca web'de çalışır (Capacitor native değilse)
+    if (
+      !window.Capacitor ||
+      !window.Capacitor.isNativePlatform ||
+      !window.Capacitor.isNativePlatform()
+    ) {
+      ( adsbygoogle = window.adsbygoogle || [] ).push( {} );
+    } else {
+      // Native platformda gizle
+      document.getElementById( "adsense-banner-container" ).style.display =
+        "none";
+    }
+  </script>
+</div>
+
+<!-- Copyright Footer -->
+<footer class="mt-8 pb-6 text-center px-4">
+  <!-- Sorumluluk Reddi -->
+  <div class="max-w-md mx-auto mb-4 p-3 rounded-xl bg-slate-800/30 border border-slate-700/30">
+    <p class="text-[9px] text-slate-500 leading-relaxed">
+      <span class="text-amber-500/70">⚠️</span>
+      Bu uygulama yalnızca eğlence ve kişisel keşif amaçlıdır. Sunulan
+      astrolojik yorumlar, yapay zeka tarafından üretilmiş genel bilgilerdir ve
+      profesyonel danışmanlık niteliği taşımaz.
+    </p>
+  </div>
+
+  <p class="text-[10px] text-slate-600">© 2025 ORBIS Astrology</p>
+  <p class="text-[9px] text-slate-700 mt-1">by Erkan ERDEM</p>
+  <div class="flex items-center justify-center gap-3 mt-2">
+    <a href="{{ url_for('legal.terms_of_service') }}"
+      class="text-[8px] text-slate-600 hover:text-slate-400 transition-colors">Kullanım Koşulları</a>
+    <span class="text-slate-700">•</span>
+    <a href="{{ url_for('legal.privacy_policy') }}"
+      class="text-[8px] text-slate-600 hover:text-slate-400 transition-colors">Gizlilik Politikası</a>
+  </div>
+</footer>
+
+{% endblock %} {% block scripts %}
+<script>
+  const OPENCAGE_API_KEY = "{{ opencage_key }}";
+
+  const loadingMessages = [
+    "Yıldızların konumu taranıyor...",
+    "Kozmik geometri hesaplanıyor...",
+    "Yapay zeka verileri sentezliyor...",
+    "Kaderin desenleri eşleştiriliyor...",
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTH CHECK - Google girişi zorunlu
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  function checkAuthAndRedirect() {
+    // Firebase yüklenmesini bekle
+    if ( !window.OrbisFirebase || !window.OrbisFirebase.auth ) {
+      setTimeout( checkAuthAndRedirect, 500 );
+      return;
+    }
+
+    window.OrbisFirebase.auth.onAuthStateChanged( ( user ) => {
+      if ( !user ) {
+        // Giriş yapılmamış - index'e yönlendir
+        console.log( "[ORBIS] Auth required - redirecting to login" );
+        alert(
+          "⚠️ Analiz yapabilmek için Google ile giriş yapmanız gerekmektedir.",
+        );
+        window.location.href = "{{ url_for('main.index') }}";
+      } else {
+        console.log( "[ORBIS] User authenticated:", user.email );
+        // Form'u göster
+        document.getElementById( "orbisForm" ).style.opacity = "1";
+      }
+    } );
+  }
+
+  // Sayfa yüklendiğinde auth kontrolü yap
+  document.addEventListener( "DOMContentLoaded", function () {
+    // Form'u başlangıçta gizle (auth kontrolü yapılana kadar)
+    document.getElementById( "orbisForm" ).style.opacity = "0.3";
+
+    // Auth kontrolü başlat
+    checkAuthAndRedirect();
+  } );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DATE/TIME PICKER & AUTO-FORMAT FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  function openDatePicker( fieldId ) {
+    const picker = document.getElementById( fieldId + "_picker" );
+    picker.showPicker ? picker.showPicker() : picker.click();
+  }
+
+  function openTimePicker( fieldId ) {
+    const picker = document.getElementById( fieldId + "_picker" );
+    picker.showPicker ? picker.showPicker() : picker.click();
+  }
+
+  function setDateFromPicker( fieldId ) {
+    const picker = document.getElementById( fieldId + "_picker" );
+    const input = document.getElementById( fieldId );
+    if ( picker.value ) {
+      const [year, month, day] = picker.value.split( "-" );
+      input.value = `${day}/${month}/${year}`;
+    }
+  }
+
+  function setTimeFromPicker( fieldId ) {
+    const picker = document.getElementById( fieldId + "_picker" );
+    const input = document.getElementById( fieldId );
+    if ( picker.value ) {
+      input.value = picker.value;
+    }
+  }
+
+  // Auto-format date input (GG/AA/YYYY)
+  function autoFormatDate( input ) {
+    let value = input.value.replace( /\D/g, "" ); // Sadece rakamlar
+    let formatted = "";
+
+    if ( value.length > 0 ) {
+      formatted = value.substring( 0, 2 );
+    }
+    if ( value.length > 2 ) {
+      formatted += "/" + value.substring( 2, 4 );
+    }
+    if ( value.length > 4 ) {
+      formatted += "/" + value.substring( 4, 8 );
+    }
+
+    input.value = formatted;
+  }
+
+  // Auto-format time input (SS:DD)
+  function autoFormatTime( input ) {
+    let value = input.value.replace( /\D/g, "" ); // Sadece rakamlar
+    let formatted = "";
+
+    if ( value.length > 0 ) {
+      formatted = value.substring( 0, 2 );
+    }
+    if ( value.length > 2 ) {
+      formatted += ":" + value.substring( 2, 4 );
+    }
+
+    input.value = formatted;
+  }
+
+  // Convert display format (GG/AA/YYYY) to backend format (YYYY-MM-DD)
+  function convertDateForBackend( displayDate ) {
+    if ( !displayDate || displayDate.length !== 10 ) return "";
+    const parts = displayDate.split( "/" );
+    if ( parts.length !== 3 ) return "";
+
+    const day = parseInt( parts[0], 10 );
+    const month = parseInt( parts[1], 10 );
+    const year = parseInt( parts[2], 10 );
+
+    // Validation
+    if ( isNaN( day ) || isNaN( month ) || isNaN( year ) ) return "";
+    if ( day < 1 || day > 31 ) return "";
+    if ( month < 1 || month > 12 ) return "";
+    if ( year < 1900 || year > 2100 ) return "";
+
+    // Format with leading zeros
+    const dayStr = day.toString().padStart( 2, "0" );
+    const monthStr = month.toString().padStart( 2, "0" );
+
+    return `${year}-${monthStr}-${dayStr}`;
+  }
+
+  // Validate date format (GG/AA/YYYY)
+  function isValidDate( dateStr ) {
+    if ( !dateStr || dateStr.length !== 10 ) return false;
+    const parts = dateStr.split( "/" );
+    if ( parts.length !== 3 ) return false;
+
+    const day = parseInt( parts[0], 10 );
+    const month = parseInt( parts[1], 10 );
+    const year = parseInt( parts[2], 10 );
+
+    if ( isNaN( day ) || isNaN( month ) || isNaN( year ) ) return false;
+    if ( day < 1 || day > 31 ) return false;
+    if ( month < 1 || month > 12 ) return false;
+    if ( year < 1900 || year > 2100 ) return false;
+
+    // Check if date is valid (e.g., not 31/02/2000)
+    const testDate = new Date( year, month - 1, day );
+    return (
+      testDate.getDate() === day &&
+      testDate.getMonth() === month - 1 &&
+      testDate.getFullYear() === year
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TRANSIT DEFAULT VALUES & GEOLOCATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Bugünkü tarih ve saati al (GG/AA/YYYY ve SS:DD formatında)
+  function getTodayDate() {
+    const now = new Date();
+    const day = now.getDate().toString().padStart( 2, "0" );
+    const month = ( now.getMonth() + 1 ).toString().padStart( 2, "0" );
+    const year = now.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function getCurrentTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart( 2, "0" );
+    const minutes = now.getMinutes().toString().padStart( 2, "0" );
+    return `${hours}:${minutes}`;
+  }
+
+  // Mevcut konumu al ve transit alanlarına doldur
+  function getCurrentLocation() {
+    const btn = document.getElementById( "getLocationBtn" );
+    const originalIcon = btn.innerHTML;
+
+    // Loading state
+    btn.innerHTML =
+      '<span class="material-icons-round text-xl animate-spin">sync</span>';
+    btn.disabled = true;
+
+    if ( !navigator.geolocation ) {
+      alert( "Tarayıcınız konum özelliğini desteklemiyor." );
+      btn.innerHTML = originalIcon;
+      btn.disabled = false;
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async ( position ) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        console.log( "[ORBIS] Geolocation success:", lat, lng );
+
+        // Koordinatları hidden input'lara yaz
+        document.getElementById( "transit_latitude" ).value = lat;
+        document.getElementById( "transit_longitude" ).value = lng;
+
+        // Reverse geocoding ile konum adını al
+        try {
+          const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${OPENCAGE_API_KEY}&language=tr&limit=1`;
+          const response = await fetch( url );
+          const data = await response.json();
+
+          if ( data.results && data.results.length > 0 ) {
+            const locationName = data.results[0].formatted;
+            document.getElementById( "transit_location_search" ).value =
+              locationName;
+
+            // Visual feedback
+            const input = document.getElementById( "transit_location_search" );
+            input.style.borderColor = "#22c55e";
+            setTimeout( () => ( input.style.borderColor = "" ), 2000 );
+          }
+        } catch ( err ) {
+          console.error( "[ORBIS] Reverse geocoding error:", err );
+          // Koordinatları göster
+          document.getElementById( "transit_location_search" ).value =
+            `${lat.toFixed( 4 )}, ${lng.toFixed( 4 )}`;
+        }
+
+        btn.innerHTML =
+          '<span class="material-icons-round text-xl text-green-400">check</span>';
+        setTimeout( () => {
+          btn.innerHTML = originalIcon;
+          btn.disabled = false;
+        }, 2000 );
+      },
+      ( error ) => {
+        console.error( "[ORBIS] Geolocation error:", error );
+        let errorMsg = "Konum alınamadı.";
+        switch ( error.code ) {
+          case error.PERMISSION_DENIED:
+            errorMsg =
+              "Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMsg = "Konum bilgisi alınamıyor.";
+            break;
+          case error.TIMEOUT:
+            errorMsg = "Konum isteği zaman aşımına uğradı.";
+            break;
+        }
+        alert( errorMsg );
+        btn.innerHTML = originalIcon;
+        btn.disabled = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 dakika cache
+      },
+    );
+  }
+
+  // Transit default değerlerini ayarla
+  function setTransitDefaults() {
+    const transitDateEl = document.getElementById( "transit_date" );
+    const transitTimeEl = document.getElementById( "transit_time" );
+
+    // Eğer transit tarihi boşsa bugünü yaz
+    if ( !transitDateEl.value ) {
+      transitDateEl.value = getTodayDate();
+    }
+
+    // Eğer transit saati boşsa şu anki saati yaz
+    if ( !transitTimeEl.value ) {
+      transitTimeEl.value = getCurrentTime();
+    }
+
+    // Konum izni varsa otomatik al
+    if (
+      navigator.geolocation &&
+      !document.getElementById( "transit_latitude" ).value
+    ) {
+      // Sessizce konum almayı dene
+      navigator.geolocation.getCurrentPosition(
+        async ( position ) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          document.getElementById( "transit_latitude" ).value = lat;
+          document.getElementById( "transit_longitude" ).value = lng;
+
+          // Reverse geocoding
+          try {
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${OPENCAGE_API_KEY}&language=tr&limit=1`;
+            const response = await fetch( url );
+            const data = await response.json();
+
+            if ( data.results && data.results.length > 0 ) {
+              const locationName = data.results[0].formatted;
+              const transitInput = document.getElementById(
+                "transit_location_search",
+              );
+              if ( !transitInput.value ) {
+                transitInput.value = locationName;
+                console.log(
+                  "[ORBIS] Auto-filled transit location:",
+                  locationName,
+                );
+              }
+            }
+          } catch ( err ) {
+            console.error( "[ORBIS] Auto reverse geocoding error:", err );
+          }
+        },
+        ( error ) => {
+          console.log( "[ORBIS] Auto geolocation skipped:", error.message );
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 },
+      );
+    }
+  }
+
+  // Global scope'a ekle
+  window.getCurrentLocation = getCurrentLocation;
+
+  document.addEventListener( "DOMContentLoaded", function () {
+    // Transit default değerlerini ayarla
+    setTransitDefaults();
+
+    // Auto-format event listeners
+    ["birth_date", "transit_date"].forEach( ( id ) => {
+      const el = document.getElementById( id );
+      if ( el ) {
+        el.addEventListener( "input", function () {
+          autoFormatDate( this );
+        } );
+      }
+    } );
+
+    ["birth_time", "transit_time"].forEach( ( id ) => {
+      const el = document.getElementById( id );
+      if ( el ) {
+        el.addEventListener( "input", function () {
+          autoFormatTime( this );
+        } );
+      }
+    } );
+
+    // Load saved birth data from localStorage
+    const savedData = localStorage.getItem( "astro_user_data" );
+    console.log( "[ORBIS] Loading saved birth data:", savedData ? "FOUND" : "NOT FOUND" );
+    if ( savedData ) {
+      try {
+        const data = JSON.parse( savedData );
+        console.log( "[ORBIS] Parsed birth data:", data );
+
+        if ( data.name ) {
+          document.getElementById( "name" ).value = data.name;
+          console.log( "[ORBIS] ✓ Name loaded:", data.name );
+        }
+        if ( data.birth_date ) {
+          document.getElementById( "birth_date" ).value = data.birth_date;
+          console.log( "[ORBIS] ✓ Birth date loaded:", data.birth_date );
+        }
+        if ( data.birth_time ) {
+          document.getElementById( "birth_time" ).value = data.birth_time;
+          console.log( "[ORBIS] ✓ Birth time loaded:", data.birth_time );
+        }
+        if ( data.birth_place_suggestion ) {
+          document.getElementById( "suggestionInput" ).value = data.birth_place_suggestion;
+          console.log( "[ORBIS] ✓ Birth place loaded:", data.birth_place_suggestion );
+        }
+        if ( data.latitude ) {
+          document.getElementById( "latitude" ).value = data.latitude;
+        }
+        if ( data.longitude ) {
+          document.getElementById( "longitude" ).value = data.longitude;
+          console.log( "[ORBIS] ✓ Coordinates loaded:", data.latitude, data.longitude );
+        }
+
+        console.log( "[ORBIS] ✅ Birth data successfully restored from cache!" );
+      } catch ( e ) {
+        console.error( "[ORBIS] ❌ Error loading stored info:", e );
+      }
+    } else {
+      console.log( "[ORBIS] No cached birth data found - first time user" );
+    }
+
+    // Form Submission Logic with Ad Control
+    const orbisForm = document.getElementById( "orbisForm" );
+    orbisForm.addEventListener( "submit", function ( e ) {
+      e.preventDefault(); // Önce formu durdur
+
+      // Funnel tracking: Form başlangıcı
+      if ( window.OrbisBridge && typeof window.OrbisBridge.trackFunnelStep === 'function' ) {
+        window.OrbisBridge.trackFunnelStep( "analysis_flow", "form_submitted", 1 );
+      }
+
+      // Validation - latitude/longitude kontrolü
+      const latitude = document.getElementById( "latitude" ).value;
+      const longitude = document.getElementById( "longitude" ).value;
+      const locationInput = document.getElementById( "suggestionInput" );
+
+      if ( !latitude || !longitude ) {
+        // Highlight the location input
+        locationInput.style.borderColor = "#ef4444";
+        locationInput.style.boxShadow = "0 0 0 2px rgba(239, 68, 68, 0.3)";
+        locationInput.focus();
+
+        alert(
+          "⚠️ Doğum yeri seçilmedi!\n\nŞehir adını yazın ve açılan listeden bir seçenek seçin.",
+        );
+
+        setTimeout( () => {
+          locationInput.style.borderColor = "";
+          locationInput.style.boxShadow = "";
+        }, 3000 );
+        return;
+      }
+
+      // Date validation
+      const birthDateEl = document.getElementById( "birth_date" );
+      const birthDateDisplay = birthDateEl.value;
+
+      if ( !birthDateDisplay || birthDateDisplay.length !== 10 ) {
+        alert(
+          "Lütfen doğum tarihini GG/AA/YYYY formatında girin!\nÖrnek: 19/06/1982",
+        );
+        birthDateEl.focus();
+        return;
+      }
+
+      // Validate date
+      if ( !isValidDate( birthDateDisplay ) ) {
+        alert(
+          "Geçersiz tarih!\n\nFormat: GG/AA/YYYY\nÖrnek: 19/06/1982\n\nGün: 01-31\nAy: 01-12\nYıl: 1900-2100",
+        );
+        birthDateEl.style.borderColor = "#ef4444";
+        birthDateEl.focus();
+        setTimeout( () => ( birthDateEl.style.borderColor = "" ), 3000 );
+        return;
+      }
+
+      // Convert and validate date format
+      const convertedDate = convertDateForBackend( birthDateDisplay );
+      if ( !convertedDate ) {
+        alert(
+          "Tarih dönüştürme hatası! GG/AA/YYYY formatında girin.\nÖrnek: 19/06/1982",
+        );
+        return;
+      }
+
+      console.log(
+        "[ORBIS] Form submit - birthDate:",
+        birthDateDisplay,
+        "-> converted:",
+        convertedDate,
+      );
+      console.log( "[ORBIS] Latitude:", latitude, "Longitude:", longitude );
+
+      // Transit date conversion
+      const transitDateEl = document.getElementById( "transit_date" );
+      const transitDateDisplay = transitDateEl.value;
+
+      // Transit validasyonu - ZORUNLU
+      if ( !transitDateDisplay || transitDateDisplay.length !== 10 ) {
+        alert(
+          "⚠️ Transit tarihi zorunludur!\n\nLütfen transit tarihini GG/AA/YYYY formatında girin.",
+        );
+        transitDateEl.style.borderColor = "#ef4444";
+        transitDateEl.focus();
+        setTimeout( () => ( transitDateEl.style.borderColor = "" ), 3000 );
+        return;
+      }
+
+      if ( !isValidDate( transitDateDisplay ) ) {
+        alert(
+          "Geçersiz transit tarihi!\n\nFormat: GG/AA/YYYY\nÖrnek: 16/01/2026",
+        );
+        transitDateEl.style.borderColor = "#ef4444";
+        transitDateEl.focus();
+        setTimeout( () => ( transitDateEl.style.borderColor = "" ), 3000 );
+        return;
+      }
+
+      const transitTimeEl = document.getElementById( "transit_time" );
+      const transitTimeValue = transitTimeEl.value;
+
+      if ( !transitTimeValue || transitTimeValue.length < 4 ) {
+        alert(
+          "⚠️ Transit saati zorunludur!\n\nLütfen transit saatini SS:DD formatında girin.",
+        );
+        transitTimeEl.style.borderColor = "#ef4444";
+        transitTimeEl.focus();
+        setTimeout( () => ( transitTimeEl.style.borderColor = "" ), 3000 );
+        return;
+      }
+
+      // Transit konum validasyonu
+      const transitLatitude = document.getElementById( "transit_latitude" ).value;
+      const transitLongitude =
+        document.getElementById( "transit_longitude" ).value;
+      const transitLocationInput = document.getElementById(
+        "transit_location_search",
+      );
+
+      if ( !transitLatitude || !transitLongitude ) {
+        transitLocationInput.style.borderColor = "#ef4444";
+        transitLocationInput.style.boxShadow =
+          "0 0 0 2px rgba(239, 68, 68, 0.3)";
+        transitLocationInput.focus();
+
+        alert(
+          "⚠️ Transit yeri zorunludur!\n\nŞehir adını yazın ve listeden seçin veya 📍 butonuna tıklayarak mevcut konumunuzu kullanın.",
+        );
+
+        setTimeout( () => {
+          transitLocationInput.style.borderColor = "";
+          transitLocationInput.style.boxShadow = "";
+        }, 3000 );
+        return;
+      }
+
+      // Reklam kontrolü yap
+      if ( window.OrbisBridge ) {
+        console.log( "[ORBIS] Calling OrbisBridge.requestAnalysis..." );
+
+        // requestAnalysis async fonksiyon, callback yerine Promise kullan
+        const successCallback = function () {
+          console.log( "[ORBIS] requestAnalysis SUCCESS callback triggered" );
+          try {
+            submitForm( birthDateDisplay, transitDateDisplay, convertedDate );
+          } catch ( err ) {
+            console.error( "[ORBIS] Error in success callback:", err );
+            alert( "Hata: " + err.message );
+          }
+        };
+
+        const cancelCallback = function () {
+          console.log( "[ORBIS] Analiz iptal edildi" );
+        };
+
+        // Async fonksiyonu çağır
+        try {
+          window.OrbisBridge.requestAnalysis( successCallback, cancelCallback );
+        } catch ( err ) {
+          console.error( "[ORBIS] requestAnalysis error:", err );
+          // Hata olursa direkt submit et
+          submitForm( birthDateDisplay, transitDateDisplay, convertedDate );
+        }
+      } else {
+        console.log( "[ORBIS] No OrbisBridge, direct submit" );
+        // Bridge yoksa direkt submit
+        submitForm( birthDateDisplay, transitDateDisplay, convertedDate );
+      }
+    } );
+
+    async function submitForm(
+      birthDateDisplay,
+      transitDateDisplay,
+      convertedBirthDate,
+    ) {
+      try {
+        console.log( "[ORBIS] submitForm called" );
+
+        // 🎯 DOĞRUDAN ANALİZE GEÇ - requestAnalysis zaten reklamı halletti
+        console.log( "[ORBIS] 🔄 Loading başlıyor..." );
+        $( "#loadingOverlay" ).removeClass( "hidden" ).addClass( "flex" );
+        let msgIdx = 0;
+        const msgInterval = setInterval( () => {
+          msgIdx = ( msgIdx + 1 ) % loadingMessages.length;
+          $( "#loading-message" ).fadeOut( 400, function () {
+            $( this ).text( loadingMessages[msgIdx] ).fadeIn( 400 );
+          } );
+        }, 2500 );
+
+        // Save display format to localStorage
+        const formData = {
+          name: document.getElementById( "name" ).value,
+          birth_date: birthDateDisplay,
+          birth_time: document.getElementById( "birth_time" ).value,
+          birth_place_suggestion:
+            document.getElementById( "suggestionInput" ).value,
+          latitude: document.getElementById( "latitude" ).value,
+          longitude: document.getElementById( "longitude" ).value,
+        };
+        localStorage.setItem( "astro_user_data", JSON.stringify( formData ) );
+        console.log( "[ORBIS] Saved to localStorage:", formData );
+
+        // Set backend format before submit
+        document.getElementById( "birth_date" ).value = convertedBirthDate;
+
+        if ( transitDateDisplay && transitDateDisplay.length === 10 ) {
+          const convertedTransit = convertDateForBackend( transitDateDisplay );
+          if ( convertedTransit ) {
+            document.getElementById( "transit_date" ).value = convertedTransit;
+          }
+        }
+
+        // Final form values
+        const finalValues = {
+          name: document.getElementById( "name" ).value,
+          birth_date: document.getElementById( "birth_date" ).value,
+          birth_time: document.getElementById( "birth_time" ).value,
+          latitude: document.getElementById( "latitude" ).value,
+          longitude: document.getElementById( "longitude" ).value,
+          transit_date: document.getElementById( "transit_date" ).value,
+          transit_time: document.getElementById( "transit_time" ).value,
+        };
+        console.log( "[ORBIS] Final form values:", finalValues );
+
+        // Funnel: Form gönderiliyor
+        if ( window.OrbisBridge && typeof window.OrbisBridge.trackFunnelStep === 'function' ) {
+          window.OrbisBridge.trackFunnelStep( "analysis_flow", "form_submitting", 4 );
+          window.OrbisBridge.trackEvent( "analysis_request", {
+            has_transit_data: !!transitDateDisplay,
+            is_premium: window.OrbisBridge.state?.isPremium || false
+          } );
+        }
+
+        // Formu gönder
+        console.log( "[ORBIS] Submitting form NOW..." );
+        document.getElementById( "orbisForm" ).submit();
+      } catch ( error ) {
+        console.error( "[ORBIS] submitForm ERROR:", error );
+
+        // Error tracking
+        if ( window.OrbisBridge && typeof window.OrbisBridge.trackError === 'function' ) {
+          window.OrbisBridge.trackError( error, {
+            location: "dashboard_submit_form",
+            birth_date: birthDateDisplay,
+            transit_date: transitDateDisplay
+          } );
+        }
+
+        alert( "Form gönderilirken hata: " + error.message );
+        $( "#loadingOverlay" ).addClass( "hidden" ).removeClass( "flex" );
+      }
+    }
+
+    // Location Autocomplete - Android WebView compatible
+    setupLocationSearch(
+      "suggestionInput",
+      "suggestionResults",
+      "latitude",
+      "longitude",
+    );
+    setupLocationSearch(
+      "transit_location_search",
+      "transit_location_suggestions",
+      "transit_latitude",
+      "transit_longitude",
+    );
+
+    function setupLocationSearch( inputId, resultsId, latId, lngId ) {
+      const $input = $( "#" + inputId );
+      const $results = $( "#" + resultsId );
+      let searchTimeout = null;
+
+      $input.on( "input", function () {
+        const query = $( this ).val().trim();
+
+        // Debounce search
+        if ( searchTimeout ) clearTimeout( searchTimeout );
+
+        if ( query.length >= 3 ) {
+          searchTimeout = setTimeout( () => {
+            console.log( "[ORBIS] Location search:", query );
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+              query,
+            )}&key=${OPENCAGE_API_KEY}&limit=5&language=tr`;
+
+            fetch( url )
+              .then( ( res ) => res.json() )
+              .then( ( data ) => {
+                $results.empty().removeClass( "hidden" );
+                console.log(
+                  "[ORBIS] Location results:",
+                  data.results?.length || 0,
+                );
+
+                if ( data.results && data.results.length > 0 ) {
+                  data.results.forEach( ( res ) => {
+                    const $item = $(
+                      '<div class="location-suggestion-item"></div>',
+                    )
+                      .text( res.formatted )
+                      .attr( "data-lat", res.geometry.lat )
+                      .attr( "data-lng", res.geometry.lng )
+                      .attr( "data-name", res.formatted );
+                    $results.append( $item );
+                  } );
+                } else {
+                  $results.html(
+                    '<div class="location-suggestion-item text-slate-500">Sonuç bulunamadı</div>',
+                  );
+                }
+              } )
+              .catch( ( err ) => {
+                console.error( "[ORBIS] Location search error:", err );
+                $results
+                  .html(
+                    '<div class="location-suggestion-item text-red-400">Arama hatası</div>',
+                  )
+                  .removeClass( "hidden" );
+              } );
+          }, 300 );
+        } else {
+          $results.addClass( "hidden" );
+        }
+      } );
+
+      // Handle selection - both click and touch for Android WebView
+      $results.on( "click touchend", ".location-suggestion-item", function ( e ) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const lat = $( this ).attr( "data-lat" );
+        const lng = $( this ).attr( "data-lng" );
+        const name = $( this ).attr( "data-name" );
+
+        if ( lat && lng ) {
+          $input.val( name );
+          $( "#" + latId ).val( lat );
+          $( "#" + lngId ).val( lng );
+          $results.addClass( "hidden" );
+
+          console.log(
+            "[ORBIS] Location selected:",
+            name,
+            "lat:",
+            lat,
+            "lng:",
+            lng,
+          );
+
+          // Visual feedback - show checkmark
+          $input.css( "border-color", "#22c55e" );
+          setTimeout( () => $input.css( "border-color", "" ), 1500 );
+        }
+      } );
+
+      // Close on outside click/touch
+      $( document ).on( "click touchend", function ( e ) {
+        if ( !$( e.target ).closest( "#" + inputId + ", #" + resultsId ).length ) {
+          $results.addClass( "hidden" );
+        }
+      } );
+    }
+
+    // Debug: Show current form values
+    window.debugFormValues = function () {
+      console.log( "[ORBIS DEBUG] Form values:" );
+      console.log( "  name:", document.getElementById( "name" ).value );
+      console.log( "  birth_date:", document.getElementById( "birth_date" ).value );
+      console.log( "  birth_time:", document.getElementById( "birth_time" ).value );
+      console.log( "  latitude:", document.getElementById( "latitude" ).value );
+      console.log( "  longitude:", document.getElementById( "longitude" ).value );
+      console.log(
+        "  suggestionInput:",
+        document.getElementById( "suggestionInput" ).value,
+      );
+      alert(
+        "Lat: " +
+        document.getElementById( "latitude" ).value +
+        "\nLng: " +
+        document.getElementById( "longitude" ).value,
+      );
+    };
+  } );
+</script>
+{% endblock %}

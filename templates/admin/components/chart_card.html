@@ -1,0 +1,34 @@
+{# ─── ChartCard — başlık + period + chart ────────────
+   Usage:
+     {% import 'admin/components/chart_card.html' as chart %}
+     {{ chart.card(
+         title='Signups (son 7 gün)',
+         subtitle='Yeni kullanıcı kayıtları',
+         chart_id='chart-signups',
+         series=[{'name':'Signups','values':[3,5,8,12,7,15,18], 'color':'primary'}],
+         x_labels=['Pt','Sa','Ça','Pe','Cu','Ct','Pz'],
+         current_range='7d',
+         base_url=request.path
+     ) }}
+#}
+{% macro card(title, subtitle='', chart_id='chart', series=None, x_labels=None, bars=None, kind='line', current_range='7d', base_url='#', label='') %}
+{% import 'admin/components/period_selector.html' as period %}
+<section class="card">
+  <header class="card-header">
+    <div>
+      <h2 class="card-title">{{ title }}</h2>
+      {% if subtitle %}<p class="card-subtitle">{{ subtitle }}</p>{% endif %}
+    </div>
+    {{ period.selector(current=current_range, base_url=base_url) }}
+  </header>
+  <div class="chart {% if kind == 'sparkline' %}chart--sm{% endif %}"
+       id="{{ chart_id }}"
+       data-chart='{
+         "type": "{{ kind }}",
+         "label": "{{ label or title|e }}",
+         {% if series %}"series": {{ series | tojson }}, "xLabels": {{ x_labels or [] | tojson }}, "opts": {"height": 240}{% endif %}
+         {% if bars %}"bars": {{ bars | tojson }}{% endif %}
+       }'>
+  </div>
+</section>
+{% endmacro %}

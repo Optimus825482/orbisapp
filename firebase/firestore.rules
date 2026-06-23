@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admin SDK her zaman bypass eder — bu rules sadece client SDK için.
+    // Korumalı alanlar (isPremium/premiumExpiry/premiumPackageId/credits/premiumActivatedAt):
+    // client YAZAMAZ. Backend route Admin SDK ile yazar → tek kaynak.
+
+    match /users/{userId} {
+      // Kullanıcı kendi doc'unu okuyabilir; admin token her şeyi okuyabilir (admin panel).
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || request.auth.token.admin == true);
+
+      // Yeni kullanıcı oluşturma — premium/cCredits sıfır olmalı
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.isPremium == false
+        && request.resource.data.credits == 0;
+
+      // Güncelleme — korumalı alanlara dokunamaz
+      // İzinli client alanlar: dailyUsage, totalAnalyses, fcmTokens, lastSeen, stats.heartbeats
+      allow update: if request.auth != null && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'isPremium', 'premiumExpiry', 'premiumPackageId', 'credits', 'premiumActivatedAt'
+        ]);
+    }
+
+    match /purchases/{purchaseId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

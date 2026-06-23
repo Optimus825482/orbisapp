@@ -1,0 +1,3832 @@
+{% extends "layout.html" %} {% block title %}{{ astro_data.user_name if
+astro_data else 'Analiz' }} - ORBIS Sonuçları{% endblock %} {% block head %} {{
+super() }}
+<!-- Marked for Markdown Parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Results Page Modular CSS (cached) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}">
+<style>
+  #chart-paper {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  #chart-paper svg {
+    width: 100%;
+    height: 100%;
+    background: transparent !important;
+  }
+
+  .chart-container-wrapper {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2rem;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* AstroChart SVG stilleri */
+  #chart-paper svg text {
+    fill: #e2e8f0 !important;
+  }
+
+  #chart-paper svg circle {
+    stroke: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  #chart-paper svg line {
+    stroke: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .chart-selector-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
+    color: #94a3b8;
+  }
+
+  .chart-selector-pill.active {
+    background: #5b2bee;
+    color: white;
+    border-color: #5b2bee;
+    box-shadow: 0 4px 12px rgba(91, 43, 238, 0.3);
+  }
+
+  /* Chart Info Card Animations */
+  .chart-info-card {
+    animation: chartCardFadeIn 0.4s ease-out;
+  }
+
+  .chart-info-card.hidden {
+    animation: none;
+  }
+
+  @keyframes chartCardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .orb-glow {
+    filter: drop-shadow(0 0 15px rgba(91, 43, 238, 0.4));
+  }
+
+  .chart-circle {
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .planet-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .planet-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(91, 43, 238, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .glass-tab {
+    background: rgba(15, 23, 42, 0.4);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Cosmic Modal Loader stilleri results.css'de tanımlı */
+</style>
+{% endblock %} {% block content %} {% if not astro_data %}
+<div class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+  <div class="w-20 h-20 mb-6 text-slate-700">
+    <span class="material-icons-round text-6xl">query_stats</span>
+  </div>
+  <h2 class="text-xl font-display font-bold text-white mb-2">
+    Henüz Analiz Yok
+  </h2>
+  <p class="text-sm text-slate-500 max-w-xs mb-8">
+    Gökyüzü haritanızı oluşturmak için bilgilerinizi girmeniz gerekiyor.
+  </p>
+  <a href="{{ url_for('main.dashboard') }}"
+    class="bg-primary text-white px-8 py-4 rounded-2xl font-bold tracking-widest text-xs uppercase shadow-lg">Hemen
+    Hesapla</a>
+</div>{% else %}
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ORBIS COSMIC MODAL LOADER - Sayfanın Ortasında Modal Dialog
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="cosmic-loader-overlay">
+  <div class="cosmic-modal">
+    <!-- Floating Stars -->
+    <div class="cosmic-stars">
+      <div class="cosmic-star"></div>
+      <div class="cosmic-star"></div>
+      <div class="cosmic-star"></div>
+      <div class="cosmic-star"></div>
+      <div class="cosmic-star"></div>
+    </div>
+
+    <!-- Orbis Avatar - Üstte -->
+    <div class="cosmic-avatar">
+      <div class="cosmic-avatar-ring">
+        <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" alt="ORBIS AI" class="cosmic-avatar-img">
+      </div>
+    </div>
+
+    <!-- Kullanıcı Karşılama -->
+    <div class="cosmic-greeting">
+      <h2>Sevgili {{ astro_data.user_name }}</h2>
+      <p>Orbis verdiğin bilgiler doğrultusunda hesaplamalarını yaptı, senin için aşağıdaki analizleri oluşturuyor. Bu
+        analizlere ORBIS sekmesinde birazdan ulaşabileceksin.</p>
+    </div>
+
+    <!-- Scrolling Messages - Analiz Türleri -->
+    <div class="cosmic-messages">
+      <div class="cosmic-messages-inner" id="cosmic-messages-scroll">
+        <!-- İlk set -->
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">auto_awesome</span></div>
+          <div class="cosmic-message-text">
+            <strong>Kozmik Özet</strong>
+            <small>Kişisel enerji analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">psychology</span></div>
+          <div class="cosmic-message-text">
+            <strong>Karakter Analizi</strong>
+            <small>Doğum haritası yorumu</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">favorite</span></div>
+          <div class="cosmic-message-text">
+            <strong>İlişki Potansiyeli</strong>
+            <small>Aşk ve uyum analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">work</span></div>
+          <div class="cosmic-message-text">
+            <strong>Kariyer Yönelimi</strong>
+            <small>Meslek ve başarı analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
+          <div class="cosmic-message-text">
+            <strong>Dönemsel Öngörüler</strong>
+            <small>Günlük, haftalık, yıllık</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
+          <div class="cosmic-message-text">
+            <strong>Vedik Dönem Analizi</strong>
+            <small>Vimshottari Dasa</small>
+          </div>
+        </div>
+        <!-- Tekrar (sonsuz scroll için) -->
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">auto_awesome</span></div>
+          <div class="cosmic-message-text">
+            <strong>Kozmik Özet</strong>
+            <small>Kişisel enerji analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">psychology</span></div>
+          <div class="cosmic-message-text">
+            <strong>Karakter Analizi</strong>
+            <small>Doğum haritası yorumu</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">favorite</span></div>
+          <div class="cosmic-message-text">
+            <strong>İlişki Potansiyeli</strong>
+            <small>Aşk ve uyum analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">work</span></div>
+          <div class="cosmic-message-text">
+            <strong>Kariyer Yönelimi</strong>
+            <small>Meslek ve başarı analizi</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
+          <div class="cosmic-message-text">
+            <strong>Dönemsel Öngörüler</strong>
+            <small>Günlük, haftalık, yıllık</small>
+          </div>
+        </div>
+        <div class="cosmic-message">
+          <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
+          <div class="cosmic-message-text">
+            <strong>Vedik Dönem Analizi</strong>
+            <small>Vimshottari Dasa</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="cosmic-progress">
+      <div class="cosmic-progress-label">
+        <span>Yükleniyor</span>
+        <strong id="cosmic-progress-percent">0%</strong>
+      </div>
+      <div class="cosmic-progress-bar">
+        <div class="cosmic-progress-fill" id="cosmic-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="relative flex-1 flex flex-col pb-24 md:pb-12">
+  <!-- Results Header -->
+  <header
+    class="px-6 pt-8 pb-6 flex items-center justify-between sticky top-0 bg-background-dark/80 backdrop-blur-xl z-30">
+    <div class="flex items-center gap-4 cursor-pointer active:scale-95 transition-all"
+      onclick="switchResultTab('chart')">
+      <div
+        class="w-10 h-10 rounded-full border border-primary/20 overflow-hidden shadow-[0_0_10px_rgba(91,43,238,0.1)]">
+        <icon icon="material-symbols:person" />
+      </div>
+      <div>
+        <h2 class="font-display font-bold text-lg text-white leading-tight truncate max-w-[150px]">
+          {{ astro_data.user_name }}
+        </h2>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">
+          {{ astro_data.birth_info.date }} • {{ astro_data.birth_info.time }}
+        </p>
+      </div>
+    </div>
+    <button onclick="shareResults()"
+      class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+      <span class="material-icons-round text-lg">share</span>
+    </button>
+  </header>
+
+  <!-- Content Tabs Navigation -->
+  <div class="px-6 mb-6">
+    <div class="flex p-1 bg-surface-dark/50 rounded-2xl border border-white/5 glass-tab">
+      <button onclick="switchResultTab('summary')" id="tab-summary-btn"
+        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn active bg-primary text-white shadow-lg shadow-primary/20">
+        Özet
+      </button>
+      <button onclick="switchResultTab('chart')" id="tab-chart-btn"
+        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200">
+        Harita
+      </button>
+      <button onclick="switchResultTab('ai')" id="tab-ai-btn"
+        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1">
+        Analiz Merkezi
+        <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab 1: Summary -->
+  <section id="tab-summary" class="tab-content active px-6 space-y-8">
+    <!-- Cosmic Hero Card -->
+    <div
+      class="relative p-8 rounded-3xl bg-gradient-to-br from-primary/20 to-indigo-900/40 border border-primary/20 overflow-hidden shadow-2xl">
+      <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary/20 blur-[60px] rounded-full"></div>
+
+      <div class="relative z-10 flex flex-col items-center text-center">
+        <div class="w-24 h-24 rounded-full border-[0.5px] border-white/20 p-2 mb-6">
+          <div
+            class="w-full h-full rounded-full bg-background-dark flex items-center justify-center border border-primary animate-breathe">
+            <span class="text-4xl">{% if astro_data.natal_planet_positions.Sun %}{{ '♈︎' if
+              (astro_data.natal_planet_positions.Sun.degree / 30)|int == 0 else
+              '♉︎' if (astro_data.natal_planet_positions.Sun.degree / 30)|int
+              == 1 else '♊︎' if (astro_data.natal_planet_positions.Sun.degree /
+              30)|int == 2 else '♋︎' if
+              (astro_data.natal_planet_positions.Sun.degree / 30)|int == 3 else
+              '♌︎' if (astro_data.natal_planet_positions.Sun.degree / 30)|int
+              == 4 else '♍︎' if (astro_data.natal_planet_positions.Sun.degree /
+              30)|int == 5 else '♎︎' if
+              (astro_data.natal_planet_positions.Sun.degree / 30)|int == 6 else
+              '♏︎' if (astro_data.natal_planet_positions.Sun.degree / 30)|int
+              == 7 else '♐︎' if (astro_data.natal_planet_positions.Sun.degree /
+              30)|int == 8 else '♑︎' if
+              (astro_data.natal_planet_positions.Sun.degree / 30)|int == 9 else
+              '♒︎' if (astro_data.natal_planet_positions.Sun.degree / 30)|int
+              == 10 else '♓︎' }}{% else %}☉{% endif %}</span>
+          </div>
+        </div>
+        <h3 class="font-display font-bold text-2xl text-white mb-2">
+          {{ astro_data.natal_planet_positions.Sun.sign if
+          astro_data.natal_planet_positions.Sun else 'Bilinmiyor' }} Ruhuna
+          Sahipsiniz
+        </h3>
+        <p class="text-xs text-slate-300 font-light leading-relaxed max-w-xs">
+          Güneşiniz {{ astro_data.natal_planet_positions.Sun.sign if
+          astro_data.natal_planet_positions.Sun }} burcunda ve {{
+          astro_data.natal_planet_positions.Sun.house }}. evde parlıyor. Yaşam
+          enerjiniz bu alanlarda odaklanmış durumda.
+        </p>
+      </div>
+
+      <!-- Quick Stats Row - Yükselen, Ay, MC (Daha Belirgin) -->
+      <div class="mt-8 grid grid-cols-3 gap-3">
+        <!-- Yükselen (ASC) -->
+        <div onclick="toggleSignInfo('ascendant')"
+          class="cursor-pointer relative bg-gradient-to-br from-rose-500/20 to-pink-900/30 rounded-2xl p-4 text-center border border-rose-500/30 overflow-hidden group hover:border-rose-400/50 transition-all active:scale-95">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-500/10 blur-[30px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="w-8 h-8 mx-auto mb-2 rounded-full bg-rose-500/20 flex items-center justify-center">
+              <span class="text-rose-400 text-lg">↑</span>
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-rose-300/80 font-bold mb-1">Yükselen</p>
+            <p class="text-sm font-bold text-white">
+              {{ astro_data.natal_planet_positions.Ascendant.sign if astro_data.natal_planet_positions.Ascendant else
+              '...' }}
+            </p>
+            <p class="text-[8px] text-rose-300/60 mt-1">
+              {% if astro_data.natal_planet_positions.Ascendant %}
+              {{ "%.1f"|format(astro_data.natal_planet_positions.Ascendant.degree_in_sign) }}°
+              {% endif %}
+            </p>
+            <span class="material-icons-round text-rose-400/50 text-xs mt-1">info</span>
+          </div>
+        </div>
+
+        <!-- Ay (Moon) -->
+        <div onclick="toggleSignInfo('moon')"
+          class="cursor-pointer relative bg-gradient-to-br from-cyan-500/20 to-blue-900/30 rounded-2xl p-4 text-center border border-cyan-500/30 overflow-hidden group hover:border-cyan-400/50 transition-all active:scale-95">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-cyan-500/10 blur-[30px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="w-8 h-8 mx-auto mb-2 rounded-full bg-cyan-500/20 flex items-center justify-center">
+              <span class="text-cyan-400 text-lg">☾</span>
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-cyan-300/80 font-bold mb-1">Ay</p>
+            <p class="text-sm font-bold text-white">
+              {{ astro_data.natal_planet_positions.Moon.sign if astro_data.natal_planet_positions.Moon else '...' }}
+            </p>
+            <p class="text-[8px] text-cyan-300/60 mt-1">
+              {% if astro_data.natal_planet_positions.Moon %}
+              {{ astro_data.natal_planet_positions.Moon.house }}. Ev
+              {% endif %}
+            </p>
+            <span class="material-icons-round text-cyan-400/50 text-xs mt-1">info</span>
+          </div>
+        </div>
+
+        <!-- MC (Midheaven) -->
+        <div onclick="toggleSignInfo('mc')"
+          class="cursor-pointer relative bg-gradient-to-br from-amber-500/20 to-orange-900/30 rounded-2xl p-4 text-center border border-amber-500/30 overflow-hidden group hover:border-amber-400/50 transition-all active:scale-95">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-amber-500/10 blur-[30px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="w-8 h-8 mx-auto mb-2 rounded-full bg-amber-500/20 flex items-center justify-center">
+              <span class="text-amber-400 text-lg">★</span>
+            </div>
+            <p class="text-[9px] uppercase tracking-widest text-amber-300/80 font-bold mb-1">M.C.</p>
+            <p class="text-sm font-bold text-white">
+              {{ astro_data.natal_planet_positions.MC.sign if astro_data.natal_planet_positions.MC else '...' }}
+            </p>
+            <p class="text-[8px] text-amber-300/60 mt-1">
+              {% if astro_data.natal_planet_positions.MC %}
+              {{ "%.1f"|format(astro_data.natal_planet_positions.MC.degree_in_sign) }}°
+              {% endif %}
+            </p>
+            <span class="material-icons-round text-amber-400/50 text-xs mt-1">info</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI ÖZET KARTI (YENİ) -->
+    <div id="ai-summary-card"
+      class="relative p-6 rounded-3xl bg-gradient-to-br from-accent/10 to-purple-900/20 border border-accent/20 overflow-hidden cursor-pointer group hover:border-accent/40 transition-all"
+      onclick="openKozmikOzetModal()">
+      <div class="absolute -right-8 -top-8 w-32 h-32 bg-accent/10 blur-[50px] rounded-full"></div>
+
+      <div class="relative z-10">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+              <span class="material-icons-round text-accent">auto_awesome</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white">Kozmik Özet</h4>
+              <p class="text-[9px] text-slate-400">AI tarafından oluşturuldu</p>
+            </div>
+          </div>
+          <!-- Expand Icon -->
+          <div id="summary-expand-icon"
+            class="hidden w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-all">
+            <span class="material-icons-round text-accent text-lg">open_in_full</span>
+          </div>
+          </div>
+
+        <!-- Preview with max-height and fade -->
+        <div id="ai-summary-preview" class="relative max-h-36 overflow-hidden">
+          <div id="ai-summary-content" class="text-sm text-slate-300 leading-relaxed font-light">
+            <div class="flex flex-col items-center gap-3 py-4 text-center">
+              <div class="w-8 h-8 rounded-full border-2 border-accent/30 border-t-accent animate-spin"></div>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium">Lütfen bekleyin...</p>
+                <p class="text-[10px] text-slate-500">Kozmik özet hazırlanıyor</p>
+              </div>
+            </div>
+          </div>
+          <!-- Gradient fade-out overlay -->
+          <div id="summary-fade-overlay"
+            class="hidden absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#1a1030] to-transparent pointer-events-none">
+          </div>
+          </div>
+
+        <!-- Expand CTA -->
+        <div id="summary-read-more" class="hidden mt-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="event.stopPropagation(); openKozmikOzetModal()"
+              class="text-xs text-accent hover:text-accent/80 flex items-center gap-1.5 font-medium transition-colors">
+              <span class="material-icons-round text-base">fullscreen</span>
+              Tam Ekran Oku
+            </button>
+            <!-- Inline TTS Button -->
+            <button onclick="event.stopPropagation(); playKozmikOzetTTS()" id="kozmik-ozet-tts-btn"
+              class="px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-xl text-[10px] font-bold text-primary flex items-center gap-1 active:scale-95 transition-all">
+              <span class="material-icons-round text-sm" id="kozmik-ozet-tts-icon">volume_up</span>
+              <span id="kozmik-ozet-tts-label">Dinle</span>
+            </button>
+            </div>
+          <button onclick="event.stopPropagation(); loadAISummary()" id="refresh-summary-btn"
+            class="text-[10px] text-slate-500 hover:text-accent flex items-center gap-1 transition-colors">
+            <span class="material-icons-round text-sm">refresh</span>
+            Yenile
+          </button>
+        </div>
+        
+        <!-- Loading state refresh (hidden when loaded) -->
+        <button onclick="event.stopPropagation(); loadAISummary()" id="refresh-summary-btn-loading"
+          class="mt-4 text-[10px] text-accent hover:text-accent/80 flex items-center gap-1 transition-colors">
+          <span class="material-icons-round text-sm">refresh</span>
+          Yenile
+        </button>
+      </div>
+    </div>
+
+    <!-- Mevcut Dönem Bilgisi - Vedik & Firdaria -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Vimshottari Dasa -->
+      <div onclick="togglePeriodInfo('vedic')"
+        class="cursor-pointer relative planet-card rounded-2xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-red-900/20 overflow-hidden active:scale-95 transition-all">
+        <div class="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/10 blur-[40px] rounded-full"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+              <span class="material-icons-round text-orange-400 text-base">self_improvement</span>
+            </div>
+            <span class="text-[9px] uppercase tracking-widest text-orange-300/80 font-bold">Vedik Dönem</span>
+          </div>
+          <p class="text-sm font-bold text-white" id="current-dasa">
+            {% if astro_data.vimshottari_dasa and astro_data.vimshottari_dasa.main_dasa_lord_tr %}
+            {{ astro_data.vimshottari_dasa.main_dasa_lord_tr.split(' ')[0] }} Dasa
+            {% else %}
+            --
+            {% endif %}
+          </p>
+          <p class="text-[10px] text-orange-300/70 mt-1" id="current-bhukti">
+            {% if astro_data.vimshottari_dasa and astro_data.vimshottari_dasa.sub_dasa_lord_tr %}
+            {{ astro_data.vimshottari_dasa.sub_dasa_lord_tr.split(' ')[0] }} Bhukti
+            {% else %}
+            --
+            {% endif %}
+          </p>
+          {% if astro_data.vimshottari_dasa and astro_data.vimshottari_dasa.remaining_years_in_main_dasa %}
+          <p class="text-[8px] text-orange-400/50 mt-2">
+            {{ astro_data.vimshottari_dasa.remaining_years_in_main_dasa }} yıl kaldı
+          </p>
+          {% endif %}
+          <span class="material-icons-round text-orange-400/50 text-xs absolute bottom-2 right-2">info</span>
+        </div>
+      </div>
+
+      <!-- Firdaria -->
+      <div onclick="togglePeriodInfo('firdaria')"
+        class="cursor-pointer relative planet-card rounded-2xl p-4 border border-teal-500/20 bg-gradient-to-br from-teal-500/10 to-emerald-900/20 overflow-hidden active:scale-95 transition-all">
+        <div class="absolute -right-4 -top-4 w-20 h-20 bg-teal-500/10 blur-[40px] rounded-full"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center">
+              <span class="material-icons-round text-teal-400 text-base">schedule</span>
+            </div>
+            <span class="text-[9px] uppercase tracking-widest text-teal-300/80 font-bold">Firdaria</span>
+          </div>
+          <p class="text-sm font-bold text-white" id="current-firdaria">
+            {% if astro_data.firdaria_periods and astro_data.firdaria_periods.main_ruler %}
+            {{ astro_data.firdaria_periods.main_ruler }}
+            {% else %}
+            --
+            {% endif %}
+          </p>
+          <p class="text-[10px] text-teal-300/70 mt-1" id="current-firdaria-sub">
+            {% if astro_data.firdaria_periods and astro_data.firdaria_periods.sub_ruler %}
+            Alt: {{ astro_data.firdaria_periods.sub_ruler }}
+            {% else %}
+            --
+            {% endif %}
+          </p>
+          {% if astro_data.firdaria_periods and astro_data.firdaria_periods.end_date %}
+          <p class="text-[8px] text-teal-400/50 mt-2">
+            {{ astro_data.firdaria_periods.end_date }}
+          </p>
+          {% endif %}
+          <span class="material-icons-round text-teal-400/50 text-xs absolute bottom-2 right-2">info</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yaklaşan Tutulma (YENİ) -->
+    {% if astro_data.eclipses_nearby_current %}
+    <div class="planet-card rounded-2xl p-4 border border-slate-500/10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-icons-round text-slate-300 text-lg">dark_mode</span>
+        <span class="text-[9px] uppercase tracking-widest text-slate-500 font-bold">Yaklaşan Tutulmalar</span>
+      </div>
+      <div class="space-y-2">
+        {% for eclipse in astro_data.eclipses_nearby_current[:2] %}
+        <div class="flex items-center justify-between text-[10px]">
+          <span class="text-slate-300">{{ eclipse.type if eclipse.type else 'Tutulma' }}</span>
+          <span class="text-slate-500 font-mono">{{ eclipse.date if eclipse.date else '--' }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Dominant Elements Grid - Kozmik Baskınlık (Dinamik) -->
+    <div class="space-y-4">
+      <h4 class="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold ml-1 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-orange-500 via-blue-500 to-green-500"></span>
+        Kozmik Baskınlık
+      </h4>
+
+      <!-- Element Dağılımı - 4 Element -->
+      <div class="grid grid-cols-4 gap-2">
+        <!-- Ateş -->
+        <div
+          class="relative planet-card rounded-xl p-3 flex flex-col items-center gap-2 border border-orange-500/20 bg-gradient-to-b from-orange-500/10 to-transparent overflow-hidden group hover:border-orange-400/40 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-orange-400 text-base">local_fire_department</span>
+          </div>
+          <div class="text-center">
+            <p class="text-[8px] uppercase tracking-widest text-orange-300/70 font-bold">Ateş</p>
+            <p class="text-sm font-bold text-white" id="element-fire">
+              {% set fire_count = namespace(value=0) %}
+              {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+              'Pluto'] %}
+              {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+              ['Koç', 'Aslan', 'Yay'] %}
+              {% set fire_count.value = fire_count.value + 1 %}
+              {% endif %}
+              {% endfor %}
+              %{{ ((fire_count.value / 10) * 100)|int }}
+            </p>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/50 to-red-500/50"></div>
+        </div>
+
+        <!-- Toprak -->
+        <div
+          class="relative planet-card rounded-xl p-3 flex flex-col items-center gap-2 border border-green-500/20 bg-gradient-to-b from-green-500/10 to-transparent overflow-hidden group hover:border-green-400/40 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-green-400 text-base">landscape</span>
+          </div>
+          <div class="text-center">
+            <p class="text-[8px] uppercase tracking-widest text-green-300/70 font-bold">Toprak</p>
+            <p class="text-sm font-bold text-white" id="element-earth">
+              {% set earth_count = namespace(value=0) %}
+              {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+              'Pluto'] %}
+              {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+              ['Boğa', 'Başak', 'Oğlak'] %}
+              {% set earth_count.value = earth_count.value + 1 %}
+              {% endif %}
+              {% endfor %}
+              %{{ ((earth_count.value / 10) * 100)|int }}
+            </p>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500/50 to-emerald-500/50"></div>
+        </div>
+
+        <!-- Hava -->
+        <div
+          class="relative planet-card rounded-xl p-3 flex flex-col items-center gap-2 border border-sky-500/20 bg-gradient-to-b from-sky-500/10 to-transparent overflow-hidden group hover:border-sky-400/40 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-sky-400 text-base">air</span>
+          </div>
+          <div class="text-center">
+            <p class="text-[8px] uppercase tracking-widest text-sky-300/70 font-bold">Hava</p>
+            <p class="text-sm font-bold text-white" id="element-air">
+              {% set air_count = namespace(value=0) %}
+              {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+              'Pluto'] %}
+              {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+              ['İkizler', 'Terazi', 'Kova'] %}
+              {% set air_count.value = air_count.value + 1 %}
+              {% endif %}
+              {% endfor %}
+              %{{ ((air_count.value / 10) * 100)|int }}
+            </p>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500/50 to-blue-500/50"></div>
+        </div>
+
+        <!-- Su -->
+        <div
+          class="relative planet-card rounded-xl p-3 flex flex-col items-center gap-2 border border-cyan-500/20 bg-gradient-to-b from-cyan-500/10 to-transparent overflow-hidden group hover:border-cyan-400/40 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-cyan-400 text-base">water_drop</span>
+          </div>
+          <div class="text-center">
+            <p class="text-[8px] uppercase tracking-widest text-cyan-300/70 font-bold">Su</p>
+            <p class="text-sm font-bold text-white" id="element-water">
+              {% set water_count = namespace(value=0) %}
+              {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+              'Pluto'] %}
+              {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+              ['Yengeç', 'Akrep', 'Balık'] %}
+              {% set water_count.value = water_count.value + 1 %}
+              {% endif %}
+              {% endfor %}
+              %{{ ((water_count.value / 10) * 100)|int }}
+            </p>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500/50 to-teal-500/50"></div>
+        </div>
+      </div>
+
+      <!-- Nitelik Dağılımı (Kardinal, Sabit, Değişken) -->
+      <div class="grid grid-cols-3 gap-2 mt-3">
+        <!-- Kardinal -->
+        <div class="planet-card rounded-xl p-3 text-center border border-purple-500/10">
+          <p class="text-[8px] uppercase tracking-widest text-purple-300/60 font-bold mb-1">Kardinal</p>
+          <p class="text-xs font-bold text-white">
+            {% set cardinal_count = namespace(value=0) %}
+            {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+            'Pluto'] %}
+            {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+            ['Koç', 'Yengeç', 'Terazi', 'Oğlak'] %}
+            {% set cardinal_count.value = cardinal_count.value + 1 %}
+            {% endif %}
+            {% endfor %}
+            {{ cardinal_count.value }}
+          </p>
+        </div>
+        <!-- Sabit -->
+        <div class="planet-card rounded-xl p-3 text-center border border-indigo-500/10">
+          <p class="text-[8px] uppercase tracking-widest text-indigo-300/60 font-bold mb-1">Sabit</p>
+          <p class="text-xs font-bold text-white">
+            {% set fixed_count = namespace(value=0) %}
+            {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+            'Pluto'] %}
+            {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+            ['Boğa', 'Aslan', 'Akrep', 'Kova'] %}
+            {% set fixed_count.value = fixed_count.value + 1 %}
+            {% endif %}
+            {% endfor %}
+            {{ fixed_count.value }}
+          </p>
+        </div>
+        <!-- Değişken -->
+        <div class="planet-card rounded-xl p-3 text-center border border-violet-500/10">
+          <p class="text-[8px] uppercase tracking-widest text-violet-300/60 font-bold mb-1">Değişken</p>
+          <p class="text-xs font-bold text-white">
+            {% set mutable_count = namespace(value=0) %}
+            {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+            'Pluto'] %}
+            {% if astro_data.natal_planet_positions[planet] and astro_data.natal_planet_positions[planet].sign in
+            ['İkizler', 'Başak', 'Yay', 'Balık'] %}
+            {% set mutable_count.value = mutable_count.value + 1 %}
+            {% endif %}
+            {% endfor %}
+            {{ mutable_count.value }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Kozmik Baskınlık Yorumu -->
+      <div class="mt-3 p-4 rounded-xl bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/10">
+        <p class="text-[11px] text-slate-300 leading-relaxed" id="cosmic-dominance-interpretation">
+          {% set fire_c = namespace(value=0) %}
+          {% set earth_c = namespace(value=0) %}
+          {% set air_c = namespace(value=0) %}
+          {% set water_c = namespace(value=0) %}
+          {% set cardinal_c = namespace(value=0) %}
+          {% set fixed_c = namespace(value=0) %}
+          {% set mutable_c = namespace(value=0) %}
+
+          {% for planet in ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune',
+          'Pluto'] %}
+          {% if astro_data.natal_planet_positions[planet] %}
+          {% set sign = astro_data.natal_planet_positions[planet].sign %}
+          {% if sign in ['Koç', 'Aslan', 'Yay'] %}{% set fire_c.value = fire_c.value + 1 %}{% endif %}
+          {% if sign in ['Boğa', 'Başak', 'Oğlak'] %}{% set earth_c.value = earth_c.value + 1 %}{% endif %}
+          {% if sign in ['İkizler', 'Terazi', 'Kova'] %}{% set air_c.value = air_c.value + 1 %}{% endif %}
+          {% if sign in ['Yengeç', 'Akrep', 'Balık'] %}{% set water_c.value = water_c.value + 1 %}{% endif %}
+          {% if sign in ['Koç', 'Yengeç', 'Terazi', 'Oğlak'] %}{% set cardinal_c.value = cardinal_c.value + 1 %}{% endif
+          %}
+          {% if sign in ['Boğa', 'Aslan', 'Akrep', 'Kova'] %}{% set fixed_c.value = fixed_c.value + 1 %}{% endif %}
+          {% if sign in ['İkizler', 'Başak', 'Yay', 'Balık'] %}{% set mutable_c.value = mutable_c.value + 1 %}{% endif
+          %}
+          {% endif %}
+          {% endfor %}
+
+          {% set dominant_element = 'Ateş' if fire_c.value >= earth_c.value and fire_c.value >= air_c.value and
+          fire_c.value >= water_c.value else 'Toprak' if earth_c.value >= air_c.value and earth_c.value >= water_c.value
+          else 'Hava' if air_c.value >= water_c.value else 'Su' %}
+          {% set dominant_modality = 'Kardinal' if cardinal_c.value >= fixed_c.value and cardinal_c.value >=
+          mutable_c.value else 'Sabit' if fixed_c.value >= mutable_c.value else 'Değişken' %}
+
+          <span class="text-purple-400 font-semibold">{{ dominant_element }}</span> element baskınlığınız
+          {% if dominant_element == 'Ateş' %}tutkulu, enerjik ve girişimci bir doğa{% elif dominant_element == 'Toprak'
+          %}pratik, güvenilir ve sabırlı bir yapı{% elif dominant_element == 'Hava' %}iletişimci, sosyal ve entelektüel
+          bir zeka{% else %}sezgisel, duygusal ve empatik bir ruh{% endif %} gösterir.
+          <span class="text-indigo-400 font-semibold">{{ dominant_modality }}</span> nitelik baskınlığı ise
+          {% if dominant_modality == 'Kardinal' %}başlatıcı, lider ve aksiyona yönelik{% elif dominant_modality ==
+          'Sabit' %}kararlı, istikrarlı ve dayanıklı{% else %}esnek, uyumlu ve değişime açık{% endif %} bir karakter
+          ortaya koyar.
+        </p>
+      </div>
+    </div>
+
+    <!-- Call to Action AI -->
+    <div
+      class="bg-surface-dark/40 border border-white/5 p-6 rounded-3xl group cursor-pointer active:scale-[0.98] transition-all"
+      onclick="switchResultTab('ai'); interpretTab('birth_chart');">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-20 h-20 overflow-hidden shadow-[0_0_10px_rgba(91,43,238,0.2)]">
+            <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" class="w-full h-full object-cover"
+              alt="ORBIS" />
+          </div>
+          <h5 class="text-[13px] font-display font-bold text-white leading-tight">
+            Doğum haritanızı yorumlamamı ister misiniz?
+          </h5>
+        </div>
+        <span
+          class="material-icons-round text-slate-500 group-hover:text-accent group-hover:translate-x-1 transition-all">chevron_right</span>
+      </div>
+      <p class="text-[11px] text-slate-400 leading-relaxed font-light">
+        Yapay zeka, haritandaki karmik düğümleri ve potansiyellerini senin için
+        analiz etsin.
+      </p>
+    </div>
+  </section>
+
+  <!-- Tab 2: Detailed Chart -->
+  <section id="tab-chart" class="tab-content px-6 space-y-6">
+    <div class="flex flex-col gap-6">
+      <!-- Chart Selector -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+        <div onclick="setChartType('natal')" class="chart-selector-pill active" id="pill-natal">
+          <span class="material-icons-round text-sm">person</span>
+          Natal
+        </div>
+        {% if astro_data.transit_positions %}
+        <div onclick="setChartType('transit')" class="chart-selector-pill" id="pill-transit">
+          <span class="material-icons-round text-sm">sync</span>
+          Transit
+        </div>
+        {% endif %}
+        {% if astro_data.solar_return_chart %}
+        <div onclick="setChartType('solar')" class="chart-selector-pill" id="pill-solar">
+          <span class="material-icons-round text-sm">wb_sunny</span>
+          Güneş Dönüşü
+        </div>
+        {% endif %}
+        {% if astro_data.lunar_return_chart %}
+        <div onclick="setChartType('lunar')" class="chart-selector-pill" id="pill-lunar">
+          <span class="material-icons-round text-sm">nightlight</span>
+          Ay Dönüşü
+        </div>
+        {% endif %}
+        {% if astro_data.secondary_progressions %}
+        <div onclick="setChartType('progressed')" class="chart-selector-pill" id="pill-progressed">
+          <span class="material-icons-round text-sm">trending_up</span>
+          Progresyon
+        </div>
+        {% endif %}
+        {% if astro_data.navamsa_chart %}
+        <div onclick="setChartType('navamsa')" class="chart-selector-pill" id="pill-navamsa">
+          <span class="material-icons-round text-sm">grid_view</span>
+          Navamsa (D9)
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Real Birth Chart Wheel -->
+      <div class="chart-container-wrapper">
+        <div id="chart-paper"></div>
+        <div class="absolute bottom-4 right-6 text-[8px] text-slate-600 font-mono tracking-widest uppercase">
+          ORBIS Cosmic Engine • {{ astro_data.birth_info.house_system }}
+        </div>
+      </div>
+
+      <!-- Harita Açıklama Kartları -->
+
+      <!-- Natal Harita Açıklaması -->
+      <div id="chart-info-natal" class="chart-info-card">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-900/20 border border-primary/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-primary/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <span class="material-icons-round text-primary">person</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Natal (Doğum) Haritası</h4>
+                <p class="text-[9px] text-slate-400">Kozmik Kimlik Haritanız</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-primary font-semibold">Natal harita</span>, doğduğunuz an gökyüzündeki gezegenlerin,
+                burçların ve evlerin konumunu gösteren kozmik fotoğrafınızdır. Bu harita, kişiliğinizin temel yapı
+                taşlarını, yeteneklerinizi, zorluklarınızı ve yaşam yolculuğunuzu ortaya koyar.
+              </p>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-primary font-bold uppercase tracking-wider mb-1">☉ Güneş Burcu</p>
+                  <p class="text-[10px] text-slate-400">Temel kimliğiniz, ego ve yaşam amacınız</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-cyan-400 font-bold uppercase tracking-wider mb-1">☾ Ay Burcu</p>
+                  <p class="text-[10px] text-slate-400">Duygusal doğanız ve içgüdüsel tepkileriniz</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-rose-400 font-bold uppercase tracking-wider mb-1">↑ Yükselen</p>
+                  <p class="text-[10px] text-slate-400">Dış görünüşünüz ve dünyaya sunumunuz</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-amber-400 font-bold uppercase tracking-wider mb-1">★ Evler</p>
+                  <p class="text-[10px] text-slate-400">Hayatınızın 12 farklı alanı</p>
+                </div>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-indigo-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-indigo-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    Natal haritanız, <span class="text-emerald-400">Transit</span> ve <span class="text-rose-400">Progresyon</span>
+    haritalarının temelidir. Tüm kozmik etkilerin sizi nasıl etkilediğini anlamak için önce bu haritadaki doğuştan gelen
+    enerjilerinizi keşfetmelisiniz.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 border border-primary/15 cursor-pointer group hover:border-primary/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-primary text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">Güneş-Ay-Yükselen üçlüsünüz nasıl bir kişilik ortaya çıkarıyor?
+      </p>
+      <p class="text-[9px] text-primary/70 mt-0.5">ORBIS AI haritanızdaki gizli kalıpları keşfetsin →</p>
+    </div>
+    <span
+      class="material-icons-round text-primary/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transit Harita Açıklaması -->
+      <div id="chart-info-transit" class="chart-info-card hidden">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-900/20 border border-emerald-500/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <span class="material-icons-round text-emerald-400">sync</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Transit Haritası</h4>
+                <p class="text-[9px] text-slate-400">Şu Anki Kozmik Etkiler</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-emerald-400 font-semibold">Transit harita</span>, gökyüzündeki gezegenlerin şu anki
+                konumlarını natal haritanızla karşılaştırır. Bu karşılaştırma, hangi yaşam alanlarınızın aktif olduğunu
+                ve ne tür enerjilerin etkisi altında olduğunuzu gösterir.
+              </p>
+              <div class="bg-black/20 rounded-xl p-4 border border-white/5 mt-4">
+                <p class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider mb-2">Nasıl Yorumlanır?</p>
+                <ul class="text-[10px] text-slate-400 space-y-1.5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400">•</span>
+                    <span>Dış çemberdeki gezegenler şu anki transit konumları gösterir</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400">•</span>
+                    <span>İç çemberdeki gezegenler natal (doğum) konumlarınızdır</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400">•</span>
+                    <span>Transit gezegenlerin natal gezegenlerinize yaptığı açılar güncel etkileri belirler</span>
+                  </li>
+                </ul>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-teal-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-teal-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    Transit etkileri, <span class="text-primary">Natal</span> haritanızdaki doğuştan gelen enerjileri tetikler. <span
+      class="text-amber-400">Güneş Dönüşü</span> ile birlikte değerlendirildiğinde yılın kozmik haritası netleşir.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/10 border border-emerald-500/15 cursor-pointer group hover:border-emerald-500/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-emerald-400 text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">Hangi gezegenler şu an natal pozisyonlarınızla konuşuyor?</p>
+      <p class="text-[9px] text-emerald-400/70 mt-0.5">Güncel kozmik etkilerin detaylı analizini görmek için →</p>
+    </div>
+    <span
+      class="material-icons-round text-emerald-400/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solar Return Harita Açıklaması -->
+      <div id="chart-info-solar" class="chart-info-card hidden">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-900/20 border border-amber-500/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                <span class="material-icons-round text-amber-400">wb_sunny</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Güneş Dönüşü (Solar Return)</h4>
+                <p class="text-[9px] text-slate-400">Yıllık Kozmik Haritanız</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-amber-400 font-semibold">Güneş Dönüşü haritası</span>, Güneş'in her yıl doğum
+                derecenize döndüğü an için hesaplanır. Bu özel an, doğum gününüz civarında gerçekleşir ve önümüzdeki bir
+                yılın temel temalarını, fırsatlarını ve zorluklarını ortaya koyar.
+              </p>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-amber-400 font-bold uppercase tracking-wider mb-1">🎂 Doğum Günü</p>
+                  <p class="text-[10px] text-slate-400">Her yıl yeni bir Solar Return başlar</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-orange-400 font-bold uppercase tracking-wider mb-1">📅 1 Yıllık</p>
+                  <p class="text-[10px] text-slate-400">Bir sonraki doğum gününüze kadar geçerli</p>
+                </div>
+              </div>
+              <div class="bg-black/20 rounded-xl p-4 border border-white/5 mt-2">
+                <p class="text-[9px] text-amber-400 font-bold uppercase tracking-wider mb-2">Önemli Noktalar</p>
+                <ul class="text-[10px] text-slate-400 space-y-1.5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-amber-400">•</span>
+                    <span>Yükselen burç yılın genel tonunu belirler</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-amber-400">•</span>
+                    <span>Güneş'in evi yılın odak alanını gösterir</span>
+                  </li>
+                </ul>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-orange-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-orange-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    <span class="text-primary">Natal</span> haritanızın yıllık güncellemesidir. <span
+      class="text-emerald-400">Transit</span> etkileriyle birlikte değerlendirildiğinde yılın kozmik haritasını çizer.
+    <span class="text-cyan-400">Ay Dönüşü</span> ise aylık detayları verir.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10 border border-amber-500/15 cursor-pointer group hover:border-amber-500/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-amber-400 text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">Bu yılın kozmik teması ne? Güneş Dönüşü haritanız neleri vaat
+        ediyor?</p>
+      <p class="text-[9px] text-amber-400/70 mt-0.5">Yıllık öngörülerin detaylı AI analizini keşfet →</p>
+    </div>
+    <span
+      class="material-icons-round text-amber-400/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navamsa Harita Açıklaması -->
+      <div id="chart-info-navamsa" class="chart-info-card hidden">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-900/20 border border-violet-500/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-violet-500/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                <span class="material-icons-round text-violet-400">grid_view</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Navamsa (D9) Haritası</h4>
+                <p class="text-[9px] text-slate-400">Vedik Astroloji • Ruh Haritası</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-violet-400 font-semibold">Navamsa</span>, Vedik astrolojinin en önemli bölünmüş
+                haritasıdır (D9). Her burç 9 eşit parçaya bölünür ve gezegenlerin bu parçalardaki konumları hesaplanır.
+                Bu harita, ruhsal gelişiminizi, evliliğinizi ve karmik potansiyelinizi derinlemesine analiz eder.
+              </p>
+              <div class="bg-black/20 rounded-xl p-4 border border-white/5 mt-4">
+                <p class="text-[9px] text-violet-400 font-bold uppercase tracking-wider mb-2">Navamsa Ne Gösterir?</p>
+                <ul class="text-[10px] text-slate-400 space-y-1.5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-violet-400">💍</span>
+                    <span>Evlilik ve eş karakteristiği (7. ev özellikle önemli)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-violet-400">🔮</span>
+                    <span>Ruhsal olgunluk ve yaşamın ikinci yarısı</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-violet-400">⚖️</span>
+                    <span>Gezegenlerin gerçek gücü (Vargottama kontrolü)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-violet-400">🌟</span>
+                    <span>Dharma (yaşam amacı) ve karmik dersler</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="bg-violet-500/10 rounded-xl p-3 border border-violet-500/20 mt-2">
+                <p class="text-[10px] text-violet-300">
+                  <span class="font-bold">💡 İpucu:</span> Natal ve Navamsa'da aynı burçta olan gezegenler "Vargottama"
+                  olarak adlandırılır ve çok güçlü kabul edilir.
+                </p>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-purple-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-purple-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    <span class="text-primary">Natal (D1)</span> haritanızın ruhsal derinliğidir. D1 dışsal potansiyeli, D9 ise içsel ve
+    karmik potansiyeli gösterir. İkisi birlikte ele alındığında tam tablo ortaya çıkar.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-violet-500/10 border border-violet-500/15 cursor-pointer group hover:border-violet-500/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-violet-400 text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">Vedik bilgeliğindeki evlilik ve ruhsal olgunluk ipuçlarınız
+        neler?</p>
+      <p class="text-[9px] text-violet-400/70 mt-0.5">Navamsa'nın karmik sırlarını AI ile keşfet →</p>
+    </div>
+    <span
+      class="material-icons-round text-violet-400/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lunar Return (Ay Dönüşü) Harita Açıklaması -->
+      <div id="chart-info-lunar" class="chart-info-card hidden">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-900/20 border border-cyan-500/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-cyan-500/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                <span class="material-icons-round text-cyan-400">nightlight</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Ay Dönüşü (Lunar Return)</h4>
+                <p class="text-[9px] text-slate-400">Aylık Duygusal Haritanız</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-cyan-400 font-semibold">Ay Dönüşü haritası</span>, Ay'ın her ay doğum derecenize
+                döndüğü an için hesaplanır. Bu yaklaşık 27.3 günde bir gerçekleşir ve önümüzdeki bir ayın duygusal
+                temalarını, iç dünyamızı ve günlük yaşam akışını ortaya koyar.
+              </p>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-cyan-400 font-bold uppercase tracking-wider mb-1">☾ Aylık Döngü</p>
+                  <p class="text-[10px] text-slate-400">Her ~27 günde bir yenilenir</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-blue-400 font-bold uppercase tracking-wider mb-1">💭 Duygusal Ton</p>
+                  <p class="text-[10px] text-slate-400">Ayın duygusal temasını belirler</p>
+                </div>
+              </div>
+              <div class="bg-black/20 rounded-xl p-4 border border-white/5 mt-2">
+                <p class="text-[9px] text-cyan-400 font-bold uppercase tracking-wider mb-2">Ne Zaman Kullanılır?</p>
+                <ul class="text-[10px] text-slate-400 space-y-1.5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-cyan-400">•</span>
+                    <span>Aylık planlama ve duygusal hazırlık için</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-cyan-400">•</span>
+                    <span>Ev ve aile konularında zamanlama için</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-cyan-400">•</span>
+                    <span>İç dünya ve sezgisel rehberlik için</span>
+                  </li>
+                </ul>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-blue-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-blue-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    <span class="text-amber-400">Güneş Dönüşü</span>'nün aylık detay versiyonudur. Solar Return yılın genel haritasını
+    çizerken, Lunar Return aynı dönemdeki duygusal mikro döngüleri gösterir. <span
+      class="text-emerald-400">Transit</span> etkileriyle birlikte zamanlama bilgisi verir.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-cyan-500/10 border border-cyan-500/15 cursor-pointer group hover:border-cyan-500/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-cyan-400 text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">Bu ayın duygusal tonu ne? İç dünyanız ne söylüyor?</p>
+      <p class="text-[9px] text-cyan-400/70 mt-0.5">Aylık duygusal analizinizi AI ile keşfet →</p>
+    </div>
+    <span
+      class="material-icons-round text-cyan-400/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progresyon (Secondary Progression) Harita Açıklaması -->
+      <div id="chart-info-progressed" class="chart-info-card hidden">
+        <div
+          class="relative p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 to-pink-900/20 border border-rose-500/20 overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-24 h-24 bg-rose-500/10 blur-[40px] rounded-full"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center">
+                <span class="material-icons-round text-rose-400">trending_up</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white">Sekonder Progresyon</h4>
+                <p class="text-[9px] text-slate-400">İçsel Gelişim Haritanız</p>
+              </div>
+            </div>
+            <div class="space-y-3 text-[11px] text-slate-300 leading-relaxed">
+              <p>
+                <span class="text-rose-400 font-semibold">Sekonder Progresyon</span>, "bir gün = bir yıl" formülüne
+                dayanır. Doğumunuzdan sonraki her gün, yaşamınızın bir yılını temsil eder. Bu teknik, içsel
+                gelişiminizi, olgunlaşma sürecinizi ve psikolojik dönüşümlerinizi gösterir.
+              </p>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-rose-400 font-bold uppercase tracking-wider mb-1">📅 1 Gün = 1 Yıl</p>
+                  <p class="text-[10px] text-slate-400">Sembolik zaman ilerlemesi</p>
+                </div>
+                <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+                  <p class="text-[9px] text-pink-400 font-bold uppercase tracking-wider mb-1">🌱 İçsel Büyüme</p>
+                  <p class="text-[10px] text-slate-400">Ruhsal ve psikolojik gelişim</p>
+                </div>
+              </div>
+              <div class="bg-black/20 rounded-xl p-4 border border-white/5 mt-2">
+                <p class="text-[9px] text-rose-400 font-bold uppercase tracking-wider mb-2">Önemli Progresyonlar</p>
+                <ul class="text-[10px] text-slate-400 space-y-1.5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-rose-400">☾</span>
+                    <span>Progresif Ay: Her 2.5 yılda burç değiştirir, duygusal evrim</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-rose-400">☉</span>
+                    <span>Progresif Güneş: Her 30 yılda burç değiştirir, kimlik dönüşümü</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-rose-400">↑</span>
+                    <span>Progresif Yükselen: Dış dünyaya sunumunuzun evrimi</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="bg-rose-500/10 rounded-xl p-3 border border-rose-500/20 mt-2">
+                <p class="text-[10px] text-rose-300">
+                  <span class="font-bold">💡 İpucu:</span> Progresif Ay'ın natal gezegenlerinize yaptığı açılar, önemli
+                  duygusal dönüm noktalarını işaret eder.
+                </p>
+              </div>
+<!-- Haritalar Arası Bağlantı -->
+<div class="flex items-start gap-2.5 mt-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+  <span class="material-icons-round text-pink-400 text-sm mt-0.5">hub</span>
+  <p class="text-[10px] text-slate-400 leading-relaxed">
+    <span class="text-pink-300 font-semibold">Diğer Haritalarla İlişkisi:</span>
+    <span class="text-emerald-400">Transit</span> dışarıdan gelen kozmik etkileri, Progresyon ise içeriden gelen
+    dönüşümü gösterir. <span class="text-primary">Natal</span> haritanızın evrimleşmiş halidir — kim olduğunuz değil,
+    kim olduğunuzu keşfetme yolculuğunuz.
+  </p>
+</div>
+
+<!-- AI Teaser -->
+<div onclick="interpretCurrentChart()"
+  class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-rose-500/10 via-pink-500/5 to-rose-500/10 border border-rose-500/15 cursor-pointer group hover:border-rose-500/30 transition-all duration-300">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center shrink-0">
+      <span class="material-icons-round text-rose-400 text-sm">auto_awesome</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[10px] text-white/90 font-medium">İçsel dönüşümünüz hangi noktada? Progresif Ay'ınız ne tetikliyor?
+      </p>
+      <p class="text-[9px] text-rose-400/70 mt-0.5">Psikolojik evriminizin AI analizini keşfet →</p>
+    </div>
+    <span
+      class="material-icons-round text-rose-400/50 text-sm group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Yorum Butonu - Dinamik -->
+      <div class="mt-2">
+        <button onclick="interpretCurrentChart()" id="interpret-chart-btn"
+          class="w-full p-4 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/20 flex items-center justify-between group hover:border-primary/40 transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl overflow-hidden">
+              <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" class="w-full h-full object-cover"
+                alt="ORBIS">
+            </div>
+            <div class="text-left">
+              <p class="text-xs font-bold text-white" id="interpret-btn-title">Bu harita için yorum oluştur</p>
+              <p class="text-[9px] text-slate-400" id="interpret-btn-subtitle">ORBIS AI detaylı analiz</p>
+            </div>
+          </div>
+          <span
+            class="material-icons-round text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tab 3: AI HUB -->
+  <section id="tab-ai" class="tab-content px-6 space-y-6">
+    <!-- Hero Card -->
+    <div class="relative p-6 rounded-3xl bg-surface-dark border border-white/5 overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-primary animate-dash"
+        style="background-size: 200% 100%"></div>
+      <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 blur-[60px] rounded-full"></div>
+      <p class="text-[10px] uppercase text-primary font-bold tracking-[0.3em] mb-2">
+        Yapay Zeka Destekli Yorumlar
+      </p>
+      <h3 class="text-xl font-display font-bold text-white mb-4 leading-tight">
+        ORBIS AI Analiz Merkezi
+      </h3>
+      <div class="flex gap-4 items-center">
+        <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-primary/20">
+          <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" class="w-full h-full object-cover"
+            alt="AI Avatar" />
+        </div>
+        <p class="text-[13px] text-slate-400 font-light leading-relaxed">
+          Doğum haritanızdaki kozmik enerjileri keşfedin. Bir analiz türü
+          seçerek başlayın.
+        </p>
+      </div>
+    </div>
+
+    <!-- CATEGORY 1: TEMEL ANALİZLER -->
+    <div class="space-y-3">
+      <h4 class="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold ml-1 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        Temel Analizler
+      </h4>
+      <div class="grid grid-cols-3 gap-3">
+        <!-- Doğum Haritası / Karakter -->
+        <button onclick="interpretTab('birth_chart')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-primary/10 to-indigo-900/20 border border-primary/10 rounded-2xl gap-2.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-primary">auto_awesome</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Doğum<br />Haritası
+          </span>
+        </button>
+
+        <!-- İlişkiler -->
+        <button onclick="interpretTab('relationship')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-pink-500/10 to-rose-900/20 border border-pink-500/10 rounded-2xl gap-2.5 hover:border-pink-500/40 hover:shadow-lg hover:shadow-pink-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-pink-400">favorite</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            İlişkiler
+          </span>
+        </button>
+
+        <!-- Psikolojik & Karmik -->
+        <button onclick="interpretTab('psychological_karmic')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-violet-500/10 to-purple-900/20 border border-violet-500/10 rounded-2xl gap-2.5 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-violet-400">psychology</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Psikolojik<br />& Karmik
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CATEGORY 2: ZAMAN BAZLI ANALİZLER -->
+    <div class="space-y-3">
+      <h4 class="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold ml-1 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+        Zaman Bazlı Öngörüler
+      </h4>
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Günlük -->
+        <button onclick="interpretTab('daily')"
+          class="ai-card-wide flex items-center gap-4 p-4 bg-gradient-to-r from-amber-500/10 to-orange-900/10 border border-amber-500/10 rounded-2xl hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/10 transition-all group">
+          <div
+            class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+            <span class="material-icons-round text-2xl text-amber-400">wb_sunny</span>
+          </div>
+          <div class="text-left">
+            <span class="text-xs font-bold text-white block">Günlük</span>
+            <span class="text-[9px] text-slate-400">Bugünün enerjisi</span>
+          </div>
+        </button>
+
+        <!-- Transitler -->
+        <button onclick="interpretTab('transits')"
+          class="ai-card-wide flex items-center gap-4 p-4 bg-gradient-to-r from-cyan-500/10 to-teal-900/10 border border-cyan-500/10 rounded-2xl hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10 transition-all group">
+          <div
+            class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+            <span class="material-icons-round text-2xl text-cyan-400">sync</span>
+          </div>
+          <div class="text-left">
+            <span class="text-xs font-bold text-white block">Transitler</span>
+            <span class="text-[9px] text-slate-400">Aktif gezegenler</span>
+          </div>
+        </button>
+
+        <!-- Kısa Vadeli -->
+        <button onclick="interpretTab('short_term')"
+          class="ai-card-wide flex items-center gap-4 p-4 bg-gradient-to-r from-sky-500/10 to-blue-900/10 border border-sky-500/10 rounded-2xl hover:border-sky-500/40 hover:shadow-lg hover:shadow-sky-500/10 transition-all group">
+          <div
+            class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+            <span class="material-icons-round text-2xl text-sky-400">today</span>
+          </div>
+          <div class="text-left">
+            <span class="text-xs font-bold text-white block">Kısa Vadeli</span>
+            <span class="text-[9px] text-slate-400">1-3 aylık dönem</span>
+          </div>
+        </button>
+
+        <!-- Uzun Vadeli -->
+        <button onclick="interpretTab('long_term')"
+          class="ai-card-wide flex items-center gap-4 p-4 bg-gradient-to-r from-indigo-500/10 to-slate-900/10 border border-indigo-500/10 rounded-2xl hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10 transition-all group">
+          <div
+            class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+            <span class="material-icons-round text-2xl text-indigo-400">calendar_month</span>
+          </div>
+          <div class="text-left">
+            <span class="text-xs font-bold text-white block">Uzun Vadeli</span>
+            <span class="text-[9px] text-slate-400">Yıllık perspektif</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- CATEGORY 3: YAŞAM ALANLARI -->
+    <div class="space-y-3">
+      <h4 class="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold ml-1 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        Yaşam Alanları
+      </h4>
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Kariyer -->
+        <button onclick="interpretTab('career')"
+          class="ai-card-featured relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-emerald-500/10 via-teal-900/20 to-green-900/10 border border-emerald-500/10 rounded-2xl gap-3 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all group overflow-hidden">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-500/10 blur-2xl rounded-full"></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-3xl text-emerald-400">work</span>
+          </div>
+          <div class="text-center">
+            <span class="text-sm font-bold text-white block">Kariyer</span>
+            <span class="text-[9px] text-slate-400">İş & Meslek</span>
+          </div>
+        </button>
+
+        <!-- Finansal -->
+        <button onclick="interpretTab('financial')"
+          class="ai-card-featured relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-yellow-500/10 via-amber-900/20 to-orange-900/10 border border-yellow-500/10 rounded-2xl gap-3 hover:border-yellow-500/40 hover:shadow-lg hover:shadow-yellow-500/10 transition-all group overflow-hidden">
+          <div class="absolute -right-4 -top-4 w-16 h-16 bg-yellow-500/10 blur-2xl rounded-full"></div>
+          <div
+            class="w-14 h-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-3xl text-yellow-400">account_balance</span>
+          </div>
+          <div class="text-center">
+            <span class="text-sm font-bold text-white block">Finansal</span>
+            <span class="text-[9px] text-slate-400">Maddi Konular</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- CATEGORY 4: İLERİ SEVİYE ANALİZLER (YENİ) -->
+    <div class="space-y-3">
+      <h4 class="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold ml-1 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+        İleri Seviye Analizler
+      </h4>
+      <div class="grid grid-cols-3 gap-3">
+        <!-- Vedik -->
+        <button onclick="interpretTab('vedic')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-orange-500/10 to-red-900/20 border border-orange-500/10 rounded-2xl gap-1.5 hover:border-orange-500/40 hover:shadow-lg hover:shadow-orange-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-orange-400">self_improvement</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight"></span>
+          Vedik<br />Astroloji
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Dasa & Nakshatra</span>
+        </button>
+
+        <!-- Tutulma -->
+        <button onclick="interpretTab('eclipse')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-slate-500/10 to-zinc-900/20 border border-slate-500/10 rounded-2xl gap-1.5 hover:border-slate-400/40 hover:shadow-lg hover:shadow-slate-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-slate-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-slate-300">dark_mode</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Tutulma<br />Etkileri
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Kader noktaları</span>
+        </button>
+
+        <!-- Harmonik -->
+        <button onclick="interpretTab('harmonic')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-blue-500/10 to-indigo-900/20 border border-blue-500/10 rounded-2xl gap-1.5 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-blue-400">waves</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Harmonik<br />Rezonans
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Gizli potansiyeller</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <!-- Ezoterik -->
+        <button onclick="interpretTab('esoteric')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-purple-500/10 to-violet-900/20 border border-purple-500/10 rounded-2xl gap-1.5 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-purple-400">visibility</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Ezoterik<br />Etkiler
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Gizli güçler</span>
+        </button>
+
+        <!-- Zamanlama -->
+        <button onclick="interpretTab('timing')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-teal-500/10 to-cyan-900/20 border border-teal-500/10 rounded-2xl gap-1.5 hover:border-teal-500/40 hover:shadow-lg hover:shadow-teal-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-teal-400">schedule</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Zamanlama<br />Teknikleri
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Dönem analizi</span>
+        </button>
+
+        <!-- Sağlık/Enerji -->
+        <button onclick="interpretTab('health')"
+          class="ai-card flex flex-col items-center justify-center p-5 bg-gradient-to-br from-green-500/10 to-emerald-900/20 border border-green-500/10 rounded-2xl gap-1.5 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/10 transition-all group">
+          <div
+            class="w-11 h-11 rounded-xl bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <span class="material-icons-round text-2xl text-green-400">spa</span>
+          </div>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors text-center leading-tight">
+            Sağlık &<br />Enerji
+          </span>
+          <span class="text-[7px] text-slate-500 text-center">Vitalite profili</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- INFO BANNER -->
+    <div class="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+      <span class="material-icons-round text-lg text-slate-500">info</span>
+      <p class="text-[11px] text-slate-500 leading-relaxed">
+        Her analiz, doğum haritanızdaki gerçek hesaplamalara dayanarak ORBIS AI
+        tarafından üretilmektedir.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- Modal: AI Reading Output -->
+<div id="ai-modal" class="fixed inset-0 z-[100] hidden flex flex-col justify-end">
+  <div class="absolute inset-0 bg-background-dark/80 backdrop-blur-md" onclick="closeAIModal()"></div>
+  <div id="ai-modal-container"
+    class="relative bg-surface-dark rounded-t-[3rem] border-t border-white/10 p-8 shadow-2xl max-h-[85vh] overflow-y-auto transform transition-transform duration-500 translate-y-0 no-scrollbar">
+    <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-8"></div>
+
+    <header class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+          <span class="material-icons-round text-primary text-xl">auto_stories</span>
+        </div>
+        <h4 id="ai-modal-title" class="font-display font-bold text-lg text-white">
+          Analiz Raporu
+        </h4>
+      </div>
+      <button onclick="closeAIModal()"
+        class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+        <span class="material-icons-round">close</span>
+      </button>
+    </header>
+
+    <div id="ai-modal-body" class="prose prose-invert prose-sm max-w-none text-slate-300 font-light leading-relaxed">
+      <!-- Content Injected -->
+    </div>
+
+    <footer id="ai-modal-footer"
+      class="sticky bottom-0 mt-8 bg-surface-dark/95 backdrop-blur-xl p-3 -mx-4 mb-[-2rem] rounded-b-[3rem] border-t border-white/5 z-20 hidden">
+      
+      <!-- Row 1: TTS + Speed + Copy -->
+      <div class="flex items-center gap-2 mb-2">
+        <button id="modal-read-aloud"
+          class="px-3 py-2 bg-primary rounded-xl text-[10px] font-bold uppercase tracking-widest text-white flex items-center justify-center gap-1.5 shadow-md shadow-primary/20 active:scale-95 transition-all">
+          <span class="material-icons-round text-sm" id="listen-icon">volume_up</span>
+          <span id="listen-text">Dinle</span>
+        </button>
+
+        <!-- Speed Controls -->
+        <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10">
+          <button onclick="TTS.changeSpeed(-0.1)"
+            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+            title="Yavaşlat">
+            <span class="material-icons-round text-xs">remove</span>
+          </button>
+          <span class="speed-display-value text-[10px] font-bold text-white min-w-[32px] text-center font-mono">1.5x</span>
+          <button onclick="TTS.changeSpeed(0.1)"
+            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+            title="Hızlandır">
+            <span class="material-icons-round text-xs">add</span>
+            </button>
+            </div>
+
+        <button id="modal-copy"
+          class="ml-auto w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white border border-white/5 active:scale-95 transition-all"
+          title="Metni Kopyala">
+          <span class="material-icons-round text-base">content_copy</span>
+          </button>
+          </div>
+          
+          <!-- Row 2: Font Size Controls -->
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Yazı:</span>
+            <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10">
+              <button onclick="changeModalFontSize(-2)"
+                class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+                title="Küçült">
+                <span class="text-xs font-bold">A-</span>
+              </button>
+              <span id="font-size-display" class="text-[10px] font-bold text-white min-w-[36px] text-center font-mono">16px</span>
+              <button onclick="changeModalFontSize(2)"
+                class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+                title="Büyüt">
+                <span class="text-sm font-bold">A+</span>
+              </button>
+            </div>
+            <button onclick="changeModalFontSize(16 - modalFontSize)"
+              class="text-[9px] text-slate-500 hover:text-slate-300 transition-colors ml-1" title="Sıfırla">
+              <span class="material-icons-round text-xs">restart_alt</span>
+            </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- INFO MODAL - Burç ve Dönem Bilgileri -->
+<div id="info-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+  onclick="closeInfoModal(event)">
+  <div
+    class="relative w-full max-w-sm bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl border border-white/10 shadow-2xl transform transition-all"
+    onclick="event.stopPropagation()">
+    <!-- Modal Header -->
+    <div id="info-modal-header" class="p-5 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div id="info-modal-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl">
+          <!-- Icon dinamik olarak değişecek -->
+        </div>
+        <div>
+          <h3 id="info-modal-title" class="text-base font-bold text-white">Başlık</h3>
+          <p id="info-modal-subtitle" class="text-[10px] text-slate-400 uppercase tracking-wider">Alt başlık</p>
+        </div>
+      </div>
+      <!-- Close Button -->
+      <button onclick="closeInfoModal()"
+        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+        <span class="material-icons-round text-lg">close</span>
+      </button>
+    </div>
+    <!-- Modal Body -->
+    <div class="p-5">
+      <p id="info-modal-description" class="text-[13px] text-slate-300 leading-relaxed">
+        Açıklama metni buraya gelecek...
+      </p>
+    </div>
+    <!-- Modal Footer -->
+    <div class="p-4 border-t border-white/5 flex justify-end">
+      <button onclick="closeInfoModal()"
+        class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+        Kapat
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Copyright Footer -->
+<footer class="mt-8 pb-6 text-center px-4">
+  <!-- Sorumluluk Reddi -->
+  <div class="max-w-md mx-auto mb-4 p-3 rounded-xl bg-slate-800/30 border border-slate-700/30">
+    <p class="text-[9px] text-slate-500 leading-relaxed">
+      <span class="text-amber-500/70">⚠️</span>
+      Bu uygulama yalnızca eğlence ve kişisel keşif amaçlıdır. Sunulan astrolojik yorumlar, yapay zeka tarafından
+      üretilmiş genel bilgilerdir ve profesyonel danışmanlık, tıbbi, psikolojik, finansal veya hukuki tavsiye niteliği
+      taşımaz. Kararlarınızı bu yorumlara dayandırmayınız. Uygulama sahibi, içeriklerin doğruluğu veya kullanımından
+      doğabilecek sonuçlardan sorumlu tutulamaz.
+    </p>
+  </div>
+
+  <p class="text-[10px] text-slate-600">
+    © 2025 ORBIS Astrology
+  </p>
+  <p class="text-[9px] text-slate-700 mt-1">
+    by Erkan ERDEM
+  </p>
+  <div class="flex items-center justify-center gap-3 mt-2">
+    <a href="{{ url_for('legal.terms_of_service') }}"
+      class="text-[8px] text-slate-600 hover:text-slate-400 transition-colors">Kullanım Koşulları</a>
+    <span class="text-slate-700">•</span>
+    <a href="{{ url_for('legal.privacy_policy') }}"
+      class="text-[8px] text-slate-600 hover:text-slate-400 transition-colors">Gizlilik Politikası</a>
+  </div>
+</footer>
+
+{% endif %} {% endblock %} {% block scripts %}
+<script>
+  const astroData = {{ astro_data| tojson | safe if astro_data else 'null' }};
+  const orbVideoUrl = "{{ url_for('static', filename='orb.mp4') }}";
+  let currentInterpretationText = "";
+    let kozmikOzetText = "";
+    let modalFontSize = parseInt( localStorage.getItem( 'orbis-modal-font-size' ) || '16' );
+
+  function switchResultTab( tabId ) {
+    $( ".tab-content" ).removeClass( "active" );
+    $( "#tab-" + tabId ).addClass( "active" );
+
+    $( ".result-tab-btn" )
+      .removeClass( "active bg-primary text-white shadow-lg shadow-primary/20" )
+      .addClass( "text-slate-400" );
+    $( "#tab-" + tabId + "-btn" )
+      .addClass( "active bg-primary text-white shadow-lg shadow-primary/20" )
+      .removeClass( "text-slate-400" );
+
+    // Scroll to top of results container
+    window.scrollTo( { top: 0, behavior: "smooth" } );
+
+    // YENİ: Harita sekmesi açıldığında çizimi tetikle
+    if ( tabId === "chart" ) {
+      setTimeout( renderAstroChart, 200 );
+    }
+  }
+
+  // --- CHART RENDERING LOGIC ---
+  let chartType = "natal";
+
+  function mapPlanetData( positions ) {
+    if ( !positions ) return [];
+
+    const points = [];
+    const mapping = {
+      Sun: "Sun",
+      Moon: "Moon",
+      Mercury: "Mercury",
+      Venus: "Venus",
+      Mars: "Mars",
+      Jupiter: "Jupiter",
+      Saturn: "Saturn",
+      Uranus: "Uranus",
+      Neptune: "Neptune",
+      Pluto: "Pluto",
+      Chiron: "Chiron",
+      Lilith: "Lilith",
+      True_Node: "NNode",
+      Mean_Node: "NNode",
+      Ascendant: "Asc",
+      MC: "Mc",
+    };
+
+    for ( let key in positions ) {
+      const targetKey = mapping[key];
+      if ( targetKey && positions[key] && positions[key].degree !== undefined ) {
+        points.push( {
+          name: targetKey,
+          angle: parseFloat( positions[key].degree ),
+          isRetrograde: positions[key].retrograde || false
+        } );
+      }
+    }
+    return points;
+  }
+
+  function renderAstroChart() {
+    console.log( '[AstroChart] Render başlatılıyor...' );
+    console.log( '[AstroChart] chartType:', chartType );
+    console.log( '[AstroChart] astroData:', astroData ? 'mevcut' : 'yok' );
+
+    const containerId = "chart-paper";
+    const container = document.getElementById( containerId );
+    if ( !container ) {
+      console.error( '[AstroChart] chart-paper container bulunamadı!' );
+      return;
+    }
+
+    if ( !astroData ) {
+      console.error( '[AstroChart] astroData bulunamadı!' );
+      container.innerHTML = '<div class="text-center text-slate-400 py-8"><p>Harita verisi bulunamadı</p></div>';
+      return;
+    }
+
+    // Hangi pozisyonları kullanacağımızı belirle
+    let positions;
+    if ( chartType === "navamsa" && astroData.navamsa_chart ) {
+      positions = astroData.navamsa_chart;
+      console.log( '[AstroChart] Navamsa chart kullanılıyor' );
+    } else if ( chartType === "transit" && astroData.transit_positions ) {
+      positions = astroData.transit_positions;
+      console.log( '[AstroChart] Transit positions kullanılıyor' );
+    } else if ( chartType === "solar" && astroData.solar_return_chart?.planet_positions ) {
+      positions = astroData.solar_return_chart.planet_positions;
+      console.log( '[AstroChart] Solar return chart kullanılıyor' );
+    } else {
+      positions = astroData.natal_planet_positions;
+      console.log( '[AstroChart] Natal positions kullanılıyor' );
+    }
+
+    if ( !positions ) {
+      console.error( '[AstroChart] Pozisyon verisi bulunamadı!' );
+      container.innerHTML = '<div class="text-center text-slate-400 py-8"><p>Bu harita türü için veri bulunamadı</p></div>';
+      return;
+    }
+
+    // Fallback SVG kullan - daha güvenilir
+    renderFallbackChart( container, positions );
+  }
+
+  // Fallback: Gelişmiş SVG Natal Chart - Premium Tasarım
+  function renderFallbackChart( container, positions ) {
+    const width = container.offsetWidth || 400;
+    const height = width;
+    const cx = width / 2;
+    const cy = height / 2;
+    const outerR = width * 0.46;
+    const innerR = width * 0.33;
+    const planetR = width * 0.39;
+
+    // Element renkleri: Ateş (kırmızı), Toprak (yeşil), Hava (mavi), Su (turkuaz)
+    const signs = ['♈︎', '♉︎', '♊︎', '♋︎', '♌︎', '♍︎', '♎︎', '♏︎', '♐︎', '♑︎', '♒︎', '♓︎'];
+    const signNames = ['Koç', 'Boğa', 'İkizler', 'Yengeç', 'Aslan', 'Başak', 'Terazi', 'Akrep', 'Yay', 'Oğlak', 'Kova', 'Balık'];
+    // Ateş-Toprak-Hava-Su döngüsü
+    const signColors = [
+      '#ff6b6b', // Koç - Ateş
+      '#51cf66', // Boğa - Toprak  
+      '#74c0fc', // İkizler - Hava
+      '#22b8cf', // Yengeç - Su
+      '#ffa94d', // Aslan - Ateş
+      '#8ce99a', // Başak - Toprak
+      '#a5d8ff', // Terazi - Hava
+      '#3bc9db', // Akrep - Su
+      '#ff8787', // Yay - Ateş
+      '#69db7c', // Oğlak - Toprak
+      '#91a7ff', // Kova - Hava
+      '#66d9e8'  // Balık - Su
+    ];
+
+    // Gezegen sembolleri ve renkleri
+    const planetSymbols = {
+      Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
+      Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
+      Chiron: '⚷', True_Node: '☊', Mean_Node: '☊', Lilith: '⚸',
+      Ascendant: 'AC', MC: 'MC'
+    };
+
+    const planetColors = {
+      Sun: '#ffd43b',      // Altın sarısı
+      Moon: '#e9ecef',     // Gümüş
+      Mercury: '#74c0fc',  // Açık mavi
+      Venus: '#f783ac',    // Pembe
+      Mars: '#ff6b6b',     // Kırmızı
+      Jupiter: '#ffa94d',  // Turuncu
+      Saturn: '#868e96',   // Gri
+      Uranus: '#66d9e8',   // Turkuaz
+      Neptune: '#91a7ff',  // Lavanta
+      Pluto: '#845ef7',    // Mor
+      Chiron: '#20c997',   // Yeşil
+      True_Node: '#fab005', // Sarı
+      Mean_Node: '#fab005',
+      Lilith: '#495057',   // Koyu gri
+      Ascendant: '#ff922b',
+      MC: '#ff922b'
+    };
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" class="w-full h-full" style="filter: drop-shadow(0 0 20px rgba(139,92,246,0.3));">`;
+
+    // Defs - Gradientler ve Filtreler
+    svg += `<defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <filter id="planetGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <radialGradient id="centerGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#312e81;stop-opacity:0.8"/>
+          <stop offset="100%" style="stop-color:#0f172a;stop-opacity:0.95"/>
+        </radialGradient>
+        <radialGradient id="outerGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="70%" style="stop-color:transparent"/>
+          <stop offset="100%" style="stop-color:rgba(139,92,246,0.15)"/>
+        </radialGradient>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.6"/>
+          <stop offset="50%" style="stop-color:#6366f1;stop-opacity:0.4"/>
+          <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.6"/>
+        </linearGradient>
+      </defs>`;
+
+    // Arka plan glow
+    svg += `<circle cx="${cx}" cy="${cy}" r="${outerR + 20}" fill="url(#outerGrad)"/>`;
+
+    // Dış halka - gradient stroke
+    svg += `<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="url(#ringGrad)" stroke-width="3"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${outerR - 1}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+
+    // İç daire - gradient fill
+    svg += `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="url(#centerGrad)" stroke="rgba(139,92,246,0.4)" stroke-width="2"/>`;
+
+    // Burç dilimleri ve sembolleri
+    for ( let i = 0; i < 12; i++ ) {
+      const startAngle = ( i * 30 - 90 ) * Math.PI / 180;
+      const midAngle = ( ( i * 30 + 15 ) - 90 ) * Math.PI / 180;
+
+      // Dilim çizgisi
+      const x1 = cx + innerR * Math.cos( startAngle );
+      const y1 = cy + innerR * Math.sin( startAngle );
+      const x2 = cx + outerR * Math.cos( startAngle );
+      const y2 = cy + outerR * Math.sin( startAngle );
+      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`;
+
+      // Burç arka plan arc (hafif renk)
+      const arcStartAngle = i * 30 - 90;
+      const arcEndAngle = ( i + 1 ) * 30 - 90;
+      const arcMidR = ( innerR + outerR ) / 2;
+
+      // Burç sembolü
+      const signR = ( innerR + outerR ) / 2;
+      const sx = cx + signR * Math.cos( midAngle );
+      const sy = cy + signR * Math.sin( midAngle );
+      svg += `<text x="${sx}" y="${sy}" fill="${signColors[i]}" font-size="18" font-weight="bold" text-anchor="middle" dominant-baseline="middle" filter="url(#planetGlow)" style="text-shadow: 0 0 10px ${signColors[i]}40;">${signs[i]}</text>`;
+    }
+
+    // Ev çizgileri (house cusps)
+    if ( astroData && astroData.natal_houses && astroData.natal_houses.house_cusps ) {
+      for ( let i = 1; i <= 12; i++ ) {
+        const cusp = parseFloat( astroData.natal_houses.house_cusps[i] );
+        const angle = ( cusp - 90 ) * Math.PI / 180;
+        const x1 = cx + ( innerR * 0.15 ) * Math.cos( angle );
+        const y1 = cy + ( innerR * 0.15 ) * Math.sin( angle );
+        const x2 = cx + innerR * Math.cos( angle );
+        const y2 = cy + innerR * Math.sin( angle );
+
+        // Ana açılar (1, 4, 7, 10) daha kalın ve renkli
+        const isCardinal = [1, 4, 7, 10].includes( i );
+        const strokeWidth = isCardinal ? 2 : 0.5;
+        const strokeColor = isCardinal ? '#a78bfa' : 'rgba(255,255,255,0.1)';
+
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${strokeColor}" stroke-width="${strokeWidth}" ${isCardinal ? 'filter="url(#glow)"' : ''}/>`;
+
+        // Ev numarası (sadece cardinal evler için)
+        if ( isCardinal ) {
+          const labels = { 1: 'ASC', 4: 'IC', 7: 'DSC', 10: 'MC' };
+          const numR = innerR * 0.75;
+          const nx = cx + numR * Math.cos( angle );
+          const ny = cy + numR * Math.sin( angle );
+          svg += `<text x="${nx}" y="${ny}" fill="#a78bfa" font-size="8" font-weight="bold" text-anchor="middle" dominant-baseline="middle">${labels[i]}</text>`;
+        }
+      }
+    }
+
+    // Gezegenleri çiz
+    if ( positions ) {
+      const drawnAngles = [];
+
+      for ( const [planet, info] of Object.entries( positions ) ) {
+        if ( !info || info.degree === undefined ) continue;
+        const symbol = planetSymbols[planet] || planet.charAt( 0 );
+        const color = planetColors[planet] || '#e2e8f0';
+        let degree = parseFloat( info.degree );
+        let angle = ( degree - 90 ) * Math.PI / 180;
+
+        // Çakışma önleme
+        for ( const drawn of drawnAngles ) {
+          if ( Math.abs( angle - drawn ) < 0.15 ) {
+            angle += 0.15;
+          }
+        }
+        drawnAngles.push( angle );
+
+        const px = cx + planetR * Math.cos( angle );
+        const py = cy + planetR * Math.sin( angle );
+
+        // Gezegen arka plan dairesi
+        svg += `<circle cx="${px}" cy="${py}" r="10" fill="rgba(15,23,42,0.8)" stroke="${color}" stroke-width="1.5" filter="url(#planetGlow)"/>`;
+
+        // Gezegen sembolü
+        const isRetro = info.retrograde ? ' ℞' : '';
+        svg += `<text x="${px}" y="${py}" fill="${color}" font-size="12" font-weight="bold" text-anchor="middle" dominant-baseline="middle" style="text-shadow: 0 0 8px ${color};">${symbol}</text>`;
+
+        // Retrograd göstergesi
+        if ( info.retrograde ) {
+          svg += `<text x="${px + 8}" y="${py - 6}" fill="#ff6b6b" font-size="7" font-weight="bold">R</text>`;
+        }
+
+        // Derece göstergesi (çizgi)
+        const lineR1 = innerR + 3;
+        const lineR2 = innerR + 10;
+        const origAngle = ( degree - 90 ) * Math.PI / 180;
+        const lx1 = cx + lineR1 * Math.cos( origAngle );
+        const ly1 = cy + lineR1 * Math.sin( origAngle );
+        const lx2 = cx + lineR2 * Math.cos( origAngle );
+        const ly2 = cy + lineR2 * Math.sin( origAngle );
+        svg += `<line x1="${lx1}" y1="${ly1}" x2="${lx2}" y2="${ly2}" stroke="${color}" stroke-width="2" opacity="0.7"/>`;
+      }
+      console.log( '[AstroChart] Gezegen sayısı:', Object.keys( positions ).length );
+    }
+
+    // Merkez noktası - animasyonlu
+    svg += `<circle cx="${cx}" cy="${cy}" r="8" fill="#312e81" stroke="#8b5cf6" stroke-width="2" filter="url(#glow)"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="#a78bfa">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+      </circle>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="2" fill="#fff"/>`;
+
+    // Chart tipi göstergesi
+    const chartLabels = { natal: 'NATAL', transit: 'TRANSİT', solar: 'GÜNEŞ DÖNÜŞÜ', navamsa: 'NAVAMSA' };
+    svg += `<text x="${cx}" y="${height - 15}" fill="#64748b" font-size="9" font-weight="bold" text-anchor="middle" letter-spacing="2">${chartLabels[chartType] || 'NATAL'} HARİTASI</text>`;
+
+    svg += `</svg>`;
+
+    container.innerHTML = svg;
+    console.log( '[AstroChart] Premium SVG çizildi, chartType:', chartType );
+  }
+
+  function setChartType( type ) {
+    chartType = type;
+    $( ".chart-selector-pill" ).removeClass( "active" );
+    $( `#pill-${type}` ).addClass( "active" );
+
+    // Harita açıklama kartlarını güncelle
+    $( ".chart-info-card" ).addClass( "hidden" );
+    const infoCard = $( `#chart-info-${type}` );
+    infoCard.removeClass( "hidden" );
+    // Animasyonu yeniden tetikle
+    infoCard[0].style.animation = 'none';
+    infoCard[0].offsetHeight; // reflow
+    infoCard[0].style.animation = '';
+
+    // AI yorum butonunu güncelle
+    updateInterpretButton( type );
+
+    renderAstroChart();
+  }
+
+  // Harita türüne göre AI yorum butonunu güncelle
+  function updateInterpretButton( type ) {
+    const titles = {
+      'natal': 'Natal Harita Yorumla',
+      'transit': 'Transit Etkilerini Yorumla',
+      'solar': 'Güneş Dönüşünü Yorumla',
+      'lunar': 'Ay Dönüşünü Yorumla',
+      'progressed': 'Progresyonları Yorumla',
+      'navamsa': 'Navamsa Haritasını Yorumla'
+    };
+    const subtitles = {
+      'natal': 'Doğum haritası detaylı analizi',
+      'transit': 'Güncel gezegen etkileri',
+      'solar': 'Yıllık tema ve öngörüler',
+      'lunar': 'Aylık duygusal analiz',
+      'progressed': 'İçsel gelişim analizi',
+      'navamsa': 'Vedik ruh haritası yorumu'
+    };
+    $( '#interpret-btn-title' ).text( titles[type] || 'Bu harita için yorum oluştur' );
+    $( '#interpret-btn-subtitle' ).text( subtitles[type] || 'ORBIS AI detaylı analiz' );
+  }
+
+  // Seçili haritaya göre doğru yorumu aç
+  function interpretCurrentChart() {
+    const chartToInterpretMap = {
+      'natal': 'birth_chart',
+      'transit': 'transits',
+      'solar': 'long_term',
+      'lunar': 'short_term',
+      'progressed': 'long_term',
+      'navamsa': 'psychological_karmic'
+    };
+    const interpretType = chartToInterpretMap[chartType] || 'birth_chart';
+    switchResultTab( 'ai' );
+    interpretTab( interpretType );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ÖZET SEKMESİ - TIKLANABILIR BİLGİ KARTLARI
+  // ═══════════════════════════════════════════════════════════════
+
+  // Burç açıklamaları
+  const signDescriptions = {
+    'Koç': { asc: 'Enerjik, cesur ve girişimci bir dış görünüm. İlk izlenim güçlü ve kararlı.', moon: 'Duygusal tepkiler hızlı ve tutkulu. Bağımsızlık ihtiyacı yüksek.', mc: 'Liderlik pozisyonlarına yatkın. Girişimci ve öncü kariyer yolu.' },
+    'Boğa': { asc: 'Sakin, güvenilir ve çekici bir dış görünüm. Maddi konulara önem verir.', moon: 'Duygusal güvenlik ve istikrar arayışı. Sadık ve sabırlı.', mc: 'Finans, sanat veya lüks sektörlerinde başarı. Kararlı kariyer ilerlemesi.' },
+    'İkizler': { asc: 'Meraklı, iletişimci ve çok yönlü bir dış görünüm. Sosyal ve zeki izlenim.', moon: 'Duygusal çeşitlilik ve zihinsel uyarım ihtiyacı. Konuşarak rahatlar.', mc: 'İletişim, medya veya eğitim alanlarında kariyer. Çok yönlü mesleki ilgiler.' },
+    'Yengeç': { asc: 'Koruyucu, şefkatli ve sezgisel bir dış görünüm. Aile odaklı izlenim.', moon: 'Derin duygusal bağlar ve güvenlik ihtiyacı. Sezgileri güçlü.', mc: 'Bakım, ev veya aile işleriyle ilgili kariyer. Duygusal zeka ile liderlik.' },
+    'Aslan': { asc: 'Karizmatik, özgüvenli ve gösterişli bir dış görünüm. Dikkat çekici.', moon: 'Takdir edilme ve sevilme ihtiyacı. Cömert ve sadık duygular.', mc: 'Yaratıcı, eğlence veya liderlik kariyeri. Sahne önünde parlama.' },
+    'Başak': { asc: 'Düzenli, analitik ve mütevazı bir dış görünüm. Detaycı izlenim.', moon: 'Duygusal düzen ve faydalı olma ihtiyacı. Eleştirel ama yardımsever.', mc: 'Sağlık, hizmet veya analitik alanlarda kariyer. Mükemmeliyetçi iş anlayışı.' },
+    'Terazi': { asc: 'Zarif, diplomatik ve çekici bir dış görünüm. Uyumlu ve adil izlenim.', moon: 'İlişkilerde denge ve uyum arayışı. Estetik duyarlılık yüksek.', mc: 'Hukuk, sanat veya diplomasi kariyeri. İşbirliğine dayalı başarı.' },
+    'Akrep': { asc: 'Yoğun, gizemli ve manyetik bir dış görünüm. Güçlü ve derin izlenim.', moon: 'Derin duygusal bağlar ve dönüşüm ihtiyacı. Tutkulu ve sadık.', mc: 'Araştırma, psikoloji veya finans kariyeri. Dönüştürücü liderlik.' },
+    'Yay': { asc: 'İyimser, maceracı ve özgür ruhlu bir dış görünüm. Felsefi izlenim.', moon: 'Özgürlük ve anlam arayışı. Duygusal genişleme ihtiyacı.', mc: 'Eğitim, yayıncılık veya seyahat kariyeri. Vizyoner hedefler.' },
+    'Oğlak': { asc: 'Ciddi, sorumlu ve hırslı bir dış görünüm. Profesyonel izlenim.', moon: 'Duygusal güvenlik için başarı ihtiyacı. Disiplinli ve dayanıklı.', mc: 'Yönetim, iş veya devlet kariyeri. Uzun vadeli başarı odaklı.' },
+    'Kova': { asc: 'Özgün, bağımsız ve yenilikçi bir dış görünüm. Farklı izlenim.', moon: 'Duygusal bağımsızlık ve entelektüel bağ ihtiyacı. İnsancıl.', mc: 'Teknoloji, bilim veya sosyal reform kariyeri. Yenilikçi yaklaşım.' },
+    'Balık': { asc: 'Hassas, sezgisel ve rüya gibi bir dış görünüm. Empatik izlenim.', moon: 'Derin duygusal empati ve manevi bağ ihtiyacı. Sanatsal ruh.', mc: 'Sanat, şifa veya manevi alanlarda kariyer. Sezgisel liderlik.' }
+  };
+
+  // Gezegen dönem açıklamaları
+  const dasaDescriptions = {
+    'Güneş': 'Güneş Dasa döneminde kimlik, otorite ve yaşam amacı ön plana çıkar. Liderlik fırsatları ve tanınma zamanı.',
+    'Ay': 'Ay Dasa döneminde duygusal gelişim, aile ve iç dünya önem kazanır. Sezgisel kararlar ve ev konuları.',
+    'Mars': 'Mars Dasa döneminde enerji, cesaret ve eylem zamanı. Rekabet, spor ve girişimcilik fırsatları.',
+    'Merkür': 'Merkür Dasa döneminde iletişim, öğrenme ve ticaret ön planda. Zihinsel aktivite ve seyahat.',
+    'Jüpiter': 'Jüpiter Dasa döneminde büyüme, şans ve bilgelik zamanı. Eğitim, manevi gelişim ve genişleme.',
+    'Venüs': 'Venüs Dasa döneminde aşk, güzellik ve maddi konfor ön planda. İlişkiler ve sanatsal ifade.',
+    'Satürn': 'Satürn Dasa döneminde disiplin, sorumluluk ve olgunlaşma zamanı. Kariyer yapılanması ve sabır.',
+    'Rahu': 'Rahu Dasa döneminde yoğun arzular, dünyevi başarı ve beklenmedik değişimler. Materyal odak.',
+    'Ketu': 'Ketu Dasa döneminde manevi uyanış, geçmişten arınma ve içsel yolculuk. Bağımsızlık arayışı.'
+  };
+
+  const firdariaDescriptions = {
+    'Güneş': 'Güneş Firdaria döneminde benlik ifadesi, yaratıcılık ve liderlik temaları aktif.',
+    'Venüs': 'Venüs Firdaria döneminde ilişkiler, estetik ve maddi konfor ön planda.',
+    'Merkür': 'Merkür Firdaria döneminde iletişim, öğrenme ve ticari faaliyetler aktif.',
+    'Ay': 'Ay Firdaria döneminde duygusal yaşam, aile ve ev konuları önem kazanır.',
+    'Satürn': 'Satürn Firdaria döneminde yapılanma, sorumluluk ve kariyer odaklı dönem.',
+    'Jüpiter': 'Jüpiter Firdaria döneminde genişleme, şans ve manevi büyüme zamanı.',
+    'Mars': 'Mars Firdaria döneminde enerji, eylem ve rekabet temaları aktif.',
+    'Kuzey Düğüm': 'Kuzey Düğüm döneminde karmik büyüme ve yeni deneyimlere açılma.',
+    'Güney Düğüm': 'Güney Düğüm döneminde geçmiş yeteneklerin kullanımı ve arınma.'
+  };
+
+  // Toggle fonksiyonları - MODAL AÇAR
+  function toggleSignInfo( type ) {
+    const modal = document.getElementById( 'info-modal' );
+    const iconEl = document.getElementById( 'info-modal-icon' );
+    const titleEl = document.getElementById( 'info-modal-title' );
+    const subtitleEl = document.getElementById( 'info-modal-subtitle' );
+    const descEl = document.getElementById( 'info-modal-description' );
+    const headerEl = document.getElementById( 'info-modal-header' );
+
+    let sign = '';
+    let title = '';
+    let subtitle = '';
+    let icon = '';
+    let bgClass = '';
+    let description = '';
+
+    if ( type === 'ascendant' ) {
+      sign = '{{ astro_data.natal_planet_positions.Ascendant.sign if astro_data.natal_planet_positions.Ascendant else "" }}';
+      title = sign + ' Yükselen';
+      subtitle = 'Dış görünüm ve ilk izlenim';
+      icon = '↑';
+      bgClass = 'bg-rose-500/20 text-rose-400';
+      description = signDescriptions[sign]?.asc || 'Yükselen burcunuz, dış dünyanın sizi nasıl gördüğünü belirler.';
+    } else if ( type === 'moon' ) {
+      sign = '{{ astro_data.natal_planet_positions.Moon.sign if astro_data.natal_planet_positions.Moon else "" }}';
+      title = sign + ' Ay';
+      subtitle = 'Duygusal doğa ve iç dünya';
+      icon = '☾';
+      bgClass = 'bg-cyan-500/20 text-cyan-400';
+      description = signDescriptions[sign]?.moon || 'Ay burcunuz, duygusal doğanızı temsil eder.';
+    } else if ( type === 'mc' ) {
+      sign = '{{ astro_data.natal_planet_positions.MC.sign if astro_data.natal_planet_positions.MC else "" }}';
+      title = sign + ' MC';
+      subtitle = 'Kariyer ve toplumsal imaj';
+      icon = '★';
+      bgClass = 'bg-amber-500/20 text-amber-400';
+      description = signDescriptions[sign]?.mc || 'MC burcunuz, kariyer yolunuzu gösterir.';
+    }
+
+    iconEl.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-2xl ' + bgClass;
+    iconEl.textContent = icon;
+    titleEl.textContent = title;
+    subtitleEl.textContent = subtitle;
+    descEl.textContent = description;
+
+    modal.classList.remove( 'hidden' );
+    modal.classList.add( 'flex' );
+  }
+
+  function togglePeriodInfo( type ) {
+    const modal = document.getElementById( 'info-modal' );
+    const iconEl = document.getElementById( 'info-modal-icon' );
+    const titleEl = document.getElementById( 'info-modal-title' );
+    const subtitleEl = document.getElementById( 'info-modal-subtitle' );
+    const descEl = document.getElementById( 'info-modal-description' );
+
+    let title = '';
+    let subtitle = '';
+    let icon = '';
+    let bgClass = '';
+    let description = '';
+
+    if ( type === 'vedic' ) {
+      const dasaLord = '{{ astro_data.vimshottari_dasa.main_dasa_lord_tr.split(" ")[0] if astro_data.vimshottari_dasa and astro_data.vimshottari_dasa.main_dasa_lord_tr else "" }}';
+      title = dasaLord + ' Dasa Dönemi';
+      subtitle = 'Vimshottari Dasa Sistemi';
+      icon = '🕉️';
+      bgClass = 'bg-orange-500/20 text-orange-400';
+      description = dasaDescriptions[dasaLord] || 'Vedik astrolojinin 120 yıllık gezegen döngüsü. Her gezegen belirli bir süre hayatınızı yönetir.';
+    } else if ( type === 'firdaria' ) {
+      const firdariaLord = '{{ astro_data.firdaria_periods.main_ruler if astro_data.firdaria_periods and astro_data.firdaria_periods.main_ruler else "" }}';
+      title = firdariaLord + ' Firdaria';
+      subtitle = 'Ortaçağ Dönem Sistemi';
+      icon = '⏳';
+      bgClass = 'bg-teal-500/20 text-teal-400';
+      description = firdariaDescriptions[firdariaLord] || 'Ortaçağ astrolojisinden gelen 75 yıllık yaşam döngüsü.';
+    }
+
+    iconEl.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-2xl ' + bgClass;
+    iconEl.textContent = icon;
+    titleEl.textContent = title;
+    subtitleEl.textContent = subtitle;
+    descEl.textContent = description;
+
+    modal.classList.remove( 'hidden' );
+    modal.classList.add( 'flex' );
+  }
+
+  function closeInfoModal( event ) {
+    if ( event && event.target !== event.currentTarget ) return;
+    const modal = document.getElementById( 'info-modal' );
+    modal.classList.add( 'hidden' );
+    modal.classList.remove( 'flex' );
+  }
+
+  $( window ).resize( () => {
+    if ( $( "#tab-chart" ).hasClass( "active" ) ) {
+      renderAstroChart();
+    }
+  } );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KOZMİK ÖZET MODAL - Tam Ekran Okuma
+    // ═══════════════════════════════════════════════════════════════════════════
+    function openKozmikOzetModal() {
+      if ( !kozmikOzetText ) return; // Henüz yüklenmemişse bir şey yapma
+
+      // Modal içeriğini ayarla
+      currentInterpretationText = kozmikOzetText;
+      $( '#ai-modal-title' ).text( 'Kozmik Özet' );
+
+      // Yönlendirme notu ile birlikte göster
+      const disclaimerNote = `
+        <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+          <div class="flex items-start gap-3">
+            <span class="material-icons-round text-primary text-lg mt-0.5 shrink-0">info</span>
+            <div>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Bu, tüm hesaplamalarınızın sonucunda ortaya çıkan <strong class="text-white">kozmik bir özettir</strong>. 
+                Kişiliğinize özel detaylı analizler için 
+                <button onclick="closeAIModal(); setTimeout(() => switchResultTab('ai'), 300)" class="text-accent font-bold hover:underline">ORBIS AI</button> 
+                sekmesine göz atın.
+              </p>
+            </div>
+          </div>
+        </div>`;
+      $( '#ai-modal-body' ).html( marked.parse( kozmikOzetText ) + disclaimerNote );
+
+      // Font boyutunu uygula
+      applyModalFontSize();
+
+      // Footer'ı göster (TTS, font controls, copy)
+      $( '#ai-modal-footer' ).removeClass( 'hidden' );
+
+      // Modalı aç
+      openAIModal();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FONT BOYUTU KONTROL
+    // ═══════════════════════════════════════════════════════════════════════════
+    function changeModalFontSize( delta ) {
+      modalFontSize = Math.max( 12, Math.min( 28, modalFontSize + delta ) );
+      localStorage.setItem( 'orbis-modal-font-size', modalFontSize.toString() );
+      applyModalFontSize();
+    }
+
+    function applyModalFontSize() {
+      $( '#ai-modal-body' ).css( 'font-size', modalFontSize + 'px' );
+      $( '#font-size-display' ).text( modalFontSize + 'px' );
+    }
+
+  // existing logic continuation...
+  function openAIModal() {
+    // Footer'ı gizle (loading state'de görünmesin)
+    $( '#ai-modal-footer' ).addClass( 'hidden' );
+    $( '#ai-modal' ).removeClass( 'hidden' ).addClass( 'flex' );
+    $( '#ai-modal-container' ).css( 'transform', 'translateY(100%)' ).animate( { 'opacity': 1 }, 10, function () {
+      $( this ).css( 'transform', 'translateY(0)' );
+    } );
+  }
+
+  function closeAIModal() {
+    $( '#ai-modal-container' ).css( 'transform', 'translateY(100%)' );
+    setTimeout( () => {
+      $( '#ai-modal' ).addClass( 'hidden' );
+      TTS.stop();
+      TTS.showPlayer(); // Re-show global player if still playing elsewhere
+    }, 300 );
+  }
+
+  async function interpretTab( tabId ) {
+    const topicNames = {
+      birth_chart: "Doğum Haritası Analizi",
+      relationship: "İlişki & Aşk Analizi",
+      psychological_karmic: "Psikolojik & Karmik Analiz",
+      daily: "Günlük Enerji Yorumu",
+      transits: "Transit Gezegen Analizi",
+      short_term: "Kısa Vadeli Öngörü",
+      long_term: "Uzun Vadeli Öngörü",
+      career: "Kariyer & Meslek Analizi",
+      financial: "Finansal Potansiyel Analizi",
+      vedic: "Vedik Astroloji Analizi",
+      eclipse: "Tutulma Etkileri Analizi",
+      harmonic: "Harmonik Rezonans Analizi",
+      esoteric: "Ezoterik Etkiler Analizi",
+      timing: "Zamanlama Teknikleri Analizi",
+      health: "Sağlık & Enerji Analizi",
+      summary: "Kozmik Özet"
+    };
+
+    // Her analiz türü için açıklama
+    const topicDescriptions = {
+      birth_chart: "Doğum haritanızdaki gezegen konumları, evler ve açılar analiz ediliyor. Kişiliğinizin temel yapı taşları ortaya çıkarılıyor.",
+      relationship: "Venüs, Mars ve 7. ev konumlarınız inceleniyor. Aşk hayatınız ve ilişki dinamikleriniz yorumlanıyor.",
+      psychological_karmic: "Ay düğümleri, Kiron ve 12. ev analiz ediliyor. Ruhsal yolculuğunuz ve karmik dersleriniz açığa çıkıyor.",
+      daily: "Bugünkü transit gezegenler doğum haritanızla karşılaştırılıyor. Günün enerjisi ve fırsatları belirleniyor.",
+      transits: "Şu anki gezegen geçişleri haritanızı nasıl etkiliyor? Önemli dönemler ve tetikleyiciler analiz ediliyor.",
+      short_term: "Önümüzdeki hafta ve ay için gezegen hareketleri inceleniyor. Yakın gelecekteki fırsatlar ve dikkat edilmesi gerekenler.",
+      long_term: "Yıllık ve çok yıllık döngüler analiz ediliyor. Hayatınızdaki büyük dönüm noktaları ve potansiyeller.",
+      career: "10. ev, Satürn ve MC konumunuz inceleniyor. Kariyer yolunuz, yetenekleriniz ve başarı potansiyeliniz.",
+      financial: "2. ve 8. ev, Jüpiter konumunuz analiz ediliyor. Finansal potansiyeliniz ve bolluk enerjiniz.",
+      vedic: "Vedik astroloji sistemine göre haritanız yorumlanıyor. Nakshatra, Dasa dönemleri ve Yoga'lar inceleniyor.",
+      eclipse: "Yaklaşan tutulmaların haritanıza etkileri analiz ediliyor. Dönüşüm ve yenilenme dönemleri belirleniyor.",
+      harmonic: "Harmonik haritalar ve rezonanslar inceleniyor. Gizli yetenekler ve potansiyeller ortaya çıkarılıyor.",
+      esoteric: "Ezoterik noktalar ve asteroidler analiz ediliyor. Ruhsal gelişim ve mistik yetenekleriniz.",
+      timing: "Profeksiyon, Solar Arc ve diğer zamanlama teknikleri kullanılıyor. Önemli tarihler belirleniyor.",
+      health: "6. ev ve sağlık göstergeleri inceleniyor. Enerji dengeniz ve wellness önerileri.",
+      summary: "Tüm harita verileri sentezleniyor. Kişisel kozmik özetiniz hazırlanıyor."
+    };
+
+    const $body = $( '#ai-modal-body' );
+    const topicName = topicNames[tabId] || "Analiz";
+    const topicDesc = topicDescriptions[tabId] || "Kozmik verileriniz analiz ediliyor...";
+    const userName = astroData?.user_name || 'Sevgili Kullanıcı';
+
+    $( '#ai-modal-title' ).text( topicName );
+
+    // Yeni loading state - AI Avatar ve kişiselleştirilmiş mesaj
+    $body.html( `
+            <div class="flex flex-col items-center justify-center py-8 px-4">
+                <!-- AI Avatar - Büyük ve Animasyonlu -->
+                <div class="relative mb-8">
+                    <!-- Dış halka - yavaş dönen -->
+                    <div class="absolute inset-[-20px] border-2 border-primary/20 rounded-full animate-spin" style="animation-duration: 8s;"></div>
+                    <!-- Orta halka - ters dönen -->
+                    <div class="absolute inset-[-12px] border-2 border-accent/30 rounded-full animate-spin" style="animation-duration: 5s; animation-direction: reverse;"></div>
+                    <!-- İç halka - hızlı dönen -->
+                    <div class="absolute inset-[-4px] border border-primary/40 rounded-full animate-spin" style="animation-duration: 3s;"></div>
+                    
+                    <!-- Avatar -->
+                    <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/60 shadow-2xl shadow-primary/30 animate-pulse" style="animation-duration: 2s;">
+                        <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" alt="ORBIS AI" class="w-full h-full object-cover">
+                    </div>
+                    
+                    <!-- Parlama efekti -->
+                    <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-transparent animate-pulse"></div>
+                </div>
+                
+                <!-- Kişiselleştirilmiş Selamlama -->
+                <p class="text-primary font-semibold text-base mb-2">Merhaba ${userName}! 👋</p>
+                
+                <!-- Analiz Başlığı -->
+                <h3 class="text-white font-bold text-lg mb-3 text-center">${topicName}</h3>
+                
+                <!-- Analiz Açıklaması -->
+                <p class="text-slate-400 text-sm text-center leading-relaxed max-w-sm mb-8">${topicDesc}</p>
+                
+                <!-- Loading indicator - 3 nokta -->
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                    <div class="w-3 h-3 bg-accent rounded-full animate-bounce" style="animation-delay: 0.15s;"></div>
+                    <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0.3s;"></div>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-medium">Senin için hazırlıyorum...</p>
+            </div>
+        `);
+
+    openAIModal();
+
+    // 🎯 REKLAM İZLEME KONTROLÜ - YENİ STRATEJİ
+    let deviceId = localStorage.getItem( 'orbis_device_id' );
+    if ( !deviceId ) {
+      deviceId = 'web_' + Date.now();
+      localStorage.setItem( 'orbis_device_id', deviceId );
+    }
+    const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
+
+    console.log( "[ORBIS] 🔍 AI Comment - Device ID:", deviceId );
+    console.log( "[ORBIS] 🔍 AI Comment - Email:", userEmail );
+
+    // Kullanım kontrolü
+    const usageResponse = await fetch( '/api/check_usage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify( { device_id: deviceId, email: userEmail } )
+    } );
+    const usage = await usageResponse.json();
+
+    console.log( "[ORBIS] ✅ AI Comment usage check:", usage );
+    console.log( "[ORBIS] 📊 Remaining:", usage.remaining );
+    console.log( "[ORBIS] 🎬 Requires ad:", usage.requires_ad );
+    console.log( "[ORBIS] 💎 Is premium:", usage.is_premium );
+
+    // Limit doldu mu?
+    if ( !usage.allowed ) {
+      $body.html( `
+            <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
+                <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
+                    <span class="material-icons-round text-4xl text-amber-400">lock</span>
+                </div>
+                <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
+                <p class="text-slate-400 text-sm mb-6 max-w-xs">
+                    AI yorum almak için reklam izlemeniz veya 
+                    Premium'a geçmeniz gerekiyor!
+                </p>
+                <button onclick="showPremiumModal()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-all">
+                    💎 Premium'a Geç - 30 TL/gün
+                </button>
+            </div>
+          `);
+      return;
+    }
+
+    // Reklam izleme gerekli mi?
+    if ( usage.requires_ad ) {
+      console.log( "[ORBIS] 🎬 Rewarded ad required for AI comment, remaining:", usage.remaining );
+
+      // OrbisRewardedAds kontrolü
+      console.log( "[ORBIS] 🔍 Checking OrbisRewardedAds..." );
+      console.log( "[ORBIS] 🔍 window.OrbisRewardedAds:", window.OrbisRewardedAds );
+      console.log( "[ORBIS] 🔍 typeof showForInterpretation:", typeof window.OrbisRewardedAds?.showForInterpretation );
+
+      // Rewarded ad göster - OrbisRewardedAds veya direkt OrbisBridge.showRewardedAd()
+      const showAd = async () => {
+        if (window.OrbisRewardedAds && typeof window.OrbisRewardedAds.showForInterpretation === 'function') {
+          return await window.OrbisRewardedAds.showForInterpretation();
+        }
+        if (window.OrbisBridge && typeof window.OrbisBridge.showRewardedAd === 'function') {
+          return await window.OrbisBridge.showRewardedAd();
+        }
+        return null; // Reklam sistemi yok
+      };
+
+      const rewarded = await showAd();
+      console.log("[ORBIS] 🎁 Rewarded ad result:", rewarded);
+
+      if (rewarded === null) {
+        // Reklam sistemi hic yok - uygulama yeniden baslatilmali
+        console.error("[ORBIS] ❌ OrbisRewardedAds/OrbisBridge not available!");
+        $body.html(`
+          <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
+            <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
+              <span class="material-icons-round text-4xl text-red-400">error</span>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-3">Reklam Sistemi Yüklenemedi</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-xs">
+              Lütfen uygulamayı kapatıp tekrar açın.
+            </p>
+            <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
+              Tamam
+            </button>
+          </div>
+        `);
+        return;
+      }
+
+      if (!rewarded) {
+        $body.html(`
+          <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
+            <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
+              <span class="material-icons-round text-4xl text-red-400">error</span>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-xs">
+              AI yorum okumak için reklam izlemeniz gerekiyor!
+            </p>
+            <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
+              Tamam
+            </button>
+          </div>
+        `);
+        return;
+      }
+
+      // 🆕 REKLAM İZLENDİ - Backend'e kaydet
+      console.log("[ORBIS] 🎬 Recording ad watch to backend...");
+      try {
+        await fetch('/api/record_ad_watch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            device_id: deviceId, 
+            email: userEmail 
+          })
+        });
+        console.log("[ORBIS] ✅ Ad watch recorded");
+      } catch (recordError) {
+        console.warn("[ORBIS] ⚠️ Ad watch record error (non-fatal):", recordError);
+      }
+
+      // 🆕 Monetization API'ye de kaydet
+      try {
+        await fetch('/api/monetization/record-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            device_id: deviceId, 
+            email: userEmail,
+            feature: 'ad_watch'
+          })
+        });
+        console.log("[ORBIS] ✅ Monetization usage recorded");
+      } catch (recordError) {
+        console.warn("[ORBIS] ⚠️ Monetization record error (non-fatal):", recordError);
+      }
+    }
+
+    try {
+      // Device ID ve email al (kullanım takibi için)
+      const deviceId = localStorage.getItem( 'orbis_device_id' ) || 'web_' + Date.now();
+      const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
+
+      const response = await fetch( "/api/get_ai_interpretation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( {
+          interpretation_type: tabId,
+          astro_data: astroData,
+          user_name: astroData.user_name || "Kullanıcı",
+          device_id: deviceId,
+          email: userEmail
+        } )
+      } );
+      const result = await response.json();
+
+      // Günlük limit kontrolü
+      if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
+        $body.html( `
+                <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
+                    <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
+                        <span class="material-icons-round text-4xl text-amber-400">videocam</span>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
+                    <p class="text-slate-400 text-sm mb-6 max-w-xs">
+                        AI yorum almak için reklam izleyin veya 
+                        Premium'a geçerek reklamsız sınırsız yorum alın!
+                    </p>
+                    <button onclick="showPremiumModal()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-all">
+                        💎 Premium'a Geç
+                    </button>
+                </div>
+            `);
+        return;
+      }
+
+      if ( result.success ) {
+        currentInterpretationText = result.interpretation;
+        $body.html( marked.parse( result.interpretation ) );
+        // Yorum yüklenince footer'ı göster
+        $( '#ai-modal-footer' ).removeClass( 'hidden' );
+
+        console.log( "[ORBIS] 📊 Result usage:", result.usage );
+
+        // Kalan yorum durumunu göster
+        if ( result.usage && !result.usage.is_premium ) {
+          console.log( "[ORBIS] 📊 Ücretsiz kullanıcı - reklam izleyerek devam" );
+          $body.prepend( `<div class="text-[10px] text-center mb-4 py-2 px-3 bg-white/5 rounded-lg text-amber-400">📺 Reklam izleyerek sınırsız AI yorum</div>` );
+        } else if ( result.usage && result.usage.is_premium ) {
+          console.log( "[ORBIS] 💎 Premium user - unlimited access" );
+        }
+      } else {
+        console.error( "[ORBIS] ❌ AI interpretation error:", result.error );
+        $body.html( `<p class="text-red-400 text-xs">Error: ${result.error}</p>` );
+      }
+    } catch ( error ) {
+      $body.html( `<p class="text-red-400 text-xs">Bağlantı Hatası.</p>` );
+    }
+  }
+
+  function formatAIResponse( text ) {
+    if ( !text ) return "";
+    let formatted = text
+      .replace( /### (.*)/g, '<h4 class="text-white font-bold text-sm mt-6 mb-2 tracking-wide uppercase font-display">$1</h4>' )
+      .replace( /\*\*(.*?)\*\*/g, '<strong class="text-primary font-bold">$1</strong>' )
+      .replace( /\n\n/g, '</p><p class="mb-4">' )
+      .replace( /- (.*)/g, '<li class="ml-4 mb-2 flex items-start gap-2"><span class="text-primary mt-1">•</span> $1</li>' );
+
+    return `<p class="mb-4">${formatted}</p>`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COSMIC LOADER SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COSMIC MODAL LOADER - Progress Bar ile Modal Dialog
+  // ═══════════════════════════════════════════════════════════════════════════
+  const CosmicLoader = {
+    overlay: null,
+    progressFill: null,
+    progressPercent: null,
+    currentProgress: 0,
+    targetProgress: 0,
+    animationFrame: null,
+    isComplete: false,
+
+    init() {
+      this.overlay = document.getElementById( 'cosmic-loader-overlay' );
+      this.progressFill = document.getElementById( 'cosmic-progress-fill' );
+      this.progressPercent = document.getElementById( 'cosmic-progress-percent' );
+
+      if ( this.overlay ) {
+        // Loader'ı göster (başlangıçta görünür olmalı)
+        this.overlay.classList.remove( 'hidden' );
+        // Progress animasyonunu başlat
+        this.animateProgress();
+        // İlk progress'i ayarla
+        this.setProgress( 10 );
+      }
+    },
+
+    setProgress( percent ) {
+      this.targetProgress = Math.min( 100, Math.max( 0, percent ) );
+    },
+
+    animateProgress() {
+      const animate = () => {
+        if ( this.currentProgress < this.targetProgress ) {
+          const diff = this.targetProgress - this.currentProgress;
+          const increment = Math.max( 0.3, diff * 0.08 );
+          this.currentProgress = Math.min( this.targetProgress, this.currentProgress + increment );
+
+          if ( this.progressFill ) {
+            this.progressFill.style.width = `${this.currentProgress}%`;
+          }
+          if ( this.progressPercent ) {
+            this.progressPercent.textContent = `${Math.round( this.currentProgress )}%`;
+          }
+        }
+
+        if ( !this.isComplete ) {
+          this.animationFrame = requestAnimationFrame( animate );
+        }
+      };
+      animate();
+    },
+
+    completeStep( stepNumber ) {
+      // Her adım %20 progress
+      const newProgress = stepNumber * 20;
+      this.setProgress( newProgress );
+
+      if ( stepNumber >= 5 ) {
+        this.setProgress( 100 );
+        setTimeout( () => this.hideLoader(), 600 );
+      }
+    },
+
+    hideLoader() {
+      if ( this.overlay && !this.isComplete ) {
+        this.isComplete = true;
+        if ( this.animationFrame ) {
+          cancelAnimationFrame( this.animationFrame );
+        }
+        this.overlay.classList.add( 'hidden' );
+      }
+    },
+
+    forceHide() {
+      if ( this.overlay ) {
+        this.isComplete = true;
+        if ( this.animationFrame ) {
+          cancelAnimationFrame( this.animationFrame );
+        }
+        this.overlay.classList.add( 'hidden' );
+      }
+    }
+  };
+
+  // AI Özet yükleme fonksiyonu - Kozmik Özet hazır olunca loader kapanır
+  async function loadAISummary() {
+    const $content = $( '#ai-summary-content' );
+    const $btn = $( '#refresh-summary-btn' );
+
+    // Progress'i %30'a çıkar (yükleme başladı)
+    CosmicLoader.setProgress( 30 );
+
+    $btn.prop( 'disabled', true ).addClass( 'opacity-50' );
+
+    try {
+      // Progress'i %50'ye çıkar (API çağrısı yapılıyor)
+      CosmicLoader.setProgress( 50 );
+
+      // Device ID ve email al (kullanım takibi için)
+      const deviceId = localStorage.getItem( 'orbis_device_id' ) || 'web_' + Date.now();
+      const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
+
+      const response = await fetch( "/api/get_ai_interpretation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( {
+          interpretation_type: "summary",
+          astro_data: astroData,
+          user_name: astroData.user_name || "Kullanıcı",
+          device_id: deviceId,
+          email: userEmail
+        } )
+      } );
+
+      // Progress'i %80'e çıkar (yanıt alındı)
+      CosmicLoader.setProgress( 80 );
+
+      const result = await response.json();
+
+      // Reklam izleme gerekli kontrolü
+      if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
+        $content.html( `
+                    <div class="flex flex-col items-center justify-center py-6 text-center">
+                        <div class="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                            <span class="material-icons-round text-3xl text-amber-400">videocam</span>
+                        </div>
+                        <h3 class="text-white font-bold text-sm mb-2">Reklam İzleme Gerekli</h3>
+                        <p class="text-slate-400 text-[11px] mb-4 max-w-xs">
+                            AI yorum için reklam izleyin veya Premium'a geçin.
+                        </p>
+                        <button onclick="showPremiumModal()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-lg">
+                            💎 Premium'a Geç
+                        </button>
+                    </div>
+                `);
+        CosmicLoader.forceHide();
+        return;
+      }
+
+      if ( result.success ) {
+        // Progress'i %100'e çıkar
+        CosmicLoader.setProgress( 100 );
+
+        // Ham metni sakla (modal ve TTS için)
+        kozmikOzetText = result.interpretation;
+
+        // Markdown'ı parse et ve göster - sonuna yönlendirme notu ekle
+        const disclaimerNote = `
+          <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+            <div class="flex items-start gap-3">
+              <span class="material-icons-round text-primary text-lg mt-0.5 shrink-0">info</span>
+              <div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                  Bu, tüm hesaplamalarınızın sonucunda ortaya çıkan <strong class="text-white">kozmik bir özettir</strong>. 
+                  Kişiliğinize özel detaylı analizler için 
+                  <button onclick="event.stopPropagation(); switchResultTab('ai')" class="text-accent font-bold hover:underline">ORBIS AI</button> 
+                  sekmesine göz atın.
+                </p>
+              </div>
+            </div>
+          </div>`;
+        $content.html( marked.parse( result.interpretation ) + disclaimerNote );
+
+        // Preview mode: fade overlay ve expand butonlarını göster
+        $( '#summary-fade-overlay' ).removeClass( 'hidden' );
+        $( '#summary-read-more' ).removeClass( 'hidden' ).addClass( 'flex' );
+        $( '#summary-expand-icon' ).removeClass( 'hidden' ).addClass( 'flex' );
+        $( '#refresh-summary-btn-loading' ).addClass( 'hidden' );
+
+        // Burç kartlarına tıklanabilir işareti göster
+        showZodiacClickIndicators();
+
+        // Loader'ı kapat (500ms sonra, animasyon için)
+        setTimeout( () => {
+          CosmicLoader.hideLoader();
+        }, 500 );
+      } else {
+        $content.html( `<p class="text-red-400 text-[11px]">Özet yüklenemedi: ${result.error}</p>` );
+        CosmicLoader.forceHide();
+      }
+    } catch ( error ) {
+      $content.html( `<p class="text-red-400 text-[11px]">Bağlantı hatası. Lütfen tekrar deneyin.</p>` );
+      CosmicLoader.forceHide();
+    } finally {
+      $btn.prop( 'disabled', false ).removeClass( 'opacity-50' );
+    }
+  }
+
+  // Simüle edilmiş adım tamamlama - artık kullanılmıyor, progress bar ile değiştirildi
+  function simulateLoaderSteps() {
+    // Progress bar kullanıldığı için bu fonksiyon artık gerekli değil
+  }
+
+  // Sayfa yüklendiğinde
+  $( document ).ready( function () {
+    // Cosmic Loader'ı başlat (hemen görünür olacak)
+    CosmicLoader.init();
+
+    // Özeti yükle (300ms sonra - loader görünsün diye kısa gecikme)
+    setTimeout( loadAISummary, 300 );
+
+    // Harita sekmesi aktifse hemen çiz
+    if ( $( "#tab-chart" ).hasClass( "active" ) ) {
+      setTimeout( renderAstroChart, 200 );
+    }
+  } );
+
+  function shareResults() {
+    if ( navigator.share ) {
+      navigator.share( {
+        title: 'ORBIS Kozmik Raporum',
+        text: 'Kaderin Geometrisi raporumu Keşfedin!',
+        url: window.location.href
+      } ).catch( console.error );
+    } else {
+      alert( 'Link kopyalandı: ' + window.location.href );
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TTS ENGINE - Hybrid (Native Capacitor + Web Speech API Fallback)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const TTS = {
+    // State
+    status: 'idle', // idle | playing | paused | finished
+    chunks: [],
+    currentChunkIndex: 0,
+    totalChunks: 0,
+
+    // Config
+    rate: parseFloat( localStorage.getItem( 'tts-speed' ) || '1.5' ),
+    voicesLoaded: false,
+    selectedVoice: null,
+    voiceGender: 'female', // Fixed to female voice
+
+    // Platform detection
+    isNative: false,
+    nativeTTS: null,
+
+    async init() {
+      console.log( '[TTS] Engine initializing...' );
+      // Voice gender fixed to female
+
+      // Check if running in Capacitor native environment
+      this.isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+      console.log( '[TTS] Platform:', this.isNative ? 'Native (Capacitor)' : 'Web' );
+
+      if ( this.isNative ) {
+        await this.initNativeTTS();
+      } else {
+        await this.initWebTTS();
+      }
+
+      // Update speed display
+      this.updateSpeedDisplay();
+      // Bind events
+      this.bindEvents();
+      console.log( '[TTS] Engine initialized successfully' );
+    },
+
+    async initNativeTTS() {
+      try {
+        // Check if TextToSpeech plugin is available
+        if ( typeof Capacitor !== 'undefined' && Capacitor.Plugins && Capacitor.Plugins.TextToSpeech ) {
+          this.nativeTTS = Capacitor.Plugins.TextToSpeech;
+          console.log( '[TTS] Native TextToSpeech plugin found' );
+
+          // Get supported languages
+          const { languages } = await this.nativeTTS.getSupportedLanguages();
+          console.log( '[TTS] Supported languages:', languages.length );
+
+          // Check if Turkish is supported
+          const hasTurkish = languages.some( lang => lang.includes( 'tr' ) );
+          console.log( '[TTS] Turkish support:', hasTurkish );
+
+          // Get available voices
+          const { voices } = await this.nativeTTS.getSupportedVoices();
+          console.log( '[TTS] Available voices:', voices.length );
+
+          // Find best Turkish voice
+          const trVoices = voices.filter( v => v.lang && v.lang.includes( 'tr' ) );
+          if ( trVoices.length > 0 ) {
+            // Prefer female voice
+            const femaleVoice = trVoices.find( v =>
+              v.name && ( v.name.toLowerCase().includes( 'female' ) ||
+                v.name.toLowerCase().includes( 'kadın' ) ||
+                v.name.toLowerCase().includes( 'seda' ) )
+            );
+            this.selectedVoice = femaleVoice ? voices.indexOf( femaleVoice ) : voices.indexOf( trVoices[0] );
+            console.log( '[TTS] Selected Turkish voice index:', this.selectedVoice );
+          }
+
+          this.voicesLoaded = true;
+        } else {
+          console.warn( '[TTS] Native TextToSpeech plugin not available, falling back to Web API' );
+          this.isNative = false;
+          await this.initWebTTS();
+        }
+      } catch ( error ) {
+        console.error( '[TTS] Native TTS init error:', error );
+        this.isNative = false;
+        await this.initWebTTS();
+      }
+    },
+
+    async initWebTTS() {
+      // Load voices for Web Speech API
+      await this.loadVoices();
+    },
+
+    bindEvents() {
+      // Modal read button - jQuery binding
+      $( '#modal-read-aloud' ).off( 'click' ).on( 'click', () => this.startFromModal() );
+
+      // Cleanup on page unload
+      $( window ).on( 'beforeunload', () => {
+        this.stop();
+      } );
+    },
+
+    loadVoices() {
+      return new Promise( ( resolve ) => {
+        if ( typeof speechSynthesis === 'undefined' ) {
+          console.warn( '[TTS] Web Speech API not available' );
+          resolve( [] );
+          return;
+        }
+
+        const voices = speechSynthesis.getVoices();
+        if ( voices.length > 0 ) {
+          this.voicesLoaded = true;
+          this.selectedVoice = this.findBestTurkishVoice( voices );
+          resolve( voices );
+        } else {
+          speechSynthesis.onvoiceschanged = () => {
+            const newVoices = speechSynthesis.getVoices();
+            this.voicesLoaded = true;
+            this.selectedVoice = this.findBestTurkishVoice( newVoices );
+            resolve( newVoices );
+          };
+          // Timeout fallback
+          setTimeout( () => resolve( [] ), 2000 );
+        }
+      } );
+    },
+
+    findBestTurkishVoice( voices ) {
+      const trVoices = voices.filter( v => v.lang.includes( 'tr' ) );
+
+      // Kadın sesi tercih et (sabit)
+      const femaleNames = ['Seda', 'Emel', 'Asli', 'Filiz', 'Gul', 'Zehra', 'Google', 'Female'];
+      const femaleVoice = trVoices.find( v =>
+        femaleNames.some( name => v.name.toLowerCase().includes( name.toLowerCase() ) )
+      );
+      return femaleVoice || trVoices[0] || voices.find( v => v.lang.includes( 'en' ) ) || voices[0];
+    },
+
+    changeSpeed( delta ) {
+      this.rate = Math.max( 0.5, Math.min( 2.5, this.rate + delta ) );
+      localStorage.setItem( 'tts-speed', this.rate.toString() );
+      this.updateSpeedDisplay();
+
+      // If currently speaking, restart with new speed
+      if ( this.status === 'playing' ) {
+        const currentText = this.chunks.slice( this.currentChunkIndex ).join( ' ' );
+        this.stop();
+        if ( currentText ) {
+          setTimeout( () => this.start( currentText ), 100 );
+        }
+      }
+    },
+
+    updateSpeedDisplay() {
+      $( '#speed-display' ).text( this.rate.toFixed( 1 ) + 'x' );
+      $( '.speed-display-value' ).text( this.rate.toFixed( 1 ) + 'x' );
+    },
+
+    startFromModal() {
+      console.log( '[TTS] startFromModal called, status:', this.status );
+
+      // Eğer çalıyorsa DURDUR
+      if ( this.status === 'playing' ) {
+        console.log( '[TTS] Stopping...' );
+        this.stop();
+        return;
+      }
+
+      // Eğer duraklatılmışsa DEVAM ET (sadece web için)
+      if ( this.status === 'paused' && !this.isNative ) {
+        console.log( '[TTS] Resuming...' );
+        this.resume();
+        return;
+      }
+
+      // Yeni okuma başlat
+      const text = currentInterpretationText || $( '#ai-modal-body' ).text() || $( '#ai-reading-content' ).text();
+      console.log( '[TTS] Text length:', text ? text.length : 0 );
+
+      if ( !text || text.trim().length < 10 ) {
+        console.warn( '[TTS] No text to read' );
+        alert( 'Okunacak metin bulunamadı.' );
+        return;
+      }
+
+      console.log( '[TTS] Starting with text:', text.substring( 0, 100 ) + '...' );
+      this.start( text );
+    },
+
+    async start( text ) {
+      console.log( '[TTS] start() called, isNative:', this.isNative );
+
+      // Stop any ongoing speech
+      await this.stop();
+
+      // Clean text for speech (remove emojis, symbols, markdown)
+      const cleanedText = this.cleanTextForSpeech( text );
+      console.log( '[TTS] Text cleaned, original length:', text.length, 'cleaned length:', cleanedText.length );
+
+      // Prepare chunks with cleaned text
+      this.chunks = this.splitIntoChunks( cleanedText );
+      this.totalChunks = this.chunks.length;
+      this.currentChunkIndex = 0;
+      this.status = 'playing';
+
+      console.log( '[TTS] Chunks prepared:', this.totalChunks );
+
+      // Update button state
+      this.updateButtonState( true );
+
+      // Start speaking
+      console.log( '[TTS] Starting to speak...' );
+
+      if ( this.isNative ) {
+        await this.speakNative();
+      } else {
+        this.speakCurrentChunk();
+      }
+    },
+
+    /**
+     * Metni sesli okuma için temizler
+     * - Emojileri kaldırır
+     * - Markdown sembollerini kaldırır (*, #, -, _)
+     * - Özel karakterleri ve sembolleri kaldırır
+     * - Fazla boşlukları temizler
+     */
+    cleanTextForSpeech( text ) {
+      if ( !text ) return '';
+
+      let cleaned = text
+        // Emoji'leri kaldır (Unicode emoji ranges)
+        .replace( /[\u{1F600}-\u{1F64F}]/gu, '' ) // Emoticons
+        .replace( /[\u{1F300}-\u{1F5FF}]/gu, '' ) // Misc Symbols and Pictographs
+        .replace( /[\u{1F680}-\u{1F6FF}]/gu, '' ) // Transport and Map
+        .replace( /[\u{1F700}-\u{1F77F}]/gu, '' ) // Alchemical Symbols
+        .replace( /[\u{1F780}-\u{1F7FF}]/gu, '' ) // Geometric Shapes Extended
+        .replace( /[\u{1F800}-\u{1F8FF}]/gu, '' ) // Supplemental Arrows-C
+        .replace( /[\u{1F900}-\u{1F9FF}]/gu, '' ) // Supplemental Symbols and Pictographs
+        .replace( /[\u{1FA00}-\u{1FA6F}]/gu, '' ) // Chess Symbols
+        .replace( /[\u{1FA70}-\u{1FAFF}]/gu, '' ) // Symbols and Pictographs Extended-A
+        .replace( /[\u{2600}-\u{26FF}]/gu, '' )   // Misc symbols (☀, ★, etc.)
+        .replace( /[\u{2700}-\u{27BF}]/gu, '' )   // Dingbats
+        .replace( /[\u{231A}-\u{231B}]/gu, '' )   // Watch, Hourglass
+        .replace( /[\u{23E9}-\u{23F3}]/gu, '' )   // Media control symbols
+        .replace( /[\u{23F8}-\u{23FA}]/gu, '' )   // Media control symbols
+        .replace( /[\u{25AA}-\u{25AB}]/gu, '' )   // Squares
+        .replace( /[\u{25B6}]/gu, '' )            // Play button
+        .replace( /[\u{25C0}]/gu, '' )            // Reverse button
+        .replace( /[\u{25FB}-\u{25FE}]/gu, '' )   // Squares
+        .replace( /[\u{2614}-\u{2615}]/gu, '' )   // Umbrella, Hot beverage
+        .replace( /[\u{2648}-\u{2653}]/gu, '' )   // Zodiac signs
+        .replace( /[\u{267F}]/gu, '' )            // Wheelchair
+        .replace( /[\u{2693}]/gu, '' )            // Anchor
+        .replace( /[\u{26A1}]/gu, '' )            // Lightning
+        .replace( /[\u{26AA}-\u{26AB}]/gu, '' )   // Circles
+        .replace( /[\u{26BD}-\u{26BE}]/gu, '' )   // Soccer, Baseball
+        .replace( /[\u{26C4}-\u{26C5}]/gu, '' )   // Snowman, Sun
+        .replace( /[\u{26CE}]/gu, '' )            // Ophiuchus
+        .replace( /[\u{26D4}]/gu, '' )            // No entry
+        .replace( /[\u{26EA}]/gu, '' )            // Church
+        .replace( /[\u{26F2}-\u{26F3}]/gu, '' )   // Fountain, Golf
+        .replace( /[\u{26F5}]/gu, '' )            // Sailboat
+        .replace( /[\u{26FA}]/gu, '' )            // Tent
+        .replace( /[\u{26FD}]/gu, '' )            // Fuel pump
+        .replace( /[\u{2702}]/gu, '' )            // Scissors
+        .replace( /[\u{2705}]/gu, '' )            // Check mark
+        .replace( /[\u{2708}-\u{270D}]/gu, '' )   // Airplane to Writing hand
+        .replace( /[\u{270F}]/gu, '' )            // Pencil
+        .replace( /[\u{2712}]/gu, '' )            // Black nib
+        .replace( /[\u{2714}]/gu, '' )            // Check mark
+        .replace( /[\u{2716}]/gu, '' )            // X mark
+        .replace( /[\u{271D}]/gu, '' )            // Latin cross
+        .replace( /[\u{2721}]/gu, '' )            // Star of David
+        .replace( /[\u{2728}]/gu, '' )            // Sparkles
+        .replace( /[\u{2733}-\u{2734}]/gu, '' )   // Eight spoked asterisk
+        .replace( /[\u{2744}]/gu, '' )            // Snowflake
+        .replace( /[\u{2747}]/gu, '' )            // Sparkle
+        .replace( /[\u{274C}]/gu, '' )            // Cross mark
+        .replace( /[\u{274E}]/gu, '' )            // Cross mark
+        .replace( /[\u{2753}-\u{2755}]/gu, '' )   // Question marks
+        .replace( /[\u{2757}]/gu, '' )            // Exclamation mark
+        .replace( /[\u{2763}-\u{2764}]/gu, '' )   // Heart exclamation, Heart
+        .replace( /[\u{2795}-\u{2797}]/gu, '' )   // Plus, Minus, Division
+        .replace( /[\u{27A1}]/gu, '' )            // Right arrow
+        .replace( /[\u{27B0}]/gu, '' )            // Curly loop
+        .replace( /[\u{27BF}]/gu, '' )            // Double curly loop
+        .replace( /[\u{2934}-\u{2935}]/gu, '' )   // Arrows
+        .replace( /[\u{2B05}-\u{2B07}]/gu, '' )   // Arrows
+        .replace( /[\u{2B1B}-\u{2B1C}]/gu, '' )   // Squares
+        .replace( /[\u{2B50}]/gu, '' )            // Star
+        .replace( /[\u{2B55}]/gu, '' )            // Circle
+        .replace( /[\u{3030}]/gu, '' )            // Wavy dash
+        .replace( /[\u{303D}]/gu, '' )            // Part alternation mark
+        .replace( /[\u{3297}]/gu, '' )            // Circled Ideograph Congratulation
+        .replace( /[\u{3299}]/gu, '' )            // Circled Ideograph Secret
+
+        // Markdown başlık sembollerini kaldır
+        .replace( /^#{1,6}\s*/gm, '' )
+
+        // Bold/italic markdown'ı kaldır ama metni koru
+        .replace( /\*\*\*(.*?)\*\*\*/g, '$1' )   // ***bold italic***
+        .replace( /\*\*(.*?)\*\*/g, '$1' )       // **bold**
+        .replace( /\*(.*?)\*/g, '$1' )           // *italic*
+        .replace( /___(.*?)___/g, '$1' )         // ___bold italic___
+        .replace( /__(.*?)__/g, '$1' )           // __bold__
+        .replace( /_(.*?)_/g, '$1' )             // _italic_
+
+        // Yalnız kalan yıldızları kaldır (*** veya *** gibi ayırıcılar)
+        .replace( /\*{2,}/g, ' ' )               // ** veya *** gibi
+        .replace( /\s\*\s/g, ' ' )               // " * " tek yıldız
+
+        // Tire çizgileri (ayırıcılar) kaldır
+        .replace( /-{3,}/g, ' ' )                // --- veya daha fazla
+        .replace( /_{3,}/g, ' ' )                // ___ veya daha fazla
+        .replace( /={3,}/g, ' ' )                // === veya daha fazla
+
+        // Bullet point ve liste işaretlerini kaldır
+        .replace( /^[\s]*[-•●◦▪▸►]\s*/gm, '' )
+        .replace( /^[\s]*\d+\.\s*/gm, '' )       // Numaralı liste
+
+        // Özel semboller
+        .replace( /[→←↑↓↔↕⇒⇐⇑⇓⇔]/g, '' )      // Oklar
+        .replace( /[★☆✦✧✩✪✫✬✭✮✯]/g, '' )      // Yıldızlar
+        .replace( /[♠♣♥♦]/g, '' )                // Kart sembolleri
+        .replace( /[♈♉♊♋♌♍♎♏♐♑♒♓]/g, '' )    // Burç sembolleri
+        .replace( /[☯☮☪☭✝✡☸]/g, '' )            // Dini semboller
+        .replace( /[°©®™℃℉]/g, '' )              // Birim ve ticari semboller
+        .replace( /[«»„""''‚]/g, '"' )           // Tırnakları standartlaştır
+        .replace( /[–—]/g, ', ' )                // Em/en dash'leri virgüle çevir
+        .replace( /[…]/g, '.' )                  // Üç nokta karakterini tek noktaya çevir
+
+        // Çoklu noktaları tek noktaya dönüştür (uzun duraklama önleme)
+        .replace( /\.{2,}/g, '.' )               // .. veya ... veya .... → tek nokta
+        .replace( /\s*\.\s*\.\s*/g, '.' )        // . . . gibi boşluklu noktalar
+
+        // Ardışık noktalama işaretlerini temizle
+        .replace( /[!?]{2,}/g, '!' )             // !! veya ??? → tek !
+        .replace( /[,;:]{2,}/g, ',' )            // ,, veya ;; → tek virgül
+        .replace( /\s*[,;:]\s*[,;:]\s*/g, ', ' ) // Peş peşe virgüller
+
+        // Nokta-virgül arası boşlukları düzelt
+        .replace( /\s+\./g, '.' )                // " ." → "."
+        .replace( /\s+,/g, ',' )                 // " ," → ","
+        .replace( /,+/g, ',' )                   // Çoklu virgüller
+
+        // URL'leri kaldır
+        .replace( /https?:\/\/[^\s]+/g, '' )
+
+        // Parantez içindeki kısaltmaları temizle (örn: (TL), (USD))
+        .replace( /\([A-Z]{2,5}\)/g, '' )
+
+        // Fazla boşlukları temizle
+        .replace( /\s{2,}/g, ' ' )
+        .replace( /^\s+/gm, '' )
+        .replace( /\s+$/gm, '' )
+
+        // Boş satırları azalt
+        .replace( /\n{3,}/g, '\n\n' )
+
+        .trim();
+
+      return cleaned;
+    },
+
+    async speakNative() {
+      if ( this.status !== 'playing' || this.currentChunkIndex >= this.totalChunks ) {
+        this.finish();
+        return;
+      }
+
+      const chunk = this.chunks[this.currentChunkIndex];
+      console.log( '[TTS] Speaking chunk', this.currentChunkIndex + 1, '/', this.totalChunks );
+
+      try {
+        const options = {
+          text: chunk,
+          lang: 'tr-TR',
+          rate: this.rate,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'playback' // Allow background playback
+        };
+
+        // Add voice if selected
+        if ( this.selectedVoice !== null && this.selectedVoice >= 0 ) {
+          options.voice = this.selectedVoice;
+        }
+
+        await this.nativeTTS.speak( options );
+
+        // Move to next chunk if still playing
+        if ( this.status === 'playing' ) {
+          this.currentChunkIndex++;
+          await this.speakNative();
+        }
+      } catch ( error ) {
+        console.error( '[TTS] Native speak error:', error );
+
+        // If native fails, try web fallback
+        if ( error.message && error.message.includes( 'not available' ) ) {
+          console.log( '[TTS] Falling back to Web Speech API' );
+          this.isNative = false;
+          await this.initWebTTS();
+          this.speakCurrentChunk();
+        } else if ( this.status === 'playing' ) {
+          // Skip to next chunk on error
+          this.currentChunkIndex++;
+          await this.speakNative();
+        }
+      }
+    },
+
+    resume() {
+      if ( this.status !== 'paused' ) return;
+      this.status = 'playing';
+      this.updateButtonState( true );
+
+      if ( !this.isNative && typeof speechSynthesis !== 'undefined' ) {
+        speechSynthesis.resume();
+      }
+    },
+
+    splitIntoChunks( text, maxLength = 1500 ) {
+      // Önce paragrafları ayır, sonra çok uzunsa cümlelere böl
+      const paragraphs = text.split( /\n\n+/ ).filter( p => p.trim() );
+      const chunks = [];
+
+      for ( const para of paragraphs ) {
+        if ( para.length <= maxLength ) {
+          chunks.push( para.trim() );
+        } else {
+          const sentences = para.match( /[^.!?]+[.!?]+/g ) || [para];
+          let currentChunk = '';
+
+          for ( const sentence of sentences ) {
+            if ( ( currentChunk + ' ' + sentence ).length > maxLength && currentChunk ) {
+              chunks.push( currentChunk.trim() );
+              currentChunk = sentence;
+            } else {
+              currentChunk += ( currentChunk ? ' ' : '' ) + sentence;
+            }
+          }
+          if ( currentChunk.trim() ) {
+            chunks.push( currentChunk.trim() );
+          }
+        }
+      }
+
+      return chunks.length > 0 ? chunks : [text];
+    },
+
+    speakCurrentChunk() {
+      // Web Speech API implementation
+      if ( typeof speechSynthesis === 'undefined' ) {
+        console.error( '[TTS] Web Speech API not available' );
+        alert( 'Sesli okuma bu tarayıcıda desteklenmiyor.' );
+        this.stop();
+        return;
+      }
+
+      if ( this.status === 'idle' || this.status === 'stopped' ) {
+        return;
+      }
+
+      if ( this.currentChunkIndex >= this.totalChunks ) {
+        this.finish();
+        return;
+      }
+
+      const chunk = this.chunks[this.currentChunkIndex];
+      const utterance = new SpeechSynthesisUtterance( chunk );
+
+      // Platform bazlı ayarlar
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test( navigator.userAgent );
+
+      utterance.rate = this.rate;
+      utterance.pitch = isMobile ? 0.4 : 0.8;
+      utterance.volume = 1.0;
+      utterance.lang = 'tr-TR';
+
+      if ( this.selectedVoice ) {
+        utterance.voice = this.selectedVoice;
+      }
+
+      utterance.onend = () => {
+        if ( this.status === 'playing' ) {
+          this.currentChunkIndex++;
+          this.speakCurrentChunk();
+        }
+      };
+
+      utterance.onerror = ( e ) => {
+        if ( e.error === 'interrupted' ) {
+          console.log( '[TTS] Speech interrupted (normal on stop)' );
+          return;
+        }
+        console.error( '[TTS] Error:', e );
+        if ( this.status === 'playing' ) {
+          this.currentChunkIndex++;
+          this.speakCurrentChunk();
+        }
+      };
+
+      speechSynthesis.speak( utterance );
+    },
+
+    togglePlayPause() {
+      if ( this.isNative ) {
+        // Native doesn't support pause, just stop
+        if ( this.status === 'playing' ) {
+          this.stop();
+        }
+        return;
+      }
+
+      if ( typeof speechSynthesis === 'undefined' ) return;
+
+      if ( this.status === 'playing' ) {
+        speechSynthesis.pause();
+        this.status = 'paused';
+        this.updateButtonState( false );
+      } else if ( this.status === 'paused' ) {
+        speechSynthesis.resume();
+        this.status = 'playing';
+        this.updateButtonState( true );
+      }
+    },
+
+    async stop() {
+      console.log( '[TTS] Stopping...' );
+      const wasPlaying = this.status === 'playing';
+
+      this.status = 'idle';
+      this.currentChunkIndex = 0;
+
+      if ( this.isNative && this.nativeTTS ) {
+        try {
+          await this.nativeTTS.stop();
+        } catch ( e ) {
+          console.log( '[TTS] Native stop error (may be normal):', e );
+        }
+      }
+
+      if ( typeof speechSynthesis !== 'undefined' ) {
+        speechSynthesis.cancel();
+      }
+
+      this.updateButtonState( false );
+      console.log( '[TTS] Stopped' );
+    },
+
+    finish() {
+      this.status = 'finished';
+      this.updateButtonState( false );
+      console.log( '[TTS] Finished' );
+    },
+
+    updateButtonState( isPlaying ) {
+      const $btn = $( '#modal-read-aloud' );
+      const $icon = $( '#listen-icon' );
+      const $text = $( '#listen-text' );
+
+      if ( isPlaying ) {
+        $btn.removeClass( 'bg-primary' ).addClass( 'bg-red-500' );
+        $icon.text( 'stop' );
+        $text.text( 'Durdur' );
+      } else {
+        $btn.removeClass( 'bg-red-500' ).addClass( 'bg-primary' );
+        $icon.text( 'volume_up' );
+        $text.text( 'Dinle' );
+      }
+    }
+  };
+
+  // Initialize TTS on document ready
+  $( document ).ready( () => {
+    TTS.init();
+
+    // Copy button handler
+    $( '#modal-copy' ).on( 'click', () => {
+      if ( !currentInterpretationText ) return;
+      navigator.clipboard.writeText( currentInterpretationText ).then( () => {
+        const $btn = $( '#modal-copy' );
+        $btn.find( 'span' ).text( 'check' );
+        setTimeout( () => $btn.find( 'span' ).text( 'content_copy' ), 2000 );
+      } );
+    } );
+  } );
+
+  // Global TTS click handler (for onclick attribute)
+  function handleTTSClick() {
+    console.log( '[TTS] Button clicked!' );
+    console.log( '[TTS] isNative:', TTS.isNative );
+    console.log( '[TTS] status:', TTS.status );
+
+    // Try to start TTS
+    try {
+      TTS.startFromModal();
+    } catch ( e ) {
+      console.error( '[TTS] Error:', e );
+      alert( 'Sesli okuma başlatılamadı: ' + e.message );
+    }
+  }
+
+    // Kozmik Özet inline TTS button handler
+    function playKozmikOzetTTS() {
+      if ( !kozmikOzetText ) return;
+
+      // TTS durumunu kontrol et
+      if ( TTS.status === 'playing' ) {
+        TTS.stop();
+        $( '#kozmik-ozet-tts-icon' ).text( 'volume_up' );
+        $( '#kozmik-ozet-tts-label' ).text( 'Dinle' );
+        return;
+      }
+
+      // Metni ayarla ve başlat
+      currentInterpretationText = kozmikOzetText;
+      $( '#kozmik-ozet-tts-icon' ).text( 'stop' );
+      $( '#kozmik-ozet-tts-label' ).text( 'Durdur' );
+
+      try {
+        TTS.startFromModal();
+      } catch ( e ) {
+        console.error( '[TTS] Kozmik Özet TTS Error:', e );
+        $( '#kozmik-ozet-tts-icon' ).text( 'volume_up' );
+        $( '#kozmik-ozet-tts-label' ).text( 'Dinle' );
+      }
+    }
+
+    // Burç kartlarına tıklanabilir işaret göster
+    function showZodiacClickIndicators() {
+      // Zodiac kartlarına pulse animasyonu ekle
+      $( '.quick-stats-card-indicator' ).remove(); // Önceki varsa temizle
+
+      const zodiacCards = document.querySelectorAll( '[onclick^="toggleSignInfo"]' );
+      zodiacCards.forEach( card => {
+        // Tıklama indicator badge ekle
+        const indicator = document.createElement( 'div' );
+        indicator.className = 'quick-stats-card-indicator absolute -top-1 -right-1 z-20';
+        indicator.innerHTML = `
+        <div class="relative">
+          <span class="flex h-5 w-5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent/60 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-5 w-5 bg-accent/90 items-center justify-center">
+              <span class="material-icons-round text-white text-[10px]">touch_app</span>
+            </span>
+          </span>
+        </div>`;
+        card.style.position = 'relative';
+        card.appendChild( indicator );
+      } );
+
+      // 8 saniye sonra ping animasyonunu durdur (badge kalır)
+      setTimeout( () => {
+        document.querySelectorAll( '.quick-stats-card-indicator .animate-ping' ).forEach( el => {
+          el.classList.remove( 'animate-ping' );
+          el.style.display = 'none';
+        } );
+      }, 8000 );
+    }
+
+        // Voice gender toggle removed - fixed to female voice
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PREMIUM MODAL - Satın Alma Ekranı
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  function showPremiumModal() {
+    // Fiyatları Firestore'dan çekip güncelle
+    fetch('/api/config/pricing').then(r => r.json()).then(json => {
+      if (json.success && json.data) {
+        const p = json.data;
+        document.querySelectorAll('[data-price-daily]').forEach(el => el.textContent = p.daily || 30);
+        document.querySelectorAll('[data-price-monthly]').forEach(el => el.textContent = p.monthly || 300);
+        document.querySelectorAll('[data-price-yearly]').forEach(el => el.textContent = (p.yearly || 3000).toLocaleString('tr-TR'));
+        const daily = p.daily || 30;
+        const monthly = p.monthly || 300;
+        const normalMonthly = daily * 30;
+        document.querySelectorAll('[data-price-normal-monthly]').forEach(el => el.textContent = normalMonthly);
+        const yearly = p.yearly || 3000;
+        document.querySelectorAll('[data-price-normal-yearly]').forEach(el => el.textContent = (monthly * 12).toLocaleString('tr-TR'));
+        document.querySelectorAll('[data-price-yearly-per-month]').forEach(el => el.textContent = Math.round(yearly / 12));
+      }
+    }).catch(() => {});
+
+    const modal = document.getElementById( 'premium-purchase-modal' );
+    if ( modal ) {
+      modal.classList.remove( 'hidden' );
+      modal.classList.add( 'flex' );
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closePremiumModal() {
+    const modal = document.getElementById( 'premium-purchase-modal' );
+    if ( modal ) {
+      modal.classList.add( 'hidden' );
+      modal.classList.remove( 'flex' );
+      document.body.style.overflow = '';
+    }
+  }
+
+  async function purchasePremium( planType ) {
+    const btn = event.target.closest( 'button' );
+    const originalText = btn.innerHTML;
+
+    // Loading state
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons-round animate-spin text-sm">sync</span> İşleniyor...';
+
+    try {
+      // IAP modülü kontrolü
+      if ( window.OrbisIAP ) {
+        const productMap = {
+          daily: window.OrbisIAP.PRODUCTS.PREMIUM_DAILY,
+          monthly: window.OrbisIAP.PRODUCTS.PREMIUM_MONTHLY,
+          yearly: window.OrbisIAP.PRODUCTS.PREMIUM_YEARLY,
+        };
+        const productId = productMap[planType] || window.OrbisIAP.PRODUCTS.PREMIUM_MONTHLY;
+
+        const result = await window.OrbisIAP.purchase( productId );
+
+        if ( result.success ) {
+          // Başarılı satın alma
+          showPurchaseSuccess( result.message );
+          closePremiumModal();
+
+          // Sayfayı yenile (premium durumu güncellensin)
+          setTimeout( () => location.reload(), 2000 );
+        } else {
+          // Hata veya iptal
+          showPurchaseError( result.message );
+        }
+      } else {
+        // Web'de çalışıyorsa bilgi ver
+        showPurchaseError( 'Satın alma işlemi sadece mobil uygulamada yapılabilir. Lütfen Google Play Store\'dan ORBIS uygulamasını indirin.' );
+      }
+    } catch ( error ) {
+      console.error( '[Premium] Purchase error:', error );
+      showPurchaseError( 'Bir hata oluştu. Lütfen tekrar deneyin.' );
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  async function restorePurchases() {
+    const btn = event.target.closest( 'button' );
+    const originalText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons-round animate-spin text-sm">sync</span>';
+
+    try {
+      if ( window.OrbisIAP ) {
+        const result = await window.OrbisIAP.restorePurchases();
+
+        if ( result.success ) {
+          showPurchaseSuccess( result.message );
+          closePremiumModal();
+          setTimeout( () => location.reload(), 2000 );
+        } else {
+          showPurchaseError( result.message );
+        }
+      } else {
+        showPurchaseError( 'Bu özellik sadece mobil uygulamada kullanılabilir.' );
+      }
+    } catch ( error ) {
+      showPurchaseError( 'Geri yükleme sırasında bir hata oluştu.' );
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  function showPurchaseSuccess( message ) {
+    const toast = document.createElement( 'div' );
+    toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in';
+    toast.innerHTML = `<span class="material-icons-round">check_circle</span><span class="text-sm font-medium">${message}</span>`;
+    document.body.appendChild( toast );
+    setTimeout( () => toast.remove(), 4000 );
+  }
+
+  function showPurchaseError( message ) {
+    const toast = document.createElement( 'div' );
+    toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in max-w-sm text-center';
+    toast.innerHTML = `<span class="material-icons-round">error</span><span class="text-sm font-medium">${message}</span>`;
+    document.body.appendChild( toast );
+    setTimeout( () => toast.remove(), 5000 );
+  }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PREMIUM PURCHASE MODAL - Satın Alma Ekranı
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="premium-purchase-modal"
+  class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[250] hidden items-center justify-center p-4">
+  <div
+    class="relative w-full max-w-md bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+    <!-- Close Button -->
+    <button onclick="closePremiumModal()"
+      class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all z-10">
+      <span class="material-icons-round">close</span>
+    </button>
+
+    <!-- Header -->
+    <div class="relative pt-8 pb-6 px-6 text-center overflow-hidden">
+      <!-- Background Glow -->
+      <div
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-gradient-to-b from-amber-500/20 to-transparent blur-[80px] rounded-full">
+      </div>
+
+      <div class="relative z-10">
+        <!-- Premium Badge -->
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-full border border-amber-500/30 mb-4">
+          <span class="text-amber-400 text-lg">💎</span>
+          <span class="text-amber-300 text-xs font-bold uppercase tracking-widest">Premium</span>
+        </div>
+
+        <h2 class="text-2xl font-bold text-white mb-2">Sınırsız Kozmik Rehberlik</h2>
+        <p class="text-slate-400 text-sm">Tüm AI yorumlarına sınırsız erişim kazanın</p>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="px-6 pb-6">
+      <div class="space-y-3 mb-6">
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-emerald-400 text-sm">check</span>
+          </span>
+          <span class="text-slate-300">Sınırsız AI yorum ve analiz</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-emerald-400 text-sm">check</span>
+          </span>
+          <span class="text-slate-300">Reklamsız deneyim</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-emerald-400 text-sm">check</span>
+          </span>
+          <span class="text-slate-300">Detaylı transit ve dönem analizleri</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-emerald-400 text-sm">check</span>
+          </span>
+          <span class="text-slate-300">Öncelikli destek</span>
+        </div>
+      </div>
+
+      <!-- Pricing Cards -->
+      <div class="space-y-3 mb-6">
+        <!-- Daily Plan -->
+        <button onclick="purchasePremium('daily')"
+          class="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 rounded-2xl transition-all group text-left">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-white font-bold">Günlük Plan</p>
+              <p class="text-slate-500 text-xs">24 saat reklamsız sınırsız</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xl font-bold text-white">₺<span data-price-daily>30</span></p>
+              <p class="text-slate-500 text-[10px]">/gün</p>
+            </div>
+          </div>
+        </button>
+
+        <!-- Monthly Plan -->
+        <button onclick="purchasePremium('monthly')"
+          class="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 rounded-2xl transition-all group text-left">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-white font-bold">Aylık Plan</p>
+              <p class="text-slate-500 text-xs">₺<span data-price-normal-monthly>900</span> yerine <span class="text-emerald-400 font-bold">₺<span data-price-monthly>300</span></span></p>
+            </div>
+            <div class="text-right">
+              <p class="text-xl font-bold text-white">₺<span data-price-monthly>300</span></p>
+              <p class="text-slate-500 text-[10px]">/ay <span class="line-through text-slate-600">₺<span data-price-normal-monthly>900</span></span></p>
+            </div>
+          </div>
+        </button>
+
+        <!-- Yearly Plan (Recommended) -->
+        <button onclick="purchasePremium('yearly')"
+          class="w-full p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border-2 border-amber-500/50 hover:border-amber-400 rounded-2xl transition-all group text-left relative overflow-hidden">
+          <!-- Best Value Badge -->
+          <div
+            class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase tracking-wider">
+            2 Ay Hediye
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-white font-bold">Yıllık Plan</p>
+              <p class="text-amber-400/70 text-xs">Ayda ₺<span data-price-yearly-per-month>250</span> - En avantajlı</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xl font-bold text-white">₺<span data-price-yearly>3000</span></p>
+              <p class="text-slate-500 text-[10px]">/yıl <span class="line-through text-slate-600">₺<span data-price-normal-yearly>10800</span></span></p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Restore Purchases -->
+      <button onclick="restorePurchases()"
+        class="w-full py-3 text-slate-500 hover:text-slate-300 text-xs font-medium transition-colors flex items-center justify-center gap-2">
+        <span class="material-icons-round text-sm">restore</span>
+        Satın Alımları Geri Yükle
+      </button>
+
+      <!-- Terms -->
+      <p class="text-[9px] text-slate-600 text-center mt-4 leading-relaxed">
+        Satın alma işlemi Google Play hesabınız üzerinden gerçekleştirilir.
+        Abonelik dönem sonunda otomatik yenilenir. İstediğiniz zaman iptal edebilirsiniz.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

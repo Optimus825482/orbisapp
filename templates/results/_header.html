@@ -1,0 +1,33 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     RESULTS PAGE HEADER - Tabs Only
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Content Tabs Navigation -->
+<div class="px-6 mb-6">
+  <div
+    class="flex p-1 bg-surface-dark/50 rounded-2xl border border-white/5 glass-tab"
+  >
+    <button
+      onclick="switchResultTab('summary')"
+      id="tab-summary-btn"
+      class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn active bg-primary text-white shadow-lg shadow-primary/20"
+    >
+      Özet
+    </button>
+    <button
+      onclick="switchResultTab('chart')"
+      id="tab-chart-btn"
+      class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200"
+    >
+      Harita
+    </button>
+    <button
+      onclick="switchResultTab('ai')"
+      id="tab-ai-btn"
+      class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1"
+    >
+      ORBIS AI
+      <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+    </button>
+  </div>
+</div>

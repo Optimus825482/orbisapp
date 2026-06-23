@@ -1,0 +1,219 @@
+{% extends "admin/layout.html" %}
+{% block title %}ORBIS Admin · Kullanıcılar{% endblock %}
+{% block page_title %}Kullanıcılar{% endblock %}
+{% block page_subtitle %}Tüm kullanıcıları görüntüle ve yönet{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: var(--space-6);">
+  <div class="row row--wrap" style="gap: var(--space-3);">
+    <div style="flex: 1; min-width: 200px;">
+      <label for="user-search">Ara</label>
+      <input id="user-search" class="input" type="search" placeholder="E-posta veya ad…" />
+    </div>
+    <div>
+      <label for="user-filter">Filtre</label>
+      <select id="user-filter" class="select">
+        <option value="all">Tümü</option>
+        <option value="premium">Premium</option>
+        <option value="free">Ücretsiz</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table class="table" id="users-table">
+    <thead>
+      <tr>
+        <th>E-posta</th>
+        <th>Ad</th>
+        <th>Durum</th>
+        <th class="num">Kredi</th>
+        <th>Son görülme</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="users-tbody">
+      <tr><td colspan="6" style="text-align: center; padding: var(--space-8); color: var(--ink-faint);">Yükleniyor…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kullanıcı düzenle" style="display: none;">
+  <div class="modal">
+    <header class="modal-head">
+      <h2 class="modal-title">Kullanıcı Düzenle</h2>
+      <button class="icon-btn icon-btn--ghost" type="button" data-close-modal aria-label="Kapat"><span class="material-symbols-outlined">close</span></button>
+    </header>
+    <div class="modal-body">
+      <input type="hidden" id="edit-user-id" />
+      <div class="stack-4">
+        <div>
+          <label class="row" style="gap: var(--space-2);">
+            <input type="checkbox" id="edit-premium" />
+            <span>Premium aktif</span>
+          </label>
+        </div>
+        <div id="premium-options" class="stack-4 hidden" style="margin-top: var(--space-2);">
+          <div>
+            <label for="edit-package">Paket</label>
+            <select id="edit-package" class="select">
+              <option value="astro_premium_monthly">Aylık</option>
+              <option value="astro_premium_yearly">Yıllık</option>
+              <option value="astro_premium_lifetime">Ömür Boyu</option>
+              <option value="admin_grant">Admin Grant</option>
+            </select>
+          </div>
+          <div>
+            <label for="edit-months">Süre (Ay)</label>
+            <input type="number" id="edit-months" class="input" min="1" max="120" value="1" />
+          </div>
+        </div>
+        <div>
+          <label for="credit-action">Kredi İşlemi</label>
+          <select id="credit-action" class="select">
+            <option value="add">Ekle</option>
+            <option value="remove">Çıkar</option>
+          </select>
+        </div>
+        <div>
+          <label for="credit-amount">Miktar</label>
+          <input type="number" id="credit-amount" class="input" min="0" value="0" />
+        </div>
+      </div>
+    </div>
+    <footer class="modal-foot row row--end" style="gap: var(--space-3);">
+      <button class="btn btn--ghost" type="button" data-close-modal>İptal</button>
+      <button class="btn btn--primary" type="button" id="save-user">Kaydet</button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  .modal-backdrop { position: fixed; inset: 0; z-index: var(--z-backdrop); background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: grid; place-items: center; padding: var(--space-4); animation: fade-in var(--duration-base) var(--ease-out-quint); }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal-head, .modal-body, .modal-foot { padding: var(--space-6); }
+  .modal-head, .modal-foot { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .modal-foot { border-top: 1px solid var(--border); border-bottom: 0; }
+  .modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+  .hidden { display: none !important; }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .modal-backdrop { animation: none; } }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let allUsers = [];
+  let currentFilter = 'all';
+  let searchQuery = '';
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await fetch('/admin/api/users?limit=200', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const json = await res.json();
+      allUsers = (json.data && json.data.users) || json.users || json.data || [];
+      renderUsers();
+    } catch (e) { console.warn('[admin] loadUsers failed', e); }
+  }
+
+  function renderUsers() {
+    const tbody = document.getElementById('users-tbody');
+    if (!tbody) return;
+    let filtered = allUsers.slice();
+    if (currentFilter === 'premium') filtered = filtered.filter(u => u.isPremium);
+    else if (currentFilter === 'free') filtered = filtered.filter(u => !u.isPremium);
+    else if (currentFilter === 'admin') filtered = filtered.filter(u => u.isAdmin);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(u => (u.email || '').toLowerCase().includes(q) || (u.name || '').toLowerCase().includes(q));
+    }
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--space-8); color: var(--ink-faint);">Eşleşen kullanıcı yok.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(u => {
+      const status = u.isPremium
+        ? '<span class="badge badge--success badge--dot">Premium</span>'
+        : u.isAdmin
+          ? '<span class="badge badge--primary badge--dot">Admin</span>'
+          : '<span class="badge">Ücretsiz</span>';
+      return '<tr>' +
+        '<td>' + escapeHtml(u.email || '—') + '</td>' +
+        '<td>' + escapeHtml(u.name || '—') + '</td>' +
+        '<td>' + status + '</td>' +
+        '<td class="num">' + formatNumber(u.credits || 0) + '</td>' +
+        '<td>' + formatDate(u.lastSeen || u.lastLogin) + '</td>' +
+        '<td><button class="btn btn--ghost btn--sm" data-edit="' + escapeHtml(u.id || u.uid) + '">Düzenle</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function openEditModal(userId) {
+    const u = allUsers.find(x => (x.id || x.uid) === userId);
+    if (!u) return;
+    document.getElementById('edit-user-id').value = userId;
+    document.getElementById('edit-premium').checked = !!u.isPremium;
+    document.getElementById('edit-months').value = 1;
+    document.getElementById('credit-amount').value = 0;
+    document.getElementById('premium-options').classList.toggle('hidden', !u.isPremium);
+    const modal = document.getElementById('edit-modal');
+    if (modal) modal.style.display = 'grid';
+  }
+
+  function closeEditModal() {
+    const modal = document.getElementById('edit-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  async function saveUserChanges() {
+    const userId = document.getElementById('edit-user-id').value;
+    const isPremium = document.getElementById('edit-premium').checked;
+    const packageId = document.getElementById('edit-package').value;
+    const months = parseInt(document.getElementById('edit-months').value) || 1;
+    const creditAction = document.getElementById('credit-action').value;
+    const creditAmount = parseInt(document.getElementById('credit-amount').value) || 0;
+    try {
+      const premiumRes = await fetch('/admin/api/users/' + encodeURIComponent(userId) + '/premium', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ isPremium, packageId, months })
+      });
+      if (creditAmount > 0) {
+        await fetch('/admin/api/users/' + encodeURIComponent(userId) + '/credits', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ action: creditAction, amount: creditAmount })
+        });
+      }
+      if (premiumRes.ok) { showToast('Kullanıcı güncellendi', 'success'); closeEditModal(); loadUsers(); }
+      else { showToast('Güncelleme başarısız', 'error'); }
+    } catch (e) { console.error('Save error:', e); showToast('Güncelleme başarısız', 'error'); }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('user-search')?.addEventListener('input', function (e) { searchQuery = e.target.value || ''; renderUsers(); });
+    document.getElementById('user-filter')?.addEventListener('change', function (e) { currentFilter = e.target.value; renderUsers(); });
+    document.getElementById('save-user')?.addEventListener('click', saveUserChanges);
+    document.getElementById('edit-premium')?.addEventListener('change', function (e) { document.getElementById('premium-options').classList.toggle('hidden', !e.target.checked); });
+    document.querySelectorAll('[data-close-modal]').forEach(function (el) { el.addEventListener('click', closeEditModal); });
+    document.getElementById('users-tbody')?.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-edit]');
+      if (btn) openEditModal(btn.getAttribute('data-edit'));
+    });
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('filter')) {
+      const f = urlParams.get('filter');
+      currentFilter = f;
+      const sel = document.getElementById('user-filter');
+      if (sel) sel.value = f;
+    }
+    loadUsers();
+  });
+</script>
+{% endblock %}

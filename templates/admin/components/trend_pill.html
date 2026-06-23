@@ -1,0 +1,16 @@
+{# ─── TrendPill — direction + value (color + shape) ───
+   Usage:
+     {% import 'admin/components/trend_pill.html' as trend %}
+     {{ trend.pill(12.5, 'up') }}
+#}
+{% macro pill(value, direction='flat', suffix='%') %}
+<span class="trend trend--{{ direction }}" aria-label="{{ direction }} {{ value }}{{ suffix }}">
+  <span class="material-symbols-outlined" aria-hidden="true">
+    {%- if direction == 'up' -%}trending_up
+    {%- elif direction == 'down' -%}trending_down
+    {%- else -%}trending_flat
+    {%- endif -%}
+  </span>
+  {{ value }}{{ suffix }}
+</span>
+{% endmacro %}

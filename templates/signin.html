@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Giriş Yap</h2>
+        {% if form.errors %}
+            <div class="alert alert-error">
+                <ul>
+                    {% for field, errors in form.errors.items() %}
+                        {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <form method="post" action="{{ url_for('main.signin') }}">
+            {{ form.csrf_token }}
+            <p>
+                {{ form.username.label }}<br>
+                {{ form.username(size=30) }}
+            </p>
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(size=30) }}
+            </p>
+            <p>
+                {{ form.remember.label }}
+                {{ form.remember }}
+            </p>
+            <p><button type="submit">Giriş</button></p>
+            <a href="{{ url_for('main.signup') }}">Hesap Oluştur</a>
+        </form>
+    </div>
+</body>
+</html> 

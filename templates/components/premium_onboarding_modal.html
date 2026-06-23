@@ -1,0 +1,231 @@
+<!-- Premium Onboarding Modal - İlk Açılışta Gösterilir -->
+<div id="premium-onboarding-modal" class="fixed inset-0 z-[9999] hidden" style="display:none;">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div
+      class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl w-full max-w-md mx-auto shadow-2xl border border-white/10 overflow-y-auto max-h-[90vh]">
+      
+      <!-- Header - Cosmic Background -->
+      <div class="relative h-48 bg-gradient-to-br from-primary via-purple-600 to-indigo-600 overflow-hidden">
+        <div class="absolute inset-0 opacity-30">
+          <div class="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
+          <div class="absolute bottom-10 right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse"
+            style="animation-delay: 1s"></div>
+        </div>
+
+        <div class="relative h-full flex flex-col items-center justify-center text-center px-6">
+          <div
+            class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+            <span class="text-4xl">✨</span>
+          </div>
+          <h2 class="text-2xl font-display font-bold text-white mb-2">
+            ORBIS'e Hoş Geldin!
+          </h2>
+          <p class="text-sm text-white/80">Kozmik yolculuğuna başla</p>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+
+        <!-- Başlangıç Ekranı -->
+        <div id="onboarding-start" class="space-y-4">
+          <!-- Premium Ayrıcalıkları İçin Tıkla -->
+          <button onclick="showPremiumDetails()"
+            class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-amber-500/30 active:scale-95 transition-all text-sm tracking-wide">
+            ✨ Premium Ayrıcalıkları İçin Tıkla
+          </button>
+
+          <!-- Devam Etmek İçin Tıkla -->
+          <button onclick="closeOnboardingModal()"
+            class="w-full text-slate-400 hover:text-white text-sm py-3 transition-colors">
+            Devam Etmek İçin Tıkla
+          </button>
+        </div>
+
+        <!-- Premium Detay (gizli, butona tıklayınca açılır) -->
+        <div id="onboarding-premium-details" class="space-y-6 hidden">
+
+          <!-- Ücretsiz Kullanım -->
+          <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center">
+                <span class="material-icons-round text-slate-300">play_circle</span>
+              </div>
+              <div>
+                <h3 class="text-white font-bold text-sm">Ücretsiz Kullanım</h3>
+                <p class="text-[10px] text-slate-400">Reklam izleyerek sınırsız</p>
+              </div>
+            </div>
+            <ul class="space-y-2 text-[11px] text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="material-icons-round text-xs text-green-400 mt-0.5">check_circle</span>
+                <span>Her analiz için <strong>reklam izle</strong></span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="material-icons-round text-xs text-green-400 mt-0.5">check_circle</span>
+                <span>Her AI yorum için <strong>reklam izle</strong></span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="material-icons-round text-xs text-emerald-400 mt-0.5">all_inclusive</span>
+                <span><strong>Sınırsız</strong> kullanım hakkı</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Premium Planlar -->
+          <div
+            class="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl p-4 border-2 border-amber-500/50 relative overflow-hidden">
+            <div class="absolute top-2 right-2">
+              <span
+                class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Önerilen</span>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Günlük -->
+              <div class="flex items-center justify-between bg-white/5 rounded-xl p-3">
+                <div>
+                  <h4 class="text-white font-bold text-sm">Premium Günlük</h4>
+                  <p class="text-[10px] text-amber-300">24 saat reklamsız sınırsız</p>
+                </div>
+                <button onclick="purchasePremium('daily')"
+                  class="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition-all">
+                  ₺30
+                </button>
+              </div>
+
+              <!-- Aylık -->
+              <div class="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-amber-500/30">
+                <div>
+                  <h4 class="text-white font-bold text-sm">Premium Aylık</h4>
+                  <p class="text-[10px] text-amber-300">₺900 yerine <strong class="text-white">₺300</strong></p>
+                </div>
+                <button onclick="purchasePremium('monthly')"
+                  class="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition-all">
+                  ₺300
+                </button>
+              </div>
+
+              <!-- Yıllık -->
+              <div class="flex items-center justify-between bg-white/5 rounded-xl p-3">
+                <div>
+                  <h4 class="text-white font-bold text-sm">Premium Yıllık</h4>
+                  <p class="text-[10px] text-amber-300">2 ay hediye · ayda ₺250</p>
+                </div>
+                <button onclick="purchasePremium('yearly')"
+                  class="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition-all">
+                  ₺3.000
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Geri Dön -->
+          <button onclick="hidePremiumDetails()"
+            class="w-full text-slate-400 hover:text-white text-sm py-3 transition-colors">
+            ← Geri Dön
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // İlk açılış kontrolü
+  function checkFirstLaunch() {
+    const hasSeenOnboarding = localStorage.getItem( "orbis_seen_onboarding" );
+    if ( !hasSeenOnboarding ) {
+      setTimeout( () => {
+        showOnboardingModal();
+      }, 1500 );
+    }
+  }
+
+  function showOnboardingModal() {
+    const modal = document.getElementById( "premium-onboarding-modal" );
+    if ( modal ) {
+      modal.style.display = "flex";
+      modal.classList.remove( "hidden" );
+      modal.classList.add( "flex" );
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function closeOnboardingModal() {
+    const modal = document.getElementById( "premium-onboarding-modal" );
+    if ( modal ) {
+      modal.style.display = "none";
+      modal.classList.add( "hidden" );
+      modal.classList.remove( "flex" );
+      document.body.style.overflow = "";
+      localStorage.setItem( "orbis_seen_onboarding", "true" );
+    }
+  }
+
+  // Premium detayları göster
+  function showPremiumDetails() {
+    const start = document.getElementById( "onboarding-start" );
+    const details = document.getElementById( "onboarding-premium-details" );
+    if ( start && details ) {
+      start.classList.add( "hidden" );
+      details.classList.remove( "hidden" );
+      details.classList.add( "space-y-6" );
+      // Yukarı scroll yap ki header görünsün
+      const modalContent = details.closest( ".overflow-y-auto" );
+      if ( modalContent ) modalContent.scrollTop = 0;
+    }
+  }
+
+  // Premium detayları gizle
+  function hidePremiumDetails() {
+    const start = document.getElementById( "onboarding-start" );
+    const details = document.getElementById( "onboarding-premium-details" );
+    if ( start && details ) {
+      details.classList.add( "hidden" );
+      start.classList.remove( "hidden" );
+    }
+  }
+
+  async function purchasePremium(plan) {
+    const productMap = {
+      daily: "astro_premium_daily",
+      monthly: "astro_premium_monthly",
+      yearly: "astro_premium_yearly",
+    };
+    const productId = productMap[plan] || "astro_premium_daily";
+
+    if (window.OrbisIAP) {
+      const success = await window.OrbisIAP.purchaseProduct(productId);
+      if (success) {
+        closeOnboardingModal();
+        if (window.OrbisBridge) {
+          const pkg = OrbisBridge.CONFIG.PREMIUM_PACKAGES.find(p => p.id === plan) || OrbisBridge.CONFIG.PREMIUM_PACKAGES[1];
+          OrbisBridge.state.isPremium = true;
+          OrbisBridge.state.premiumPackageId = pkg.id;
+          OrbisBridge.state.premiumExpiry = new Date(Date.now() + (pkg.months || 0) * 30 * 24 * 60 * 60 * 1000).toISOString();
+          OrbisBridge.hideBanner();
+          OrbisBridge.updateUI();
+        }
+        alert("🎉 Premium aktif! Artık sınırsız analiz ve yorum yapabilirsiniz.");
+      }
+    } else {
+      if (window.OrbisBridge) {
+        const pkg = OrbisBridge.CONFIG.PREMIUM_PACKAGES.find(p => p.id === plan) || OrbisBridge.CONFIG.PREMIUM_PACKAGES[0];
+        const success = await OrbisBridge.purchasePremium(pkg);
+        if (success) {
+          closeOnboardingModal();
+        }
+      } else {
+        alert("Satın alma sistemi yükleniyor, lütfen bekleyin...");
+      }
+    }
+  }
+
+  // Sayfa yüklendiğinde kontrol et
+  document.addEventListener( "DOMContentLoaded", checkFirstLaunch );
+</script>

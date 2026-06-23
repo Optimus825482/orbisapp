@@ -1,0 +1,297 @@
+{% extends "layout.html" %}
+
+{% block title %}Astroloji Sonuçları - Astro AI{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    /* Ana konteyner */
+    .results-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    /* Card yapısı */
+    .result-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .dark .result-card {
+        background: #1e293b;
+        border-color: #334155;
+        color: white;
+    }
+
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Başlık stilleri */
+    .result-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .dark .result-title {
+        color: white;
+        -webkit-text-fill-color: white;
+    }
+
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #374151;
+        border-bottom: 3px solid #6366f1;
+        padding-bottom: 0.5rem;
+        display: flex;
+    }
+
+    .planet-item {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        border-left: 4px solid #6366f1;
+    }
+
+    .dark .planet-item {
+        background: #334155;
+    }
+
+    .planet-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .dark .planet-name {
+        color: #f9fafb;
+    }
+
+    .planet-details {
+        font-size: 0.875rem;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .dark .planet-details {
+        color: #9ca3af;
+    }
+
+    .houses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .house-item {
+        background: #f1f5f9;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+    }
+
+    .dark .house-item {
+        background: #475569;
+    }
+
+    .house-number {
+        font-weight: 600;
+        color: #1e40af;
+        margin-bottom: 0.25rem;
+    }
+
+    .dark .house-number {
+        color: #93c5fd;
+    }
+
+    .house-sign {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .dark .house-sign {
+        color: #cbd5e1;
+    }
+
+    .aspects-list {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .aspect-item {
+        background: #fef3c7;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        border-left: 3px solid #f59e0b;
+    }
+
+    .dark .aspect-item {
+        background: rgba(245, 158, 11, 0.2);
+    }
+
+    .loading-message {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        border-left: 4px solid #dc2626;
+        margin-bottom: 1rem;
+    }
+
+    .dark .error-message {
+        background: rgba(220, 38, 38, 0.2);
+        color: #fca5a5;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #6366f1;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        transition: background-color 0.2s;
+    }
+
+    .back-button:hover {
+        background: #4f46e5;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <!-- Geri Dönme Butonu -->
+    <a href="{{ url_for('main.dashboard') }}" class="back-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+            style="width: 1rem; height: 1rem; margin-right: 0.5rem;">
+            <path fill-rule="evenodd"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                clip-rule="evenodd" />
+        </svg>
+        Dashboard'a Dön
+    </a>
+
+    <!-- Sonuçlar Yükleniyor Mesajı -->
+    <div id="loadingResults" class="loading-message">
+        <p>Astrolojik hesaplama sonuçları yükleniyor...</p>
+    </div>
+
+    <!-- Hata Mesajı -->
+    <div id="errorMessage" class="error-message" style="display: none;">
+        <p>Hesaplama sonuçları yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</p>
+    </div>
+
+    <!-- Ana Sonuçlar Alanı -->
+    <div id="resultsContent" style="display: none;">
+        <!-- Başlık ve Genel Bilgiler -->
+        <div class="result-card">
+            <h1 class="result-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" style="width: 1.5rem; height: 1.5rem; margin-right: 0.75rem; color: #6366f1;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M16.2 7.8l-2 6.3-6.4 2.1 2-6.3z"></path>
+                </svg>
+                <span id="personName">Astroloji Sonuçları</span>
+            </h1>
+            <div id="birthInfo" class="planet-details">
+                <!-- Doğum bilgileri buraya yüklenecek -->
+            </div>
+        </div>
+
+        <!-- Gezegen Pozisyonları -->
+        <div class="result-section">
+            <h2 class="section-header">Gezegen Pozisyonları</h2>
+            <div id="planetsContainer" class="planets-grid">
+                <!-- Gezegen bilgileri buraya yüklenecek -->
+            </div>
+        </div>
+
+        <!-- Ev Sistemi -->
+        <div class="result-section">
+            <h2 class="section-header">Astrolojik Evler</h2>
+            <div id="housesContainer" class="houses-grid">
+                <!-- Ev bilgileri buraya yüklenecek -->
+            </div>
+        </div>
+
+        <!-- Açılar (Aspects) -->
+        <div class="result-section">
+            <h2 class="section-header">Gezegen Açıları</h2>
+            <div id="aspectsContainer" class="aspects-list">
+                <!-- Açı bilgileri buraya yüklenecek -->
+            </div>
+        </div>
+
+        <!-- Transit Bilgileri (Varsa) -->
+        <div id="transitSection" class="result-section" style="display: none;">
+            <h2 class="section-header">Transit Hesaplamaları</h2>
+            <div id="transitContainer">
+                <!-- Transit bilgileri buraya yüklenecek -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener( 'DOMContentLoaded', function () {
+        // localStorage ile ilgili kodlar ve kontroller kaldırıldı.
+        // Sonuçlar sadece backend'den submit ile geliyor.
+        // Bu kısım artık backend'den gelen veriyi işleyecek.
+        // Örneğin, bir AJAX çağrısı sonrası sonuçları göstermek için:
+        // fetch('/calculate_astro', { method: 'POST', body: JSON.stringify(birthData) })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         displayResults(data.results, data.user_name);
+        //     } else {
+        //         showError(data.message || 'Hesaplama sonuçları yüklenemedi.');
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Sonuçlar yüklenirken hata:', error);
+        //     showError('Veriler işlenirken bir hata oluştu.');
+        // });
+    } );
+
+    // displayResults, displayBirthInfo, displayPlanets, displayHouses, displayAspects, displayTransits
+    // fonksiyonları artık backend'den gelen veriyi işleyecek.
+    // Bu fonksiyonların içeriği backend'den gelen veri yapısına göre doldurulacak.
+
+    function showError( message ) {
+        document.getElementById( 'loadingResults' ).style.display = 'none';
+        const errorElement = document.getElementById( 'errorMessage' );
+        errorElement.querySelector( 'p' ).textContent = message;
+        errorElement.style.display = 'block';
+    }
+</script>
+{% endblock %}

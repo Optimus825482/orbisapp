@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.orbisastro.orbis",
+      "sha256_cert_fingerprints": [
+        "77:9E:48:BF:22:C8:D4:01:56:A1:F0:C0:9B:95:F5:9B:77:C9:CD:9B:3E:3D:06:EC:42:67:51:BE:79:BF:F9:3D"
+      ]
+    }
+  }
+]

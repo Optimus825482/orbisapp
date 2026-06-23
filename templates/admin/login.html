@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0a0a12" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f5f8" media="(prefers-color-scheme: light)" />
+  <title>ORBIS Admin · Giriş</title>
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('orbis-theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260623-1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260623-1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/login.css') }}?v=20260623-1" />
+</head>
+<body class="login-body">
+  <div class="login-shell">
+    <a href="#login-card" class="skip-link">İçeriğe geç</a>
+    <button class="icon-btn icon-btn--ghost login-theme-toggle" type="button" id="theme-toggle" aria-label="Tema değiştir">
+      <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+    </button>
+    <main id="login-card" class="login-card" role="main">
+      <div class="login-brand">
+        <span class="login-brand-mark" aria-hidden="true">
+          <span class="material-symbols-outlined">all_inclusive</span>
+        </span>
+        <div>
+          <div class="login-brand-name">ORBIS</div>
+          <div class="login-brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <header class="login-head">
+        <h1 class="login-title">Yönetici Girişi</h1>
+        <p class="login-subtitle">Hesabınızla devam edin</p>
+      </header>
+      {% if error %}
+      <div class="login-alert" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+      <form method="POST" action="{{ url_for('admin.login') }}" class="login-form stack-4" novalidate>
+        <div>
+          <label for="email">E-posta</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="username" required autofocus placeholder="admin@orbisastro.online" />
+        </div>
+        <div>
+          <label for="password">Şifre</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+        </div>
+        <button class="btn btn--primary" type="submit" style="height: 42px;">
+          <span class="material-symbols-outlined" aria-hidden="true">login</span>
+          Giriş Yap
+        </button>
+      </form>
+      <p class="login-foot">Erişim sorunu? <a href="mailto:support@orbisastro.online">Destek</a></p>
+    </main>
+    <p class="login-meta"><span class="login-meta-key">v</span> 1.0 · <span class="login-meta-key">build</span> 2026.06.23</p>
+  </div>
+  <script src="{{ url_for('static', filename='js/admin/theme.js') }}?v=20260623-1" defer></script>
+</body>
+</html>

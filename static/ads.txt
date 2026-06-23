@@ -1,0 +1,5 @@
+# Google AdSense
+google.com, pub-2444093901783574, DIRECT, f08c47fec0942fa0
+
+# Google AdMob (Mobile App)
+google.com, pub-2444093901783574, DIRECT, f08c47fec0942fa0

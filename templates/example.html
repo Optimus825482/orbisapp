@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astroloji Sonuçları</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .planet-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+        
+        .aspect-line {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .aspect-line::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 15px;
+            height: 2px;
+            background-color: currentColor;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .chart-wheel {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #334155;
+        }
+        
+        .chart-house {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .chart-planet {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .glow {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        
+        .glow:hover {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        
+        .voice-controls {
+            display: none;
+        }
+        
+        .voice-controls.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                <i class="fas fa-star mr-2"></i>Astroloji Yorumları
+            </h1>
+            <p class="text-slate-400">Kişisel kozmik haritanız</p>
+            
+            <!-- Birth Info Summary -->
+            <div class="mt-6 bg-slate-800 rounded-lg p-4 max-w-md mx-auto glow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-lg">Doğum Bilgileri</h3>
+                        <p class="text-slate-300">15 Haziran 1990 • 10:30</p>
+                        <p class="text-slate-400 text-sm">New York, ABD (40.7128° K, 74.0060° B)</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-slate-400">Güneş Burcu: <span class="text-yellow-400">İkizler</span></p>
+                        <p class="text-sm text-slate-400">Ay Burcu: <span class="text-blue-400">Kova</span></p>
+                        <p class="text-sm text-slate-400">Yükselen: <span class="text-green-400">Terazi</span></p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main>
+            <!-- Tab Navigation -->
+            <div class="flex overflow-x-auto mb-6 border-b border-slate-700">
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-pink-400 transition-all active" data-tab="ai">
+                    <i class="fas fa-robot mr-2"></i>Yapay Zeka Yorumu
+                </button>
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-purple-400 transition-all" data-tab="natal">
+                    <i class="fas fa-birthday-cake mr-2"></i>Doğum Haritası
+                </button>
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-blue-400 transition-all" data-tab="transit">
+                    <i class="fas fa-sync-alt mr-2"></i>Transitler
+                </button>
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-green-400 transition-all" data-tab="progressions">
+                    <i class="fas fa-chart-line mr-2"></i>Progresyonlar
+                </button>
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-yellow-400 transition-all" data-tab="cycles">
+                    <i class="fas fa-redo mr-2"></i>Döngüler
+                </button>
+                <button class="tab-btn px-4 py-2 font-medium text-slate-300 hover:text-white border-b-2 border-transparent hover:border-pink-400 transition-all" data-tab="harmonics">
+                    <i class="fas fa-project-diagram mr-2"></i>Harmonikler
+                </button>
+            </div>
+            
+            <!-- Tab Contents -->
+            <div class="tab-contents">
+                <!-- Yapay Zeka Yorumu Sekmesi -->
+                <div id="ai" class="tab-content active fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-pink-400">
+                        <i class="fas fa-robot mr-2"></i>Yapay Zeka Astroloji Yorumu
+                    </h2>
+                    
+                    <div class="bg-slate-800 rounded-lg p-6 glow mb-6">
+                        <div class="mb-4">
+                            <label for="ai-analysis-type" class="block text-sm font-medium mb-2">Yorum Türü Seçin:</label>
+                            <select id="ai-analysis-type" class="bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="daily">Günlük Yorum</option>
+                                <option value="transit">Transit Harita Yorumu</option>
+                                <option value="natal">Doğum Haritası Yorumu</option>
+                                <option value="detailed">Detaylı Analiz ve Yorum</option>
+                            </select>
+                        </div>
+                        
+                        <button id="generate-ai-analysis" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
+                            <i class="fas fa-magic mr-2"></i>Yorum Oluştur
+                        </button>
+                    </div>
+                    
+                    <!-- Yapay Zeka Cevap Bölümü -->
+                    <div id="ai-response-container" class="bg-slate-800 rounded-lg p-6 glow hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-pink-400">Yapay Zeka Yorumu</h3>
+                            <div class="flex space-x-2">
+                                <button id="copy-all-results" class="text-sm bg-slate-700 hover:bg-slate-600 text-slate-200 py-1 px-2 rounded">
+                                    <i class="fas fa-copy mr-1"></i>Tüm Sonuçları Kopyala
+                                </button>
+                                <button id="read-aloud" class="text-sm bg-blue-600 hover:bg-blue-500 text-white py-1 px-2 rounded">
+                                    <i class="fas fa-volume-up mr-1"></i>Sesli Oku
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="ai-response-content" class="text-sm space-y-3">
+                            <!-- Yapay zeka yorumu buraya gelecek -->
+                        </div>
+                        
+                        <!-- Ses Kontrolleri -->
+                        <div id="voice-controls" class="voice-controls justify-center mt-4 space-x-4">
+                            <button id="play-pause" class="text-white bg-purple-600 hover:bg-purple-500 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button id="stop-voice" class="text-white bg-red-600 hover:bg-red-500 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Doğum Haritası Sekmesi -->
+                <div id="natal" class="tab-content fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-purple-400">
+                        <i class="fas fa-birthday-cake mr-2"></i>Doğum Haritası Analizi
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Harita Görselleştirme -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 text-center">Doğum Haritanız</h3>
+                            <div class="chart-container">
+                                <div class="chart-wheel">
+                                    <!-- Evler -->
+                                    <div class="chart-house">
+                                        <!-- Gerçek bir uygulamada JavaScript ile oluşturulur -->
+                                        <div class="chart-planet" style="top: 10%; left: 50%; background-color: #f59e0b;">☉</div>
+                                        <div class="chart-planet" style="top: 30%; left: 70%; background-color: #93c5fd;">☽</div>
+                                        <div class="chart-planet" style="top: 50%; left: 30%; background-color: #a78bfa;">♀</div>
+                                        <div class="chart-planet" style="top: 70%; left: 50%; background-color: #f87171;">♂</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center text-sm text-slate-400">
+                                <p>15 Haziran 1990, 10:30 için hesaplanmıştır</p>
+                                <p>Placidus ev sistemi kullanılmıştır</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Temel Pozisyonlar -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Temel Pozisyonlar</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <div class="planet-icon bg-yellow-500 text-slate-900">
+                                        <i class="fas fa-sun"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Güneş İkizler'de</p>
+                                        <p class="text-sm text-slate-400">3. Evde 10° 15'</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="planet-icon bg-blue-400 text-slate-900">
+                                        <i class="fas fa-moon"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Ay Kova'da</p>
+                                        <p class="text-sm text-slate-400">11. Evde 22° 40'</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="planet-icon bg-green-500 text-slate-900">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Yükselen Terazi</p>
+                                        <p class="text-sm text-slate-400">15° 30'</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="planet-icon bg-purple-500 text-slate-900">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">MC Yengeç'te</p>
+                                        <p class="text-sm text-slate-400">8° 45'</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Doğum Haritası Hesaplamaları -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Ev Pozisyonları -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-home mr-2 text-blue-400"></i>Ev Pozisyonları
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="font-medium">1. Ev (Yükselen): <span class="text-green-400">Terazi 15°30'</span></p>
+                                    <p class="text-sm text-slate-400">Benlik imajı, dış görünüş</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">2. Ev: <span class="text-yellow-400">Akrep 10°22'</span></p>
+                                    <p class="text-sm text-slate-400">Değerler, maddi varlıklar</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">3. Ev: <span class="text-red-400">Yay 8°15'</span></p>
+                                    <p class="text-sm text-slate-400">İletişim, kardeşler</p>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="text-sm text-purple-400 hover:text-purple-300">
+                                        Tüm evleri göster <i class="fas fa-chevron-down ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gezegen Açıları -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-link mr-2 text-pink-400"></i>Önemli Açılar
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="aspect-line text-yellow-400">
+                                    <p class="font-medium">Güneş ☉ üçgen Ay ☽</p>
+                                    <p class="text-sm text-slate-400">120° (orb +2°15')</p>
+                                </div>
+                                <div class="aspect-line text-red-400">
+                                    <p class="font-medium">Mars ♂ kare Satürn ♄</p>
+                                    <p class="text-sm text-slate-400">90° (orb -1°30')</p>
+                                </div>
+                                <div class="aspect-line text-green-400">
+                                    <p class="font-medium">Venüs ♀ sekstil Jüpiter ♃</p>
+                                    <p class="text-sm text-slate-400">60° (orb +0°45')</p>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="text-sm text-purple-400 hover:text-purple-300">
+                                        Tüm açıları göster <i class="fas fa-chevron-down ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gezegen Digniteleri -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-crown mr-2 text-yellow-400"></i>Gezegen Digniteleri
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="font-medium">Güneş ☉ İkizler'de</p>
+                                    <p class="text-sm text-slate-400">Zarar (-5) • Merkür yönetimi</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Ay ☽ Kova'da</p>
+                                    <p class="text-sm text-slate-400">Zarar (-4) • Satürn yönetimi</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Venüs ♀ Boğa'da</p>
+                                    <p class="text-sm text-slate-400">Yücelim (+4) • Domicil (+5)</p>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="text-sm text-purple-400 hover:text-purple-300">
+                                        Tüm digniteleri göster <i class="fas fa-chevron-down ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Özel Noktalar -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-star mr-2 text-purple-400"></i>Özel Noktalar
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="font-medium">Şans Noktası</p>
+                                    <p class="text-sm text-slate-400">Balık 12°18' 5. Evde</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Kuzey Düğüm</p>
+                                    <p class="text-sm text-slate-400">Yengeç 8°45' 9. Evde</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Vertex</p>
+                                    <p class="text-sm text-slate-400">Oğlak 22°30' 3. Evde</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Orta Noktalar -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-bullseye mr-2 text-blue-400"></i>Önemli Orta Noktalar
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="font-medium">Güneş/Ay</p>
+                                    <p class="text-sm text-slate-400">Boğa 16°27'</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Yükselen/MC</p>
+                                    <p class="text-sm text-slate-400">Akrep 12°07'</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Venüs/Mars</p>
+                                    <p class="text-sm text-slate-400">İkizler 5°20'</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Özet -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-book-open mr-2 text-green-400"></i>Doğum Haritası Özeti
+                            </h3>
+                            <div class="space-y-3 text-sm">
+                                <p>İkizler'deki Güneş'iniz meraklı, uyumlu bir doğa ve güçlü iletişim becerileri veriyor. Kova'daki Ay bağımsızlık ve özgünlük ekliyor.</p>
+                                <p>Terazi yükselen ile diplomatik ve çekici bir imaj sunuyorsunuz, ilişkilerde denge arıyorsunuz. Mars ve Satürn arasındaki kare kendinizi ifade etmede zorluklar yaşadığınızı gösteriyor.</p>
+                                <p>5. evdeki Şans Noktası yaratıcı ifadenin mutluluğunuz için anahtar olduğunu gösteriyor.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transitler Sekmesi -->
+                <div id="transit" class="tab-content fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-blue-400">
+                        <i class="fas fa-sync-alt mr-2"></i>Güncel Transitler
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Transit Özeti -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Transit Özeti</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="font-medium">Güncel Tarih:</p>
+                                    <p class="text-slate-300">1 Haziran 2023 • 12:00</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Önemli Transitler:</p>
+                                    <ul class="list-disc list-inside text-slate-300 space-y-2 mt-2">
+                                        <li>Jüpiter 7. evinizde transit yapıyor</li>
+                                        <li>Satürn 10. evinizde transit yapıyor</li>
+                                        <li>Pluto doğum Ay'ınızla kavuşumda</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Güncel Ay Fazı:</p>
+                                    <p class="text-slate-300">Şişkin Ay Akrep'te</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Transit-Doğum Açıları -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Aktif Transit Açıları</h3>
+                            <div class="space-y-3">
+                                <div class="aspect-line text-green-400">
+                                    <p class="font-medium">Transit Jüpiter ♃ doğum Güneş ☉ ile üçgen</p>
+                                    <p class="text-sm text-slate-400">28 Mayıs 2023'te tam</p>
+                                </div>
+                                <div class="aspect-line text-red-400">
+                                    <p class="font-medium">Transit Satürn ♄ doğum Venüs ♀ ile kare</p>
+                                    <p class="text-sm text-slate-400">15 Haziran 2023'te tam</p>
+                                </div>
+                                <div class="aspect-line text-yellow-400">
+                                    <p class="font-medium">Transit Uranüs ♅ doğum Merkür ☿ ile kavuşum</p>
+                                    <p class="text-sm text-slate-400">3 Temmuz 2023'te tam</p>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="text-sm text-blue-400 hover:text-blue-300">
+                                        Tüm transit açıları göster <i class="fas fa-chevron-down ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Transit Kartları -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Jüpiter Transit -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-expand mr-2 text-yellow-400"></i>Jüpiter Boğa'da
+                            </h3>
+                            <div class="space-y-3">
+                                <p class="text-sm">
+                                    <span class="font-medium">Güncel Pozisyon:</span> 7. Ev<br>
+                                    <span class="font-medium">Tarihler:</span> Mayıs 2023 - Mayıs 2024
+                                </p>
+                                <p class="text-sm text-slate-300">
+                                    Bu transit ilişkilerinizde ve ortaklıklarınızda genişleme getiriyor. Faydalı işbirlikleri için fırsatlar çıkabilir.
+                                </p>
+                                <div class="aspect-line text-green-400 mt-2">
+                                    <p class="font-medium">Doğum Güneş ile üçgen (İkizler)</p>
+                                    <p class="text-sm text-slate-400">Özgüven ve iyimserlik</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Satürn Transit -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-tasks mr-2 text-gray-400"></i>Satürn Balık'ta
+                            </h3>
+                            <div class="space-y-3">
+                                <p class="text-sm">
+                                    <span class="font-medium">Güncel Pozisyon:</span> 10. Ev<br>
+                                    <span class="font-medium">Tarihler:</span> Mart 2023 - Şubat 2026
+                                </p>
+                                <p class="text-sm text-slate-300">
+                                    Kariyer ve kamusal yaşamınızı yeniden yapılandırma zamanı. Sorumluluklar artabilir ancak olgunluğunuz da artacak.
+                                </p>
+                                <div class="aspect-line text-red-400 mt-2">
+                                    <p class="font-medium">Doğum Venüs ile kare (Boğa)</p>
+                                    <p class="text-sm text-slate-400">Değerler ve ilişkiler test ediliyor</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pluto Transit -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-arrows-alt mr-2 text-purple-400"></i>Pluto Kova'da
+                            </h3>
+                            <div class="space-y-3">
+                                <p class="text-sm">
+                                    <span class="font-medium">Güncel Pozisyon:</span> 11. Ev<br>
+                                    <span class="font-medium">Tarihler:</span> Mart 2023 - Haziran 2023 (ilk geçiş)
+                                </p>
+                                <p class="text-sm text-slate-300">
+                                    Sosyal çevreniz ve uzun vadeli hedefleriniz dönüşüyor. Duygusal güvenlikle ilgili derin psikolojik çalışma.
+                                </p>
+                                <div class="aspect-line text-purple-400 mt-2">
+                                    <p class="font-medium">Doğum Ay ile kavuşum (Kova)</p>
+                                    <p class="text-sm text-slate-400">Duygusal yeniden doğuş</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progresyonlar Sekmesi -->
+                <div id="progressions" class="tab-content fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-green-400">
+                        <i class="fas fa-chart-line mr-2"></i>Progresyonlar & Direksiyonlar
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Sekonder Progresyonlar -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Sekonder Progresyonlar</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="font-medium">Progrese Güneş:</p>
+                                    <p class="text-slate-300">Yengeç 12° (Haziran 2022'de girdi)</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Progrese Ay:</p>
+                                    <p class="text-slate-300">Balık 8° (her 27-28 yılda bir döngü)</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Progrese Yükselen:</p>
+                                    <p class="text-slate-300">Akrep 18° (2018'de Terazi'den taşındı)</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Güncel Progrese Tarih:</p>
+                                    <p class="text-slate-300">12 Temmuz 1990 (1 gün = 1 yıl)</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Solar Arc Direksiyonlar -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Solar Arc Direksiyonlar</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="font-medium">Solar Arc Güneş:</p>
+                                    <p class="text-slate-300">İkizler 28° (Yengeç'e yaklaşıyor)</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Önemli Direksiyonlar:</p>
+                                    <ul class="list-disc list-inside text-slate-300 space-y-2 mt-2">
+                                        <li>SA Ay doğum Jüpiter ile kavuşum (2022-2023)</li>
+                                        <li>SA Merkür doğum Pluto ile kare (2024)</li>
+                                        <li>SA Venüs doğum Neptün ile üçgen (2025)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progrese Açılar -->
+                    <div class="bg-slate-800 rounded-lg p-6 glow mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Güncel Progrese Açılar</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="aspect-line text-green-400">
+                                <p class="font-medium">Progrese Güneş sekstil doğum Jüpiter</p>
+                                <p class="text-sm text-slate-400">Mart 2023 - Eylül 2023'te tam</p>
+                            </div>
+                            <div class="aspect-line text-red-400">
+                                <p class="font-medium">Progrese Ay kare doğum Satürn</p>
+                                <p class="text-sm text-slate-400">Mayıs 2023 - Kasım 2023'te tam</p>
+                            </div>
+                            <div class="aspect-line text-blue-400">
+                                <p class="font-medium">Progrese Merkür üçgen doğum Uranüs</p>
+                                <p class="text-sm text-slate-400">Ocak 2023 - Temmuz 2023'te tam</p>
+                            </div>
+                            <div class="aspect-line text-yellow-400">
+                                <p class="font-medium">Progrese Venüs kavuşum doğum Neptün</p>
+                                <p class="text-sm text-slate-400">Ağustos 2023 - Şubat 2024'te tam</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progresyon Zaman Çizelgesi -->
+                    <div class="bg-slate-800 rounded-lg p-6 glow">
+                        <h3 class="text-lg font-semibold mb-4">Yaklaşan Progrese Olaylar</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-green-500 text-slate-900 rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                                    <i class="fas fa-sun text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Progrese Güneş Yengeç'e giriyor</p>
+                                    <p class="text-sm text-slate-400">Haziran 2024 • 34 yaş</p>
+                                    <p class="text-sm text-slate-300 mt-1">Duygusal beslenme ve aile/ev odaklı bir dönem</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-blue-400 text-slate-900 rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                                    <i class="fas fa-moon text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Progrese Ay Koç'a giriyor</p>
+                                    <p class="text-sm text-slate-400">Ekim 2025 • 35 yaş</p>
+                                    <p class="text-sm text-slate-300 mt-1">Yeni duygusal girişimler ve bağımsızlık</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-purple-500 text-slate-900 rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                                    <i class="fas fa-arrow-up text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Progrese Yükselen Yay'a giriyor</p>
+                                    <p class="text-sm text-slate-400">Mart 2026 • 36 yaş</p>
+                                    <p class="text-sm text-slate-300 mt-1">Genişleyen dünya görüşü ve felsefi ilgiler</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Döngüler Sekmesi -->
+                <div id="cycles" class="tab-content fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-yellow-400">
+                        <i class="fas fa-redo mr-2"></i>Döngüler & Dönüşler
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Güneş Dönüşü -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">2023-2024 Güneş Dönüşü</h3>
+                            <div class="space-y-3">
+                                <p class="font-medium">Dönüş Tarihi:</p>
+                                <p class="text-slate-300">15 Haziran 2023 saat 4:22 (New York)</p>
+                                
+                                <p class="font-medium">Önemli Pozisyonlar:</p>
+                                <ul class="list-disc list-inside text-slate-300 space-y-1">
+                                    <li>Güneş İkizler'de (3. Ev)</li>
+                                    <li>Ay Başak'ta (6. Ev)</li>
+                                    <li>Yükselen Aslan</li>
+                                </ul>
+                                
+                                <p class="font-medium mt-3">Temalar:</p>
+                                <p class="text-sm text-slate-300">
+                                    İletişim, öğrenme ve yerel çevre odaklı bir yıl. 6. evdeki Ay sağlık ve günlük rutinleri vurguluyor.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Ay Dönüşü -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Güncel Ay Dönüşü</h3>
+                            <div class="space-y-3">
+                                <p class="font-medium">Dönüş Tarihi:</p>
+                                <p class="text-slate-300">3 Haziran 2023 saat 19:15 (New York)</p>
+                                
+                                <p class="font-medium">Önemli Pozisyonlar:</p>
+                                <ul class="list-disc list-inside text-slate-300 space-y-1">
+                                    <li>Ay Akrep'te (8. Ev)</li>
+                                    <li>Güneş İkizler'de (3. Ev)</li>
+                                    <li>Yükselen Terazi</li>
+                                </ul>
+                                
+                                <p class="font-medium mt-3">Temalar:</p>
+                                <p class="text-sm text-slate-300">
+                                    Duygusal yoğunluk ve dönüşüm. Araştırma veya ortak kaynaklar odak noktası olabilir. 30 Haziran 2023'te sona eriyor.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gezegen Döngüleri -->
+                    <div class="bg-slate-800 rounded-lg p-6 glow mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Güncel Gezegen Döngüleri</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <p class="font-medium">Satürn Döngüsü</p>
+                                <p class="text-sm text-slate-400">Son Dönüş: Şubat 2020 (29 yaş)</p>
+                                <p class="text-sm text-slate-300">Sonraki Dönüş: Mart 2050 (59 yaş)</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Jüpiter Döngüsü</p>
+                                <p class="text-sm text-slate-400">Son Dönüş: Aralık 2021 (31 yaş)</p>
+                                <p class="text-sm text-slate-300">Sonraki Dönüş: Nisan 2033 (42 yaş)</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Chiron Döngüsü</p>
+                                <p class="text-sm text-slate-400">Son Dönüş: Hiç (İlk Dönüş ~50 yaş)</p>
+                                <p class="text-sm text-slate-300">Şu an doğum pozisyonuna göre: %40</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tutulma Bilgileri -->
+                    <div class="bg-slate-800 rounded-lg p-6 glow">
+                        <h3 class="text-lg font-semibold mb-4">Yakın Geçmiş & Gelecek Tutulmalar</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-700">
+                                        <th class="text-left py-2">Tarih</th>
+                                        <th class="text-left py-2">Tür</th>
+                                        <th class="text-left py-2">Burç/Derece</th>
+                                        <th class="text-left py-2">Ev</th>
+                                        <th class="text-left py-2">Açılar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-slate-700">
+                                        <td class="py-3">5 Mayıs 2023</td>
+                                        <td>Ay Tutulması</td>
+                                        <td>Akrep 14°</td>
+                                        <td>11.</td>
+                                        <td>Doğum Güneş ile karşıt</td>
+                                    </tr>
+                                    <tr class="border-b border-slate-700">
+                                        <td class="py-3">14 Ekim 2023</td>
+                                        <td>Güneş Tutulması</td>
+                                        <td>Terazi 21°</td>
+                                        <td>12.</td>
+                                        <td>Doğum Yükselen ile kavuşum</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3">25 Mart 2024</td>
+                                        <td>Ay Tutulması</td>
+                                        <td>Başak 5°</td>
+                                        <td>10.</td>
+                                        <td>Doğum Satürn ile kare</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Harmonikler Sekmesi -->
+                <div id="harmonics" class="tab-content fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-pink-400">
+                        <i class="fas fa-project-diagram mr-2"></i>Harmonik Analiz
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Harmonik Genel Bakış -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Harmonik Harita Genel Bakış</h3>
+                            <div class="space-y-4">
+                                <p class="text-sm">
+                                    Harmonik haritalar gezegen pozisyonlarını belirli sayılarla çarparak ve 360° daire içinde indirgeyerek gizli yetenekleri ve desenleri ortaya çıkarır.
+                                </p>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-700">
+                                    <span class="font-medium">4. Harmonik (H4):</span>
+                                    <span class="text-pink-400">Temel, istikrar</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-700">
+                                    <span class="font-medium">5. Harmonik (H5):</span>
+                                    <span class="text-yellow-400">Yaratıcılık, ifade</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-700">
+                                    <span class="font-medium">7. Harmonik (H7):</span>
+                                    <span class="text-purple-400">Spiritüel, mistik</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2">
+                                    <span class="font-medium">9. Harmonik (H9):</span>
+                                    <span class="text-blue-400">Yüksek zihin, bilgelik</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Baskın Harmonikler -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4">Baskın Harmonikleriniz</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium">5. Harmonik (H5)</span>
+                                        <span class="text-sm text-slate-400">%78 güç</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                        <div class="bg-yellow-400 h-2.5 rounded-full" style="width: 78%"></div>
+                                    </div>
+                                    <p class="text-sm text-slate-300 mt-1">Güçlü yaratıcı yetenekler ve sanatsal ifade</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium">9. Harmonik (H9)</span>
+                                        <span class="text-sm text-slate-400">%65 güç</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                        <div class="bg-blue-400 h-2.5 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <p class="text-sm text-slate-300 mt-1">Felsefi ve öğretme yetenekleri</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium">7. Harmonik (H7)</span>
+                                        <span class="text-sm text-slate-400">%52 güç</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                        <div class="bg-purple-400 h-2.5 rounded-full" style="width: 52%"></div>
+                                    </div>
+                                    <p class="text-sm text-slate-300 mt-1">Sezgisel ve mistik eğilimler</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Harmonik Haritalar -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- H5 Haritası -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 text-yellow-400">5. Harmonik (Yaratıcılık)</h3>
+                            <div class="aspect-square max-w-xs mx-auto relative">
+                                <div class="chart-wheel">
+                                    <!-- Basitleştirilmiş harmonik harita gösterimi -->
+                                    <div class="chart-house">
+                                        <div class="chart-planet" style="top: 20%; left: 20%; background-color: #f59e0b;">5</div>
+                                        <div class="chart-planet" style="top: 40%; left: 60%; background-color: #93c5fd;">5</div>
+                                        <div class="chart-planet" style="top: 70%; left: 40%; background-color: #a78bfa;">5</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm">
+                                <p class="font-medium">Önemli Özellikler:</p>
+                                <ul class="list-disc list-inside text-slate-300 space-y-1 mt-1">
+                                    <li>Hava burçlarında büyük üçgen</li>
+                                    <li>Venüs-Mars kavuşumu 5. evde</li>
+                                    <li>Güneş-Ay orta noktası aktif</li>
+                                </ul>
+                                <p class="mt-2 text-slate-300">
+                                    Güçlü yaratıcı potansiyel, sanatsal yetenekler ve performans veya çocuklar yoluyla kendini ifade etme becerisi gösteriyor.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- H7 Haritası -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 text-purple-400">7. Harmonik (Spiritüel)</h3>
+                            <div class="aspect-square max-w-xs mx-auto relative">
+                                <div class="chart-wheel">
+                                    <div class="chart-house">
+                                        <div class="chart-planet" style="top: 30%; left: 30%; background-color: #a78bfa;">7</div>
+                                        <div class="chart-planet" style="top: 50%; left: 70%; background-color: #f59e0b;">7</div>
+                                        <div class="chart-planet" style="top: 80%; left: 50%; background-color: #93c5fd;">7</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm">
+                                <p class="font-medium">Önemli Özellikler:</p>
+                                <ul class="list-disc list-inside text-slate-300 space-y-1 mt-1">
+                                    <li>Mistik Dikdörtgen deseni</li>
+                                    <li>Neptün 1. evde açısal</li>
+                                    <li>Ay-Pluto kavuşumu</li>
+                                </ul>
+                                <p class="mt-2 text-slate-300">
+                                    Medyum duyarlılığı, spiritüel ilgiler ve şifa veya mistik deneyimler için potansiyel gösteriyor.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- H9 Haritası -->
+                        <div class="bg-slate-800 rounded-lg p-6 glow">
+                            <h3 class="text-lg font-semibold mb-4 text-blue-400">9. Harmonik (Bilgelik)</h3>
+                            <div class="aspect-square max-w-xs mx-auto relative">
+                                <div class="chart-wheel">
+                                    <div class="chart-house">
+                                        <div class="chart-planet" style="top: 15%; left: 50%; background-color: #93c5fd;">9</div>
+                                        <div class="chart-planet" style="top: 50%; left: 20%; background-color: #f59e0b;">9</div>
+                                        <div class="chart-planet" style="top: 50%; left: 80%; background-color: #a78bfa;">9</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm">
+                                <p class="font-medium">Önemli Özellikler:</p>
+                                <ul class="list-disc list-inside text-slate-300 space-y-1 mt-1">
+                                    <li>Jüpiter-Satürn karşıtlığı</li>
+                                    <li>Merkür-Kuzey Düğüm kavuşumu</li>
+                                    <li>Güneş 9. evde</li>
+                                </ul>
+                                <p class="mt-2 text-slate-300">
+                                    Felsefi zihin, öğretme yetenekleri ve yüksek eğitim veya yabancı kültürlere ilgi gösteriyor.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-slate-800 text-center text-slate-500 text-sm">
+            <p>Astrolojik hesaplamalar Swiss Ephemeris kullanılarak yapılmıştır</p>
+            <p class="mt-1">© 2023 Astroloji Yorumları • Tüm hesaplamalar yaklaşıktır</p>
+        </footer>
+    </div>
+
+    <script>
+        // Sekme fonksiyonelliği
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Tüm buton ve içeriklerden active classını kaldır
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Tıklanan butona active classını ekle
+                    this.classList.add('active');
+                    
+                    // İlgili içeriği göster
+                    const tabId = this.getAttribute('data-tab');
+                    const tabContent = document.getElementById(tabId);
+                    tabContent.classList.add('active');
+                    tabContent.classList.add('fade-in');
+                    
+                    // Animasyon tamamlandıktan sonra fade-in classını kaldır
+                    setTimeout(() => {
+                        tabContent.classList.remove('fade-in');
+                    }, 500);
+                });
+            });
+            
+            // "Tümünü göster" butonları için simülasyon
+            const showAllButtons = document.querySelectorAll('[class*="text-purple-400"], [class*="text-blue-400"]');
+            showAllButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('fa-chevron-down')) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                        // Gerçek uygulamada burada daha fazla veri yüklenir
+                    } else {
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    }
+                });
+            });
+            
+            // Yapay Zeka Yorumu Fonksiyonları
+            const generateBtn = document.getElementById('generate-ai-analysis');
+            const aiResponseContainer = document.getElementById('ai-response-container');
+            const aiResponseContent = document.getElementById('ai-response-content');
+            const analysisTypeSelect = document.getElementById('ai-analysis-type');
+            
+            // Örnek yapay zeka yorumları
+            const aiResponses = {
+                daily: {
+                    title: "Günlük Yorumunuz",
+                    content: `<p>Bugün, İkizler'deki Güneş'iniz ile Kova'daki Ay'ınız arasındaki uyum sayesinde iletişim becerileriniz zirvede. Yeni fikirler paylaşmak ve sosyal bağlantılar kurmak için mükemmel bir gün.</p>
+                    <p class="mt-2">Ancak, Mars'ın şu anki pozisyonu sabrınızı test edebilir. Özellikle öğleden sonra ani kararlar vermekten kaçının. Akşam saatlerinde Venüs'ün etkisi romantik ilişkilerinizde uyum getirecek.</p>
+                    <p class="mt-2">Bugünkü anahtar kelimeler: İletişim, uyum ve esneklik.</p>`
+                },
+                transit: {
+                    title: "Transit Harita Yorumunuz",
+                    content: `<p>Şu anda Jüpiter'in 7. evinizdeki transitinin etkisindesiniz. Bu, ilişkilerinizde genişleme ve yeni işbirlikleri için fırsatlar anlamına geliyor. Önümüzdeki 6 ay boyunca önemli ortaklıklar kurabilirsiniz.</p>
+                    <p class="mt-2">Satürn'ün 10. evinizdeki transitiyse kariyerinizde daha fazla sorumluluk almanız gerektiğini gösteriyor. Bu dönemde profesyonel hedeflerinizi gözden geçirmek ve uzun vadeli planlar yapmak faydalı olacaktır.</p>
+                    <p class="mt-2">Pluto'nun doğum Ay'ınızla kavuşumu derin duygusal dönüşümler yaşayabileceğinizi gösteriyor. Bu süreç zorlu olsa da, sonunda daha güçlü ve özgün bir versiyonunuz ortaya çıkacak.</p>`
+                },
+                natal: {
+                    title: "Doğum Haritası Yorumunuz",
+                    content: `<p>Doğum haritanızda İkizler'deki Güneş, meraklı, zeki ve uyumlu bir doğaya sahip olduğunuzu gösteriyor. Bilgiye açlığınız ve çok yönlü ilgi alanlarınız hayatınızın önemli bir parçası.</p>
+                    <p class="mt-2">Kova'daki Ay, duygusal doğanızın bağımsız ve özgün olduğunu gösteriyor. Geleneksel olmayan yaklaşımlara açıksınız ve insanlık için daha iyi bir gelecek vizyonuna sahipsiniz.</p>
+                    <p class="mt-2">Terazi yükseleniniz, dış dünyaya karşı diplomatik ve zarif bir imaj sergilediğinizi gösteriyor. İlişkilerde adalet ve denge arayışındasınız.</p>
+                    <p class="mt-2">Mars-Satürn kareniz, hedeflerinize ulaşmak için disiplinli çalışmanız gerektiğini gösteriyor. Gençlik döneminizde otorite figürleriyle çatışmalar yaşamış olabilirsiniz.</p>`
+                },
+                detailed: {
+                    title: "Detaylı Analiz ve Yorumunuz",
+                    content: `<p><strong>Kişilik Dinamikleri:</strong> İkizler Güneş'iniz ve Kova Ay'ınız entelektüel bir kombinasyon oluşturuyor. İlerici fikirlere açıksınız ve zihinsel uyarıma ihtiyaç duyuyorsunuz. Terazi yükseleniniz bu enerjiyi sosyal ve diplomatik bir şekilde ifade etmenizi sağlıyor.</p>
+                    <p class="mt-2"><strong>Kariyer Potansiyeli:</strong> 10. evinizdeki Yengeç MC ve Satürn'ünüz halkla ilişkiler, eğitim veya danışmanlık alanlarında başarı potansiyeli gösteriyor. İletişim becerileriniz kariyerinizde önemli bir rol oynayacak.</p>
+                    <p class="mt-2"><strong>İlişki Modelleri:</strong> 7. evinizdeki Jüpiter ve Venüs'ünüz ilişkilerde şanslı olduğunuzu gösteriyor. Ancak Pluto'nun etkisi derin, dönüştürücü ilişkiler yaşayabileceğinizi gösteriyor.</p>
+                    <p class="mt-2"><strong>Ruhsal Gelişim:</strong> Kuzey Düğüm'ünüz 9. evde bilgelik ve yüksek öğrenim yoluyla kaderinizi gerçekleştireceğinizi gösteriyor. Yabancı kültürler ve felsefe ruhsal yolculuğunuzda önemli olacak.</p>
+                    <p class="mt-2"><strong>Şu Anki Dönem:</strong> Jüpiter transitinin 7. evinizde olması önümüzdeki yıl boyunca önemli ilişkiler ve ortaklıklar için fırsatlar getirecek. Satürn'ün 10. ev transitiyse kariyerinizde olgunlaşma ve yapılandırma zamanı olduğunu gösteriyor.</p>`
+                }
+            };
+            
+            // Yapay zeka yorumu oluşturma
+            generateBtn.addEventListener('click', function() {
+                const selectedType = analysisTypeSelect.value;
+                const response = aiResponses[selectedType];
+                
+                aiResponseContent.innerHTML = `
+                    <h4 class="font-bold text-lg mb-2">${response.title}</h4>
+                    ${response.content}
+                `;
+                
+                aiResponseContainer.classList.remove('hidden');
+                
+                // Sayfayı yorum bölümüne kaydır
+                aiResponseContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // Tüm sonuçları kopyalama
+            const copyAllBtn = document.getElementById('copy-all-results');
+            copyAllBtn.addEventListener('click', function() {
+                // Gerçek uygulamada tüm içerik birleştirilir
+                const contentToCopy = `
+                    ASTROLOJİ SONUÇLARI
+                    ===================
+                    
+                    DOĞUM HARİTASI:
+                    - Güneş: İkizler 10°15' (3. Ev)
+                    - Ay: Kova 22°40' (11. Ev)
+                    - Yükselen: Terazi 15°30'
+                    
+                    TRANSİTLER:
+                    - Jüpiter 7. evde (Mayıs 2023-Mayıs 2024)
+                    - Satürn 10. evde (Mart 2023-Şubat 2026)
+                    
+                    DETAYLI YORUMLAR İÇİN LÜTFEN SİTEMİZİ ZİYARET EDİN.
+                `;
+                
+                navigator.clipboard.writeText(contentToCopy).then(() => {
+                    const originalText = copyAllBtn.innerHTML;
+                    copyAllBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Kopyalandı!';
+                    
+                    setTimeout(() => {
+                        copyAllBtn.innerHTML = originalText;
+                    }, 2000);
+                });
+            });
+            
+            // Sesli okuma fonksiyonları
+            const readAloudBtn = document.getElementById('read-aloud');
+            const voiceControls = document.getElementById('voice-controls');
+            const playPauseBtn = document.getElementById('play-pause');
+            const stopVoiceBtn = document.getElementById('stop-voice');
+            
+            let speech = null;
+            let isPaused = false;
+            
+            readAloudBtn.addEventListener('click', function() {
+                if (!aiResponseContainer.classList.contains('hidden')) {
+                    const textToRead = aiResponseContent.textContent;
+                    
+                    // Konuşmayı durdur (eğer çalışıyorsa)
+                    if (speech) {
+                        window.speechSynthesis.cancel();
+                    }
+                    
+                    speech = new SpeechSynthesisUtterance();
+                    speech.text = textToRead;
+                    speech.lang = 'tr-TR';
+                    speech.rate = 1;
+                    
+                    // Ses kontrollerini göster
+                    voiceControls.classList.add('active');
+                    
+                    // Oynat/Duraklat butonunu ayarla
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    isPaused = false;
+                    
+                    // Konuşmayı başlat
+                    window.speechSynthesis.speak(speech);
+                    
+                    // Konuşma bittiğinde kontrolleri gizle
+                    speech.onend = function() {
+                        voiceControls.classList.remove('active');
+                    };
+                }
+            });
+            
+            // Oynat/Duraklat butonu
+            playPauseBtn.addEventListener('click', function() {
+                if (speech) {
+                    if (isPaused) {
+                        window.speechSynthesis.resume();
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        isPaused = false;
+                    } else {
+                        window.speechSynthesis.pause();
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        isPaused = true;
+                    }
+                }
+            });
+            
+            // Durdur butonu
+            stopVoiceBtn.addEventListener('click', function() {
+                if (speech) {
+                    window.speechSynthesis.cancel();
+                    voiceControls.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+{% extends "admin/layout.html" %}
+{% block title %}ORBIS Admin - AI Yapılandırma{% endblock %}
+{% block page_title %}AI Yapılandırma{% endblock %}
+{% block page_subtitle %}AI provider'larını, API anahtarlarını ve yedekleme sırasını yönetin{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <div id="status-banner" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+  <!-- Providers Card -->
+  <div class="bg-card-dark rounded-2xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark flex items-center justify-between">
+      <div>
+        <h3 class="text-white font-display font-bold text-lg">AI Provider'ları</h3>
+        <p class="text-ink-muted text-xs mt-1">API bilgilerini girip kaydettikten sonra listeden seçin</p>
+      </div>
+      <button onclick="addProvider()" class="bg-primary hover:bg-primary/90 text-white font-medium px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-1.5">
+        <span class="material-icons-round text-lg">add</span>
+        Yeni Ekle
+      </button>
+    </div>
+
+    <div class="p-6">
+      <div id="providers-list" class="space-y-4">
+        <!-- Providers rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup Assignment Card -->
+  <div class="bg-card-dark rounded-2xl border border-border-dark overflow-hidden">
+    <div class="p-6 border-b border-border-dark">
+      <h3 class="text-white font-display font-bold text-lg">Yedek Ataması</h3>
+      <p class="text-ink-muted text-xs mt-1">Aktif provider hata verirse sırayla yedekler dener</p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <!-- Active -->
+      <div class="flex items-center justify-between p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-emerald-400">check_circle</span>
+          </span>
+          <div>
+            <p class="text-white font-bold text-sm">Aktif Provider</p>
+            <p class="text-[10px] text-emerald-400">Önce bu dene</p>
+          </div>
+        </div>
+        <select id="active-provider" class="bg-surface-dark border border-border-dark rounded-lg px-3 py-2 text-white text-sm min-w-[200px] focus:border-primary outline-none">
+          <option value="">Seçiniz</option>
+        </select>
+      </div>
+
+      <!-- Backup 1 -->
+      <div class="flex items-center justify-between p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-amber-400">looks_one</span>
+          </span>
+          <div>
+            <p class="text-white font-bold text-sm">Yedek - 1</p>
+            <p class="text-[10px] text-amber-400">Aktif hata verirse dene</p>
+          </div>
+        </div>
+        <select id="backup-1" class="bg-surface-dark border border-border-dark rounded-lg px-3 py-2 text-white text-sm min-w-[200px] focus:border-primary outline-none">
+          <option value="">Seçiniz</option>
+        </select>
+      </div>
+
+      <!-- Backup 2 -->
+      <div class="flex items-center justify-between p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-orange-400">looks_two</span>
+          </span>
+          <div>
+            <p class="text-white font-bold text-sm">Yedek - 2</p>
+            <p class="text-[10px] text-orange-400">Y-1 hata verirse dene</p>
+          </div>
+        </div>
+        <select id="backup-2" class="bg-surface-dark border border-border-dark rounded-lg px-3 py-2 text-white text-sm min-w-[200px] focus:border-primary outline-none">
+          <option value="">Seçiniz</option>
+        </select>
+      </div>
+
+      <!-- Backup 3 -->
+      <div class="flex items-center justify-between p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+            <span class="material-icons-round text-red-400">looks_3</span>
+          </span>
+          <div>
+            <p class="text-white font-bold text-sm">Yedek - 3</p>
+            <p class="text-[10px] text-red-400">Son çare</p>
+          </div>
+        </div>
+        <select id="backup-3" class="bg-surface-dark border border-border-dark rounded-lg px-3 py-2 text-white text-sm min-w-[200px] focus:border-primary outline-none">
+          <option value="">Seçiniz</option>
+        </select>
+      </div>
+
+      <!-- Save Button -->
+      <button onclick="saveAssignments()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98]">
+        <span class="material-icons-round text-lg align-middle mr-1">save</span>
+        Yedek Atamalarını Kaydet
+      </button>
+    </div>
+  </div>
+
+  <div class="p-4 bg-surface-2 rounded-xl border border-border-dark">
+    <div class="flex items-start gap-3">
+      <span class="material-icons-round text-primary text-lg mt-0.5">info</span>
+      <div class="text-xs text-ink-muted leading-relaxed">
+        <p class="mb-1"><strong class="text-white">Çalışma mantığı:</strong> AI yorum isteği geldiğinde önce <strong class="text-emerald-400">Aktif Provider</strong> denenir. Hata alınırsa sırayla <strong class="text-amber-400">Y-1</strong>, <strong class="text-orange-400">Y-2</strong>, <strong class="text-red-400">Y-3</strong> dener. Hiçbiri çalışmazsa kullanıcıya hata gösterilir.</p>
+        <p>Değişiklikler Firestore'a kaydedilir ve backend tarafından otomatik okunur.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Provider Modal -->
+<div id="provider-modal" class="fixed inset-0 z-[9999] hidden" style="display:none;">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div class="bg-bg rounded-2xl w-full max-w-lg border border-strong shadow-2xl">
+      <div class="p-6 border-b border-strong flex items-center justify-between">
+        <h3 id="modal-title" class="text-white font-bold text-lg">Provider Ekle</h3>
+        <button onclick="closeModal()" class="text-ink-muted hover:text-white">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input id="prov-name" placeholder="Provider Adı (örn: DeepSeek)" class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-3 text-white text-sm placeholder:text-ink-faint focus:border-primary outline-none" />
+        <input id="prov-base-url" placeholder="Base URL (örn: https://api.deepseek.com)" class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-3 text-white text-sm placeholder:text-ink-faint focus:border-primary outline-none" />
+        <input id="prov-api-key" type="password" placeholder="API Key" class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-3 text-white text-sm placeholder:text-ink-faint focus:border-primary outline-none font-mono" />
+        <input id="prov-model" placeholder="Model (örn: deepseek-chat, gpt-4)" class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-3 text-white text-sm placeholder:text-ink-faint focus:border-primary outline-none" />
+      </div>
+      <div class="p-6 border-t border-strong flex gap-3">
+        <button onclick="saveProvider()" class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all text-sm">Kaydet</button>
+        <button onclick="closeModal()" class="px-6 bg-surface-2 hover:bg-surface-3 text-ink-muted rounded-xl transition-all text-sm">İptal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Test Result Modal -->
+<div id="test-result-modal" class="fixed inset-0 z-[9999] hidden" style="display:none;">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div class="bg-bg rounded-2xl w-full max-w-lg border border-strong shadow-2xl">
+      <div id="test-result-header" class="p-6 border-b border-strong flex items-center justify-between">
+        <h3 id="test-result-title" class="text-white font-bold text-lg">Test Sonucu</h3>
+        <button onclick="closeTestModal()" class="text-ink-muted hover:text-white">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="p-6">
+        <p id="test-result-status" class="text-sm text-ink-muted mb-2"></p>
+        <div class="bg-surface-dark rounded-xl p-4 border border-border-dark">
+          <pre id="test-result-detail" class="text-sm text-white font-mono whitespace-pre-wrap break-all max-h-60 overflow-y-auto"></pre>
+        </div>
+        <button id="test-result-raw-btn" class="hidden mt-3 text-xs text-primary hover:text-primary/80"></button>
+      </div>
+      <div class="p-6 border-t border-strong flex justify-end">
+        <button onclick="closeTestModal()" class="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all text-sm">Tamam</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let providers = [];
+  let editIndex = -1;
+
+  async function loadData() {
+    try {
+      const res = await fetch('/admin/api/ai-settings');
+      const json = await res.json();
+      if (json.success) {
+        providers = json.data.providers || [];
+        // ÖNCE provider listesini render et ve dropdown'ları doldur
+        renderProviders();
+        populateSelects();
+        // SONRA değerleri set et (option'lar hazır)
+        document.getElementById('active-provider').value = json.data.active_provider || '';
+        document.getElementById('backup-1').value = json.data.backup_1 || '';
+        document.getElementById('backup-2').value = json.data.backup_2 || '';
+        document.getElementById('backup-3').value = json.data.backup_3 || '';
+      }
+    } catch(e) { console.error('Load error:', e); }
+  }
+
+  function renderProviders() {
+    const container = document.getElementById('providers-list');
+    if (providers.length === 0) {
+      container.innerHTML = '<div class="text-center py-8 text-ink-muted text-sm">Henüz provider eklenmemiş. "Yeni Ekle" butonuna tıklayın.</div>';
+      return;
+    }
+    container.innerHTML = providers.map((p, i) => `
+      <div class="flex items-center justify-between p-4 bg-surface-2 rounded-xl border border-border-dark hover:border-primary/30 transition-all">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-primary">psychology</span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-white font-bold text-sm truncate">${p.name}</h4>
+            <p class="text-[10px] text-ink-muted truncate font-mono">${p.base_url} · ${p.model}</p>
+            <p class="text-[10px] text-ink-faint font-mono truncate">API Key: ${p.api_key ? p.api_key.substring(0, 8) + '...' : 'Yok'}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button onclick="testProvider(${i})" title="Test Et" class="w-8 h-8 rounded-lg bg-surface-2 hover:bg-emerald-500/20 flex items-center justify-center text-ink-muted hover:text-emerald-400 transition-all">
+            <span class="material-icons-round text-sm">play_arrow</span>
+          </button>
+          <button onclick="copyProvider(${i})" title="Kopyala" class="w-8 h-8 rounded-lg bg-surface-2 hover:bg-blue-500/20 flex items-center justify-center text-ink-muted hover:text-blue-400 transition-all">
+            <span class="material-icons-round text-sm">content_copy</span>
+          </button>
+          <button onclick="editProvider(${i})" title="Düzenle" class="w-8 h-8 rounded-lg bg-surface-2 hover:bg-primary/20 flex items-center justify-center text-ink-muted hover:text-primary transition-all">
+            <span class="material-icons-round text-sm">edit</span>
+          </button>
+          <button onclick="deleteProvider(${i})" title="Sil" class="w-8 h-8 rounded-lg bg-surface-2 hover:bg-red-500/20 flex items-center justify-center text-ink-muted hover:text-red-400 transition-all">
+            <span class="material-icons-round text-sm">delete</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function copyProvider(i) {
+    const original = providers[i];
+    const copy = { ...original, name: original.name + ' (Kopya)' };
+    providers.splice(i + 1, 0, copy);
+    saveToFirestore(false);
+  }
+
+  async function testProvider(i) {
+    const p = providers[i];
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-icons-round text-sm animate-spin">sync</span>';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/admin/api/ai-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base_url: p.base_url, api_key: p.api_key, model: p.model, name: p.name }),
+      });
+      const json = await res.json();
+
+      // Modal icinde goster
+      const modal = document.getElementById('test-result-modal');
+      const title = document.getElementById('test-result-title');
+      const status = document.getElementById('test-result-status');
+      const detail = document.getElementById('test-result-detail');
+      const rawBtn = document.getElementById('test-result-raw-btn');
+
+      if (json.success) {
+        title.textContent = '✅ ' + p.name + ' Başarılı!';
+        status.innerHTML = '<span class="text-emerald-400 font-bold">API Yanıtı:</span>';
+        detail.textContent = json.response || 'Boş yanıt';
+        rawBtn.classList.add('hidden');
+        document.getElementById('test-result-header').className = 'p-6 border-b border-strong bg-emerald-500/10';
+      } else {
+        title.textContent = '❌ ' + p.name + ' Başarısız';
+        status.innerHTML = '<span class="text-red-400 font-bold">Hata:</span>';
+        detail.textContent = json.error || 'Bilinmeyen hata';
+        rawBtn.classList.remove('hidden');
+        rawBtn.onclick = () => { detail.textContent = json.error_raw || json.error; };
+        document.getElementById('test-result-header').className = 'p-6 border-b border-strong bg-red-500/10';
+      }
+
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+    } catch(e) {
+      showBanner('error', '❌ Bağlantı hatası: ' + e.message);
+    } finally {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
+
+  function closeTestModal() {
+    document.getElementById('test-result-modal').style.display = 'none';
+    document.getElementById('test-result-modal').classList.add('hidden');
+  }
+
+  function populateSelects() {
+    const slots = ['active-provider','backup-1','backup-2','backup-3'];
+
+    // Tüm slotlardaki mevcut seçimleri topla
+    const allSelections = {};
+    slots.forEach(id => {
+      allSelections[id] = document.getElementById(id).value;
+    });
+
+    // Her dropdown'ı yeniden oluştur
+    slots.forEach(id => {
+      const sel = document.getElementById(id);
+      const myVal = allSelections[id];
+
+      // Diğer slotlarda seçili olanlar (kendim hariç)
+      const taken = slots
+        .filter(otherId => otherId !== id)
+        .map(otherId => allSelections[otherId])
+        .filter(v => v !== '');
+
+      sel.innerHTML = '<option value="">Seçiniz</option>';
+      providers.forEach(p => {
+        // Provider kendi değerimse veya hiçbir yerde seçili değilse göster
+        if (p.name === myVal || !taken.includes(p.name)) {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = p.name;
+          sel.appendChild(opt);
+        }
+      });
+      // Değeri geri yükle (eğer hala geçerliyse)
+      sel.value = myVal;
+    });
+  }
+
+  // Dropdown değişince diğerlerini güncelle
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('#active-provider, #backup-1, #backup-2, #backup-3')) {
+      populateSelects();
+    }
+  });
+
+  function addProvider() { editIndex = -1; document.getElementById('modal-title').textContent = 'Provider Ekle'; clearModal(); showModal(); }
+  function editProvider(i) { editIndex = i; document.getElementById('modal-title').textContent = 'Provider Düzenle'; const p = providers[i]; document.getElementById('prov-name').value = p.name; document.getElementById('prov-base-url').value = p.base_url; document.getElementById('prov-api-key').value = p.api_key; document.getElementById('prov-model').value = p.model; showModal(); }
+
+  function saveProvider() {
+    const name = document.getElementById('prov-name').value.trim();
+    const base_url = document.getElementById('prov-base-url').value.trim().replace(/\/+$/, '');
+    const api_key = document.getElementById('prov-api-key').value.trim();
+    const model = document.getElementById('prov-model').value.trim();
+    if (!name || !base_url || !api_key || !model) { showBanner('error', 'Tüm alanlar zorunlu'); return; }
+    const obj = { name, base_url, api_key, model };
+    if (editIndex >= 0) providers[editIndex] = obj; else providers.push(obj);
+    saveToFirestore();
+    closeModal();
+  }
+
+  function deleteProvider(i) {
+    if (!confirm('Bu provider\'ı silmek istediğinize emin misiniz?')) return;
+    providers.splice(i, 1);
+    saveToFirestore();
+  }
+
+  async function saveToFirestore(reloadAfter = true) {
+    const data = {
+      providers,
+      active_provider: document.getElementById('active-provider').value,
+      backup_1: document.getElementById('backup-1').value,
+      backup_2: document.getElementById('backup-2').value,
+      backup_3: document.getElementById('backup-3').value,
+    };
+    try {
+      const res = await fetch('/admin/api/ai-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const json = await res.json();
+      if (json.success) {
+        showBanner('success', '✅ ' + json.message);
+        if (reloadAfter) {
+          setTimeout(() => location.reload(), 800);
+        } else {
+          renderProviders();
+          populateSelects();
+        }
+      }
+      else showBanner('error', '❌ ' + json.message);
+    } catch(e) { showBanner('error', '❌ Hata: ' + e.message); }
+  }
+
+  async function saveAssignments() {
+    const data = {
+      providers,
+      active_provider: document.getElementById('active-provider').value,
+      backup_1: document.getElementById('backup-1').value,
+      backup_2: document.getElementById('backup-2').value,
+      backup_3: document.getElementById('backup-3').value,
+    };
+    try {
+      const res = await fetch('/admin/api/ai-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const json = await res.json();
+      if (json.success) { showBanner('success', '✅ ' + json.message + ' Sayfa yenileniyor...'); setTimeout(() => location.reload(), 800); }
+      else showBanner('error', '❌ ' + json.message);
+    } catch(e) { showBanner('error', '❌ Hata: ' + e.message); }
+  }
+
+  function showModal() { document.getElementById('provider-modal').style.display = 'flex'; document.getElementById('provider-modal').classList.remove('hidden'); }
+  function closeModal() { document.getElementById('provider-modal').style.display = 'none'; document.getElementById('provider-modal').classList.add('hidden'); clearModal(); }
+  function clearModal() { ['prov-name','prov-base-url','prov-api-key','prov-model'].forEach(id => document.getElementById(id).value = ''); }
+
+  function showBanner(type, msg) {
+    const b = document.getElementById('status-banner'); b.classList.remove('hidden','bg-green-500/20','text-green-400','bg-red-500/20','text-red-400');
+    b.classList.add(type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'); b.textContent = msg;
+    setTimeout(() => b.classList.add('hidden'), 5000);
+  }
+
+  document.addEventListener('DOMContentLoaded', loadData);
+</script>
+{% endblock %}

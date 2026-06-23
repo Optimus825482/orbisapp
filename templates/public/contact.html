@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block title %}İletişim - ORBIS Astroloji{% endblock %}
+{% block meta_description %}ORBIS Astroloji ile iletişime geçin. Sorularınız, önerileriniz ve geri bildirimleriniz için
+bize ulaşın.{% endblock %}
+{% block canonical_path %}/iletisim{% endblock %}
+{% block content %}
+<div class="min-h-screen flex flex-col px-4 py-12 max-w-2xl mx-auto">
+
+    <div class="text-center mb-10">
+        <h1 class="font-display text-3xl font-bold text-white mb-3">İletişim</h1>
+        <p class="text-primary text-sm uppercase tracking-widest font-bold">Bize Ulaşın</p>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5">
+            <h2 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-icons-round text-primary">mail</span>
+                E-posta ile İletişim
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                Sorularınız, önerileriniz veya teknik destek talepleriniz için bize e-posta gönderebilirsiniz.
+                En kısa sürede dönüş yapacağız.
+            </p>
+            <a href="mailto:destek@orbisastro.online"
+                class="inline-flex items-center gap-2 px-5 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-xl text-primary text-sm font-bold transition-all">
+                <span class="material-icons-round text-lg">send</span>
+                destek@orbisastro.online
+            </a>
+        </div>
+
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5">
+            <h2 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-icons-round text-accent">help_center</span>
+                Sıkça Sorulan Sorular
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-3">
+                Sorularınızın birçoğuna SSS sayfamızda yanıt bulabilirsiniz.
+            </p>
+            <a href="/sss" class="inline-flex items-center gap-2 text-accent text-sm hover:underline">
+                <span class="material-icons-round text-lg">arrow_forward</span>
+                SSS Sayfasına Git
+            </a>
+        </div>
+
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5">
+            <h2 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-icons-round text-emerald-400">feedback</span>
+                Geri Bildirim
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                ORBIS'i daha iyi hale getirmek için geri bildirimlerinize değer veriyoruz. Uygulama içi önerilerinizi,
+                hata raporlarınızı veya yeni özellik isteklerinizi bizimle paylaşabilirsiniz.
+            </p>
+        </div>
+
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5">
+            <h2 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-icons-round text-pink-400">phone_android</span>
+                Mobil Uygulama
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                ORBIS Android uygulamasını Google Play Store'dan indirebilirsiniz.
+                Uygulama ile ilgili sorunlar için Google Play üzerinden de değerlendirme bırakabilirsiniz.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+        <a href="/" class="hover:text-primary transition-colors">Ana Sayfa</a>
+        <span>•</span>
+        <a href="/hakkimizda" class="hover:text-primary transition-colors">Hakkımızda</a>
+        <span>•</span>
+        <a href="/blog" class="hover:text-primary transition-colors">Blog</a>
+        <span>•</span>
+        <a href="/sss" class="hover:text-primary transition-colors">SSS</a>
+    </div>
+
+    <div class="mt-8 max-w-2xl mx-auto">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+            data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>( adsbygoogle = window.adsbygoogle || [] ).push( {} );</script>
+    </div>
+</div>
+{% endblock %}

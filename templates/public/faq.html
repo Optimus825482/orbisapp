@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+{% block title %}Sıkça Sorulan Sorular - ORBIS Astroloji{% endblock %}
+{% block meta_description %}ORBIS astroloji uygulaması hakkında sıkça sorulan sorular. Doğum haritası, transit analizi,
+uyumluluk ve yapay zeka yorumları hakkında bilgi alın.{% endblock %}
+{% block canonical_path %}/sss{% endblock %}
+{% block content %}
+<div class="min-h-screen flex flex-col px-4 py-12 max-w-3xl mx-auto">
+
+    <div class="text-center mb-10">
+        <h1 class="font-display text-3xl font-bold text-white mb-3">Sıkça Sorulan Sorular</h1>
+        <p class="text-primary text-sm uppercase tracking-widest font-bold">Merak Edilenler</p>
+    </div>
+
+    <div class="space-y-4" x-data="{open: null}">
+
+        <!-- SSS 1 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 1 ? null : 1"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">ORBIS nedir?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 1}">expand_more</span>
+            </button>
+            <div x-show="open === 1" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    ORBIS, yapay zeka teknolojisi ile astrolojik hesaplamaları birleştiren modern bir astroloji
+                    uygulamasıdır.
+                    Swiss Ephemeris kütüphanesi kullanılarak hassas gezegen pozisyonları hesaplanır ve yapay zeka
+                    modelleri
+                    ile kişiye özel yorumlar oluşturulur.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 2 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 2 ? null : 2"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Doğum haritası nedir?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 2}">expand_more</span>
+            </button>
+            <div x-show="open === 2" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Doğum haritası (natal harita), bir kişinin doğduğu anda gökyüzündeki gezegen konumlarının
+                    haritasıdır.
+                    Güneş, Ay ve gezegenlerin hangi burçlarda ve evlerde bulunduğunu gösterir. Her kişinin doğum
+                    haritası
+                    benzersizdir ve kişilik özelliklerinden yaşam alanlarına kadar birçok konuda bilgi verir.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 3 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 3 ? null : 3"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Doğum saatimi bilmiyorsam ne olur?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 3}">expand_more</span>
+            </button>
+            <div x-show="open === 3" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Doğum saati, özellikle yükselen burç ve ev pozisyonları için çok önemlidir. Eğer doğum saatinizi
+                    bilmiyorsanız, yaklaşık bir saat girebilirsiniz. Ancak en doğru sonuçlar için nüfus müdürlüğünden
+                    doğum belgenizi talep etmenizi öneririz. Güneş burcu gibi bazı analizler saat bilgisi olmadan da
+                    doğru sonuçlar verir.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 4 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 4 ? null : 4"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Transit analizi ne demek?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 4}">expand_more</span>
+            </button>
+            <div x-show="open === 4" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Transit analizi, gökyüzündeki mevcut gezegen pozisyonlarının doğum haritanızdaki pozisyonlarla
+                    ilişkisini inceler. Örneğin, transit Jüpiter Güneş burcunuzun üzerinden geçiyorsa, bu dönemde
+                    şans ve fırsatların artabileceğine işaret eder. ORBIS bu geçişleri günlük olarak hesaplar ve
+                    yapay zeka ile yorumlar.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 5 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 5 ? null : 5"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Uyumluluk analizi nasıl yapılır?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 5}">expand_more</span>
+            </button>
+            <div x-show="open === 5" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Uyumluluk analizi (sinastri), iki kişinin doğum haritalarını karşılaştırır. İki haritadaki
+                    gezegen pozisyonları arasındaki açılar incelenerek romantik, arkadaşlık veya iş ilişkisindeki
+                    uyum değerlendirilir. ORBIS, bu karşılaştırmayı yapay zeka ile analiz ederek detaylı bir
+                    uyum raporu sunar.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 6 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 6 ? null : 6"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">ORBIS ücretsiz mi?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 6}">expand_more</span>
+            </button>
+            <div x-show="open === 6" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Evet, ORBIS'in temel özellikleri ücretsizdir. Doğum haritanızı görüntüleyebilir, günlük
+                    transit analizlerinizi takip edebilir ve temel uyumluluk raporlarını alabilirsiniz.
+                    Bazı gelişmiş özellikler için reklam izleyerek ek haklar kazanabilirsiniz.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 7 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 7 ? null : 7"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Verilerim güvende mi?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 7}">expand_more</span>
+            </button>
+            <div x-show="open === 7" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Evet. ORBIS, kullanıcı verilerinin güvenliğine büyük önem verir. Google OAuth 2.0 ile
+                    güvenli kimlik doğrulama sağlanır, tüm veri iletişimleri SSL/TLS şifreleme ile korunur.
+                    Kişisel doğum bilgileriniz yalnızca astrolojik hesaplamalar için kullanılır ve üçüncü
+                    taraflarla paylaşılmaz. İstediğiniz zaman hesabınızı ve tüm verilerinizi silebilirsiniz.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 8 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 8 ? null : 8"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Yapay zeka yorumları ne kadar doğru?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 8}">expand_more</span>
+            </button>
+            <div x-show="open === 8" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    ORBIS'in yapay zeka yorumları, geleneksel astrolojik kurallar ve modern AI modelleri kullanılarak
+                    oluşturulur. Gezegen pozisyonları Swiss Ephemeris ile astronomik hassasiyette hesaplanır.
+                    Ancak astrolojik yorumlar kişisel gelişim ve farkındalık aracı olarak değerlendirilmelidir;
+                    kesin yaşam kararları için tek başına referans alınmamalıdır.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 9 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 9 ? null : 9"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Hangi platformlarda kullanabilirim?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 9}">expand_more</span>
+            </button>
+            <div x-show="open === 9" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    ORBIS'i web tarayıcınızdan (bilgisayar, tablet veya telefon) erişerek kullanabilirsiniz.
+                    Ayrıca Android cihazlar için Google Play Store'da yerel uygulamamız mevcuttur.
+                    iOS kullanıcıları mobil tarayıcılarından web uygulamamıza erişebilir.
+                </p>
+            </div>
+        </div>
+
+        <!-- SSS 10 -->
+        <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden">
+            <button @click="open = open === 10 ? null : 10"
+                class="w-full flex items-center justify-between p-5 text-left">
+                <span class="text-white font-bold text-sm">Hesabımı nasıl silebilirim?</span>
+                <span class="material-icons-round text-primary transition-transform"
+                    :class="{'rotate-180': open === 10}">expand_more</span>
+            </button>
+            <div x-show="open === 10" x-collapse class="px-5 pb-5">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Hesap silme işlemi için uygulama içinden "Profil" bölümüne gidin ve "Hesabımı Sil" seçeneğini
+                    kullanın. Bu işlem geri alınamaz ve tüm kişisel verileriniz kalıcı olarak silinir.
+                    Ayrıca destek@orbisastro.online adresine e-posta göndererek de hesap silme talebinde
+                    bulunabilirsiniz.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+        <a href="/" class="hover:text-primary transition-colors">Ana Sayfa</a>
+        <span>•</span>
+        <a href="/hakkimizda" class="hover:text-primary transition-colors">Hakkımızda</a>
+        <span>•</span>
+        <a href="/iletisim" class="hover:text-primary transition-colors">İletişim</a>
+        <span>•</span>
+        <a href="/blog" class="hover:text-primary transition-colors">Blog</a>
+    </div>
+
+    <div class="mt-8 max-w-2xl mx-auto">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+            data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>( adsbygoogle = window.adsbygoogle || [] ).push( {} );</script>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{# ─── PeriodSelector — URL sync ?range=7d ──────────────
+   Usage:
+     {% import 'admin/components/period_selector.html' as period %}
+     {{ period.selector(current='7d', base_url=request.path) }}
+#}
+{% macro selector(current='7d', base_url='#') %}
+<div class="period" role="tablist" aria-label="Zaman aralığı">
+  {% for key, label in [('1d', 'Bugün'), ('7d', '7g'), ('30d', '30g'), ('90d', '90g')] %}
+  <a class="period-option {% if current == key %}is-active{% endif %}"
+     role="tab"
+     aria-selected="{{ 'true' if current == key else 'false' }}"
+     href="{{ base_url }}?range={{ key }}">{{ label }}</a>
+  {% endfor %}
+</div>
+{% endmacro %}

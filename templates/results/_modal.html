@@ -1,0 +1,181 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     AI INTERPRETATION MODAL
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div
+  id="ai-modal"
+  class="fixed inset-0 z-[100] hidden flex flex-col justify-end"
+>
+  <div
+    class="absolute inset-0 bg-background-dark/80 backdrop-blur-md"
+    onclick="closeAIModal()"
+  ></div>
+  <div
+    id="ai-modal-container"
+    class="relative bg-surface-dark rounded-t-[3rem] border-t border-white/10 p-8 shadow-2xl max-h-[85vh] overflow-y-auto transform transition-transform duration-500 translate-y-0 no-scrollbar"
+  >
+    <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-8"></div>
+
+    <header class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"
+        >
+          <span class="material-icons-round text-primary text-xl"
+            >auto_stories</span
+          >
+        </div>
+        <h4
+          id="ai-modal-title"
+          class="font-display font-bold text-lg text-white"
+        >
+          Analiz Raporu
+        </h4>
+      </div>
+      <button
+        onclick="closeAIModal()"
+        class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500"
+      >
+        <span class="material-icons-round">close</span>
+      </button>
+    </header>
+
+    <div
+      id="ai-modal-body"
+      class="prose prose-invert prose-sm max-w-none text-slate-300 font-light leading-relaxed"
+    >
+      <!-- Content Injected -->
+    </div>
+
+    <footer
+      class="sticky bottom-0 mt-12 bg-surface-dark/95 backdrop-blur-xl p-4 -mx-4 mb-[-2rem] rounded-b-[3rem] flex items-center gap-3 border-t border-white/5 z-20"
+    >
+      <button
+        id="modal-read-aloud"
+        onclick="handleTTSClick()"
+        class="flex-1 py-4 bg-primary rounded-2xl text-xs font-bold uppercase tracking-widest text-white flex items-center justify-center gap-2 shadow-lg shadow-primary/30 active:scale-95 transition-all"
+      >
+        <span class="material-icons-round text-lg" id="listen-icon"
+          >volume_up</span
+        >
+        <span id="listen-text">Dinle</span>
+      </button>
+
+      <!-- Speed Controls -->
+      <div
+        class="flex items-center bg-white/5 rounded-2xl p-1 border border-white/10"
+      >
+        <button
+          onclick="TTS.changeSpeed(-0.1)"
+          class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+          title="Yavaşlat"
+        >
+          <span class="material-icons-round text-sm">remove</span>
+        </button>
+        <span
+          id="speed-display"
+          class="text-[10px] font-mono text-slate-300 w-10 text-center"
+          >1.5x</span
+        >
+        <button
+          onclick="TTS.changeSpeed(0.1)"
+          class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+          title="Hızlandır"
+        >
+          <span class="material-icons-round text-sm">add</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     INFO MODAL - Burç ve Dönem Bilgileri
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div
+  id="info-modal"
+  class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4"
+>
+  <div
+    class="absolute inset-0 bg-background-dark/90 backdrop-blur-xl"
+    onclick="closeInfoModal()"
+  ></div>
+  <div
+    id="info-modal-container"
+    class="relative w-full max-w-md bg-gradient-to-br from-surface-dark to-slate-900 rounded-3xl border border-white/10 shadow-2xl transform transition-all duration-300 scale-95 opacity-0"
+  >
+    <!-- Glow Effect -->
+    <div
+      id="info-modal-glow"
+      class="absolute -inset-1 rounded-3xl blur-xl opacity-50"
+    ></div>
+
+    <div class="relative p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div
+            id="info-modal-icon"
+            class="w-12 h-12 rounded-2xl flex items-center justify-center"
+          >
+            <span
+              class="material-icons-round text-2xl"
+              id="info-modal-icon-inner"
+              >stars</span
+            >
+          </div>
+          <div>
+            <h3
+              id="info-modal-title"
+              class="font-display font-bold text-lg text-white"
+            >
+              Başlık
+            </h3>
+            <p
+              id="info-modal-subtitle"
+              class="text-[10px] uppercase tracking-widest text-slate-400"
+            >
+              Alt başlık
+            </p>
+          </div>
+        </div>
+        <button
+          onclick="closeInfoModal()"
+          class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all"
+        >
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+
+      <!-- Value Display -->
+      <div
+        id="info-modal-value-container"
+        class="mb-6 p-4 rounded-2xl bg-white/5 border border-white/10 text-center"
+      >
+        <p id="info-modal-value" class="text-2xl font-bold text-white">Değer</p>
+        <p id="info-modal-value-sub" class="text-xs text-slate-400 mt-1">
+          Alt değer
+        </p>
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-4">
+        <p
+          id="info-modal-description"
+          class="text-sm text-slate-300 leading-relaxed"
+        >
+          Açıklama metni buraya gelecek.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-6 pt-4 border-t border-white/5">
+        <button
+          onclick="closeInfoModal()"
+          class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium text-slate-300 transition-all active:scale-95"
+        >
+          Anladım
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,84 @@
+/**
+ * ORBIS Admin — Motion CSS
+ * Page transitions · Stagger reveal · Number tween · Reduced motion override
+ * Spec: ../DESIGN.md
+ */
+
+/* Page enter (crossfade + slight rise) */
+@keyframes page-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.admin-content {
+  animation: page-rise var(--duration-slow) var(--ease-out-quint);
+}
+
+/* Stagger reveal — first child, second, third… */
+.stagger > * {
+  animation: stagger-rise var(--duration-slow) var(--ease-out-quint) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 80ms; }
+.stagger > *:nth-child(3) { animation-delay: 160ms; }
+.stagger > *:nth-child(4) { animation-delay: 240ms; }
+.stagger > *:nth-child(5) { animation-delay: 320ms; }
+.stagger > *:nth-child(6) { animation-delay: 400ms; }
+.stagger > *:nth-child(7) { animation-delay: 480ms; }
+.stagger > *:nth-child(8) { animation-delay: 560ms; }
+
+@keyframes stagger-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Number tween target — JS sets CSS var --target, observer reads */
+.count-up {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* Pulse for real-time indicators */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(1.4); }
+}
+.pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse-dot 1.6s var(--ease-out-quint) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot { animation: none; }
+}
+
+/* Skeleton (loading) */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface-3) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeleton-shimmer 1.4s var(--ease-out-quint) infinite;
+  color: transparent;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* Reduced motion: crossfade only */
+@media (prefers-reduced-motion: reduce) {
+  .stagger > *,
+  .admin-content {
+    animation: none;
+  }
+}

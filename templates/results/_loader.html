@@ -1,0 +1,201 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ORBIS COSMIC LOADER OVERLAY
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="cosmic-loader-overlay">
+  <!-- Yıldız Parçacıkları -->
+  <div class="cosmic-particles">
+    <div
+      class="cosmic-particle"
+      style="top: 10%; left: 20%; animation-delay: 0s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 20%; left: 80%; animation-delay: 0.5s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 40%; left: 10%; animation-delay: 1s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 60%; left: 90%; animation-delay: 1.5s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 80%; left: 30%; animation-delay: 2s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 15%; left: 60%; animation-delay: 0.3s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 70%; left: 70%; animation-delay: 0.8s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 50%; left: 5%; animation-delay: 1.2s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 30%; left: 95%; animation-delay: 1.8s"
+    ></div>
+    <div
+      class="cosmic-particle"
+      style="top: 90%; left: 50%; animation-delay: 2.2s"
+    ></div>
+  </div>
+
+  <!-- Astrolojik Çark -->
+  <div class="cosmic-wheel">
+    <div class="cosmic-wheel-ring"></div>
+    <div class="cosmic-wheel-ring"></div>
+    <div class="cosmic-wheel-ring"></div>
+
+    <!-- Burç Sembolleri -->
+    <div class="zodiac-symbols">
+      <span class="zodiac-symbol">♈</span>
+      <span class="zodiac-symbol">♊</span>
+      <span class="zodiac-symbol">♌</span>
+      <span class="zodiac-symbol">♎</span>
+      <span class="zodiac-symbol">♐</span>
+      <span class="zodiac-symbol">♒</span>
+      <span class="zodiac-symbol">♉</span>
+      <span class="zodiac-symbol">♋</span>
+    </div>
+
+    <!-- Orbis Avatar Merkez -->
+    <div class="cosmic-center">
+      <img
+        src="{{ url_for('static', filename='ai-avatar-R.png') }}"
+        alt="ORBIS"
+      />
+    </div>
+  </div>
+
+  <!-- Kullanıcı Karşılama -->
+  <div class="cosmic-greeting">
+    <h2>{{ user_name }}, Kozmik Haritanız Hazırlanıyor</h2>
+    <p>Yıldızlar sizin için hizalanıyor, lütfen sabırla bekleyin...</p>
+  </div>
+
+  <!-- Analiz Listesi -->
+  <div class="cosmic-analysis-list">
+    <div class="cosmic-analysis-item" data-step="1">
+      <div class="analysis-icon">
+        <span class="material-icons-round text-lg">auto_awesome</span>
+      </div>
+      <div class="analysis-text">
+        <span>Kozmik Özet</span>
+        <small>Kişisel enerji analizi</small>
+      </div>
+      <div class="analysis-status">
+        <div class="analysis-spinner"></div>
+        <span class="material-icons-round analysis-check">check_circle</span>
+      </div>
+    </div>
+
+    <div class="cosmic-analysis-item" data-step="2">
+      <div class="analysis-icon">
+        <span class="material-icons-round text-lg">psychology</span>
+      </div>
+      <div class="analysis-text">
+        <span>Karakter Analizi</span>
+        <small>Doğum haritası yorumu</small>
+      </div>
+      <div class="analysis-status">
+        <div class="analysis-spinner"></div>
+        <span class="material-icons-round analysis-check">check_circle</span>
+      </div>
+    </div>
+
+    <div class="cosmic-analysis-item" data-step="3">
+      <div class="analysis-icon">
+        <span class="material-icons-round text-lg">favorite</span>
+      </div>
+      <div class="analysis-text">
+        <span>İlişki Potansiyeli</span>
+        <small>Aşk ve uyum analizi</small>
+      </div>
+      <div class="analysis-status">
+        <div class="analysis-spinner"></div>
+        <span class="material-icons-round analysis-check">check_circle</span>
+      </div>
+    </div>
+
+    <div class="cosmic-analysis-item" data-step="4">
+      <div class="analysis-icon">
+        <span class="material-icons-round text-lg">work</span>
+      </div>
+      <div class="analysis-text">
+        <span>Kariyer Yönelimi</span>
+        <small>Meslek ve başarı analizi</small>
+      </div>
+      <div class="analysis-status">
+        <div class="analysis-spinner"></div>
+        <span class="material-icons-round analysis-check">check_circle</span>
+      </div>
+    </div>
+
+    <div class="cosmic-analysis-item" data-step="5">
+      <div class="analysis-icon">
+        <span class="material-icons-round text-lg">calendar_month</span>
+      </div>
+      <div class="analysis-text">
+        <span>Dönemsel Öngörüler</span>
+        <small>Günlük, haftalık, yıllık</small>
+      </div>
+      <div class="analysis-status">
+        <div class="analysis-spinner"></div>
+        <span class="material-icons-round analysis-check">check_circle</span>
+      </div>
+    </div>
+  </div>
+<!-- Kozmik Baskınlık Bilgi Kartı -->
+<div class="cosmic-dominance-info" id="cosmic-dominance-info">
+  <div
+    style="max-width: 320px; margin: 1.5rem auto 0; padding: 1rem 1.25rem; background: linear-gradient(135deg, rgba(91,43,238,0.15), rgba(168,85,247,0.08)); border: 1px solid rgba(91,43,238,0.25); border-radius: 1.25rem; backdrop-filter: blur(8px);">
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="material-icons-round" style="color: #a855f7; font-size: 18px;">local_fire_department</span>
+      <span
+        style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #c4b5fd;">Kozmik
+        Baskınlık Nedir?</span>
+      </div>
+      <div id="dominance-tip-container">
+        <p id="dominance-tip-text"
+          style="font-size: 11px; color: #cbd5e1; line-height: 1.6; margin: 0; transition: opacity 0.5s ease;">
+          Doğum haritanızdaki gezegenlerin burçlara dağılımı, hangi elementin (Ateş, Toprak, Hava, Su) ve hangi niteliğin
+          (Kardinal, Sabit, Değişken) sizde baskın olduğunu belirler.
+        </p>
+      </div>
+      </div>
+      </div>
+      </div>
+      
+      <script>
+        // Kozmik Baskınlık bilgi kartı - döngüsel ipuçları
+        ( function () {
+          const tips = [
+            'Doğum haritanızdaki gezegenlerin burçlara dağılımı, hangi elementin (Ateş, Toprak, Hava, Su) ve hangi niteliğin (Kardinal, Sabit, Değişken) sizde baskın olduğunu belirler.',
+            '🔥 <strong>Ateş Baskınlığı:</strong> Cesaret, enerji ve liderlik. Koç, Aslan ve Yay burçlarının enerjisi sizde yoğun.',
+            '🌍 <strong>Toprak Baskınlığı:</strong> Pratiklik, güvenilirlik ve kararlılık. Boğa, Başak ve Oğlak enerjisi sizde güçlü.',
+            '💨 <strong>Hava Baskınlığı:</strong> İletişim, entelektüellik ve sosyallik. İkizler, Terazi ve Kova enerjisi ile parlıyorsunuz.',
+            '💧 <strong>Su Baskınlığı:</strong> Sezgi, empati ve duygusal derinlik. Yengeç, Akrep ve Balık enerjisi sizi yönlendiriyor.',
+            '⚡ <strong>Kardinal Nitelik:</strong> Başlatıcı, lider ve girişimci. Yeni projelere atılmayı seversiniz.',
+            '🪨 <strong>Sabit Nitelik:</strong> Kararlı, sabırlı ve dayanıklı. Başladığınız işi sonuna kadar götürürsünüz.',
+            '🌊 <strong>Değişken Nitelik:</strong> Esnek, uyumlu ve çok yönlü. Değişime kolayca adapte olursunuz.'
+          ];
+          let tipIndex = 0;
+          const tipEl = document.getElementById( 'dominance-tip-text' );
+          if ( !tipEl ) return;
+
+          setInterval( () => {
+            tipIndex = ( tipIndex + 1 ) % tips.length;
+            tipEl.style.opacity = '0';
+            setTimeout( () => {
+              tipEl.innerHTML = tips[tipIndex];
+              tipEl.style.opacity = '1';
+            }, 400 );
+          }, 4000 );
+        } )();
+      </script>

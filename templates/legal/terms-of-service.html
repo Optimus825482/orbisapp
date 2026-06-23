@@ -1,0 +1,331 @@
+{% extends "layout.html" %} {% block title %}Kullanım Şartları - ORBIS{%
+endblock %} {% block content %}
+<div class="min-h-screen py-12 px-4">
+  <div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div
+        class="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full mb-4"
+      >
+        <span class="material-icons-round text-accent text-sm"
+          >description</span
+        >
+        <span
+          class="text-[10px] uppercase tracking-widest text-accent font-bold"
+          >Yasal</span
+        >
+      </div>
+      <h1 class="text-3xl font-display font-bold text-white mb-2">
+        Kullanım Şartları
+      </h1>
+      <p class="text-slate-400 text-sm">Son güncelleme: 10 Ocak 2026</p>
+    </div>
+
+    <!-- Content -->
+    <div
+      class="bg-surface-dark/40 backdrop-blur-xl rounded-3xl p-8 border border-white/5 space-y-8"
+    >
+      <!-- Kabul -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-primary">handshake</span>
+          1. Şartların Kabulü
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          ORBIS uygulamasını ("Uygulama") kullanarak, bu Kullanım Şartları'nı
+          ("Şartlar") okuduğunuzu, anladığınızı ve kabul ettiğinizi beyan etmiş
+          olursunuz. Bu şartları kabul etmiyorsanız, lütfen Uygulamayı
+          kullanmayınız.
+        </p>
+      </section>
+
+      <!-- Hizmet Tanımı -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-accent">auto_awesome</span>
+          2. Hizmet Tanımı
+        </h2>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          ORBIS, yapay zeka destekli bir astroloji platformudur. Sunduğumuz
+          hizmetler:
+        </p>
+        <ul class="text-slate-300 space-y-2">
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >star</span
+            >
+            <span
+              >Doğum haritası (natal chart) hesaplama ve görselleştirme</span
+            >
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >star</span
+            >
+            <span>Transit gezegen analizleri</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >star</span
+            >
+            <span>AI destekli kişiselleştirilmiş yorumlar</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >star</span
+            >
+            <span>Vedik astroloji hesaplamaları</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >star</span
+            >
+            <span>Sesli yorum okuma özelliği</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Sorumluluk Reddi -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-amber-400">warning</span>
+          3. Önemli Sorumluluk Reddi
+        </h2>
+        <div
+          class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4"
+        >
+          <p class="text-amber-200 text-sm leading-relaxed">
+            <strong>ORBIS yalnızca eğlence amaçlıdır.</strong> Sunulan
+            astrolojik yorumlar ve analizler bilimsel gerçeklik iddiası
+            taşımamaktadır. Sağlık, finans, hukuk veya diğer önemli yaşam
+            kararlarınızı ORBIS yorumlarına dayandırmamanızı şiddetle tavsiye
+            ederiz.
+          </p>
+        </div>
+        <ul class="text-slate-300 space-y-2 text-sm">
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Tıbbi tavsiye yerine geçmez</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Finansal danışmanlık sağlamaz</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Psikolojik terapi yerine kullanılamaz</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Geleceği kesin olarak tahmin etmez</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Kullanıcı Yükümlülükleri -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-emerald-400">person</span>
+          4. Kullanıcı Yükümlülükleri
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Uygulamayı kullanırken aşağıdaki kurallara uymayı kabul edersiniz:
+        </p>
+        <div class="space-y-3">
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">Yaş Sınırı</h4>
+            <p class="text-slate-400 text-xs">
+              13 yaşından büyük olmalısınız. 18 yaşından küçükseniz ebeveyn/vasi
+              onayı gereklidir.
+            </p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">Doğru Bilgi</h4>
+            <p class="text-slate-400 text-xs">
+              Doğum bilgilerinizi doğru girmelisiniz. Yanlış bilgi, hatalı
+              sonuçlara yol açar.
+            </p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">
+              Kötüye Kullanım Yasağı
+            </h4>
+            <p class="text-slate-400 text-xs">
+              Uygulamayı yasadışı amaçlarla, spam veya kötü amaçlı yazılım
+              dağıtmak için kullanamazsınız.
+            </p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-4">
+            <h4 class="font-bold text-white text-sm mb-2">Fikri Mülkiyet</h4>
+            <p class="text-slate-400 text-xs">
+              İçerikleri izinsiz kopyalayamaz, dağıtamaz veya ticari amaçla
+              kullanamazsınız.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reklamlar -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-blue-400">ads_click</span>
+          5. Reklamlar
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          ORBIS ücretsiz sürümü, Google AdMob aracılığıyla reklam içermektedir.
+          Reklamlar üçüncü taraf içeriklerdir ve ORBIS, reklam içeriklerinden
+          sorumlu değildir. Reklamsız deneyim için premium sürüme
+          geçebilirsiniz.
+        </p>
+      </section>
+
+      <!-- Fikri Mülkiyet -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-purple-400">copyright</span>
+          6. Fikri Mülkiyet Hakları
+        </h2>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          ORBIS uygulaması, logosu, tasarımı, içerikleri ve yazılımı telif hakkı
+          ile korunmaktadır.
+        </p>
+        <ul class="text-slate-300 space-y-2 text-sm">
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-purple-400 text-sm mt-0.5"
+              >check</span
+            >
+            <span>Kişisel kullanım için yorumlarınızı kaydedebilirsiniz</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-purple-400 text-sm mt-0.5"
+              >check</span
+            >
+            <span>Sosyal medyada paylaşabilirsiniz (kaynak belirterek)</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Ticari amaçla kullanamazsınız</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-red-400 text-sm mt-0.5"
+              >close</span
+            >
+            <span>Tersine mühendislik yapamazsınız</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Hizmet Değişiklikleri -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-cyan-400">sync</span>
+          7. Hizmet Değişiklikleri
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          ORBIS, herhangi bir zamanda ve önceden bildirimde bulunmaksızın
+          hizmetlerini değiştirme, askıya alma veya sonlandırma hakkını saklı
+          tutar. Önemli değişiklikler için makul bir süre öncesinden bildirim
+          yapmaya çalışacağız.
+        </p>
+      </section>
+
+      <!-- Sorumluluk Sınırlaması -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-red-400">gavel</span>
+          8. Sorumluluk Sınırlaması
+        </h2>
+        <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <p class="text-red-200 text-sm leading-relaxed">
+            ORBIS, uygulamanın kullanımından kaynaklanan doğrudan, dolaylı,
+            arızi, özel veya sonuç olarak ortaya çıkan zararlardan sorumlu
+            tutulamaz. Uygulama "OLDUĞU GİBİ" sunulmaktadır ve herhangi bir
+            garanti verilmemektedir.
+          </p>
+        </div>
+      </section>
+
+      <!-- Uygulanacak Hukuk -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-orange-400">balance</span>
+          9. Uygulanacak Hukuk
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          Bu Şartlar, Türkiye Cumhuriyeti kanunlarına tabidir. Herhangi bir
+          uyuşmazlık durumunda İstanbul Mahkemeleri ve İcra Daireleri
+          yetkilidir.
+        </p>
+      </section>
+
+      <!-- Değişiklikler -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-violet-400">edit</span>
+          10. Şartlarda Değişiklik
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          Bu Kullanım Şartları'nı zaman zaman güncelleyebiliriz. Değişiklikler
+          yayınlandığı anda yürürlüğe girer. Uygulamayı kullanmaya devam
+          etmeniz, güncellenmiş şartları kabul ettiğiniz anlamına gelir.
+        </p>
+      </section>
+
+      <!-- İletişim -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-teal-400"
+            >contact_support</span
+          >
+          11. İletişim
+        </h2>
+        <div
+          class="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 border border-primary/30"
+        >
+          <p class="text-white font-bold">ORBIS Destek</p>
+          <p class="text-slate-300 text-sm mt-2">
+            E-posta:
+            <a
+              href="mailto:support@orbis.app"
+              class="text-primary hover:underline"
+              >support@orbis.app</a
+            ><br />
+            Web:
+            <a href="https://orbis.app" class="text-primary hover:underline"
+              >https://orbis.app</a
+            >
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8 space-x-4">
+      <a
+        href="{{ url_for('legal.privacy_policy') }}"
+        class="text-slate-400 hover:text-white transition-colors text-sm"
+      >
+        Gizlilik Politikası
+      </a>
+      <span class="text-slate-600">•</span>
+      <a
+        href="{{ url_for('main.index') }}"
+        class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
+      >
+        <span class="material-icons-round text-sm">arrow_back</span>
+        Ana Sayfa
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

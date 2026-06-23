@@ -1,0 +1,14 @@
+
+
+
+</form>    <label for="analysis_type">Analiz Türünü Seçin:</label>
+<select name="analysis_type" id="analysis_type">
+    <option value="general_character">GENEL KARAKTER ANALİZİ VE YAŞAM YOLU YORUMU</option>
+    <option value="natal_chart">DOĞUM HARİTASI ANALİZİ</option>
+    <option value="daily_transit">GÜNLÜK TRANSİT ANALİZİ</option>
+    <option value="short_term_prediction">KISA VADELİ ÖNGÖRÜ YORUMU</option>
+    <option value="long_term_prediction">UZUN VADELİ ÖNGÖRÜ YORUMU</option>
+</select>
+<br><br>
+<button type="submit">Hesapla ve Yorumla</button>
+</form>    <form action="{{ url_for('submit') }}" method="POST">

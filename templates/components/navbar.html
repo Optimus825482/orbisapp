@@ -1,0 +1,72 @@
+<nav class="cyber-navbar">
+  <div class="container">
+    <div class="navbar-content">
+      <a href="{{ url_for('main.index') }}" class="navbar-brand">
+        <span class="brand-icon">🌌</span>
+        <span class="brand-text">Astro AI</span>
+      </a>
+
+      <div class="navbar-actions">
+        <button id="themeToggle" class="theme-toggle">
+          <span class="theme-icon">🌓</span>
+        </button>
+
+        <button class="mobile-toggle" id="mobileMenuBtn">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+      <div class="navbar-menu" id="navbarMenu">
+        <div class="menu-items">
+          <a
+            href="{{ url_for('main.index') }}"
+            class="menu-item {% if request.endpoint == 'main.index' %}active{% endif %}"
+          >
+            <span class="icon">🏠</span>
+            <span>Ana Sayfa</span>
+          </a>
+          <a
+            href="{{ url_for('main.dashboard') }}"
+            class="menu-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+          >
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+          <a
+            href="{{ url_for('main.show_results') }}"
+            class="menu-item {% if request.endpoint == 'main.show_results' %}active{% endif %}"
+          >
+            <span class="icon">🔮</span>
+            <span>Sonuçlar</span>
+          </a>
+          <a
+            href="{{ url_for('main.settings') }}"
+            class="menu-item {% if request.endpoint == 'main.settings' %}active{% endif %}"
+          >
+            <span class="icon">⚙️</span>
+            <span>Ayarlar</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  document
+    .getElementById("mobileMenuBtn")
+    .addEventListener("click", function () {
+      document.getElementById("navbarMenu").classList.toggle("active");
+      this.classList.toggle("active");
+    });
+
+  // Sayfa dışına tıklandığında menüyü kapat
+  document.addEventListener("click", function (e) {
+    const menu = document.getElementById("navbarMenu");
+    const btn = document.getElementById("mobileMenuBtn");
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove("active");
+      btn.classList.remove("active");
+    }
+  });
+</script>

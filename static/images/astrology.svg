@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800px" height="600px" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Astroloji Arkaplan</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#8B5CF6" offset="0%"></stop>
+            <stop stop-color="#4338CA" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect fill="url(#linearGradient-1)" x="0" y="0" width="800" height="600"></rect>
+        
+        <!-- Yıldızlar -->
+        <circle fill="#FFFFFF" opacity="0.7" cx="100" cy="100" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.5" cx="200" cy="150" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="300" cy="90" r="1.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.6" cx="450" cy="200" r="2.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.7" cx="550" cy="120" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.4" cx="650" cy="220" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="750" cy="180" r="1.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.7" cx="120" cy="250" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.5" cx="220" cy="300" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="320" cy="270" r="1.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.6" cx="470" cy="350" r="2.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.7" cx="570" cy="320" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.4" cx="670" cy="380" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="770" cy="340" r="1.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.7" cx="150" cy="420" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.5" cx="250" cy="470" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="350" cy="440" r="1.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.6" cx="500" cy="500" r="2.5"></circle>
+        <circle fill="#FFFFFF" opacity="0.7" cx="600" cy="470" r="2"></circle>
+        <circle fill="#FFFFFF" opacity="0.4" cx="700" cy="530" r="3"></circle>
+        <circle fill="#FFFFFF" opacity="0.8" cx="790" cy="490" r="1.5"></circle>
+
+        <!-- Zodyak Sembolü - Basit Daire -->
+        <circle stroke="#FFFFFF" stroke-width="3" opacity="0.3" cx="400" cy="300" r="180"></circle>
+        <circle stroke="#FFFFFF" stroke-width="2" opacity="0.2" cx="400" cy="300" r="200"></circle>
+        <circle stroke="#FFFFFF" stroke-width="1.5" opacity="0.1" cx="400" cy="300" r="220"></circle>
+    </g>
+</svg>

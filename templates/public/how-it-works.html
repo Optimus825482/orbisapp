@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block title %}Nasıl Çalışır - ORBIS Astroloji{% endblock %}
+{% block meta_description %}ORBIS astroloji uygulaması nasıl çalışır? Yapay zeka destekli doğum haritası hesaplama,
+transit analizi ve burç uyumluluğu özelliklerini keşfedin.{% endblock %}
+{% block canonical_path %}/nasil-calisir{% endblock %}
+{% block content %}
+<div class="min-h-screen flex flex-col px-4 py-12 max-w-3xl mx-auto">
+
+    <div class="text-center mb-10">
+        <h1 class="font-display text-3xl font-bold text-white mb-3">Nasıl Çalışır?</h1>
+        <p class="text-primary text-sm uppercase tracking-widest font-bold">3 Adımda Astrolojik Analiz</p>
+    </div>
+
+    <!-- Adım 1 -->
+    <div class="relative mb-8">
+        <div class="flex items-start gap-4">
+            <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                <span class="text-primary font-bold text-xl">1</span>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 flex-1">
+                <h2 class="text-white font-bold text-lg mb-3">Doğum Bilgilerinizi Girin</h2>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    ORBIS'e Google hesabınızla giriş yapın ve doğum tarihinizi, saatinizi ve doğum yerinizi girin.
+                    Bu bilgiler, doğum haritanızın temelini oluşturur. Swiss Ephemeris kütüphanesi ile yüksek
+                    hassasiyetli astronomik hesaplamalar gerçekleştirilir.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adım 2 -->
+    <div class="relative mb-8">
+        <div class="flex items-start gap-4">
+            <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+                <span class="text-accent font-bold text-xl">2</span>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 flex-1">
+                <h2 class="text-white font-bold text-lg mb-3">Yapay Zeka Analiz Eder</h2>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Doğum haritanızdaki gezegen pozisyonları, ev yerleşimleri ve açılar hesaplandıktan sonra
+                    yapay zeka modelleri bu verileri derinlemesine analiz eder. Geleneksel astrolojik yorumlama
+                    kuralları ile modern yapay zeka teknolojisi birleştirilir.
+                </p>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span class="material-icons-round text-primary text-sm">auto_awesome</span>
+                        Gezegen Pozisyonları
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span class="material-icons-round text-primary text-sm">auto_awesome</span>
+                        Ev Yerleşimleri
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span class="material-icons-round text-primary text-sm">auto_awesome</span>
+                        Gezegen Açıları
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span class="material-icons-round text-primary text-sm">auto_awesome</span>
+                        Transit Etkileri
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adım 3 -->
+    <div class="relative mb-8">
+        <div class="flex items-start gap-4">
+            <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                <span class="text-emerald-400 font-bold text-xl">3</span>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 flex-1">
+                <h2 class="text-white font-bold text-lg mb-3">Kişisel Yorumlarınızı Alın</h2>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Size özel hazırlanan detaylı astrolojik yorumları okuyun, günlük transit etkilerini takip edin
+                    ve başka kişilerle burç uyumluluğunuzu keşfedin. ORBIS sürekli güncellenen verilerle
+                    her gün yeni içgörüler sunar.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Özellikler -->
+    <div class="mt-4 mb-10">
+        <h2 class="text-white font-bold text-xl mb-6 text-center">Temel Özellikler</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5">
+                <span class="material-icons-round text-primary text-2xl mb-2">public</span>
+                <h3 class="text-white font-bold text-sm mb-2">Doğum Haritası</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Swiss Ephemeris ile hassas gezegen pozisyonları, ev
+                    sistemi hesaplamaları ve detaylı harita analizi.</p>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5">
+                <span class="material-icons-round text-accent text-2xl mb-2">timeline</span>
+                <h3 class="text-white font-bold text-sm mb-2">Transit Analizi</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Günlük gezegen geçişlerinin doğum haritanıza
+                    etkilerinin yapay zeka destekli yorumları.</p>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5">
+                <span class="material-icons-round text-pink-400 text-2xl mb-2">favorite</span>
+                <h3 class="text-white font-bold text-sm mb-2">Uyumluluk Analizi</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">İki kişi arasındaki astrolojik uyumluluğu sinastri
+                    tekniği ile analiz edin.</p>
+            </div>
+            <div class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5">
+                <span class="material-icons-round text-emerald-400 text-2xl mb-2">smart_toy</span>
+                <h3 class="text-white font-bold text-sm mb-2">AI Yorumları</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Gelişmiş yapay zeka modelleri ile kişiye özel, anlamlı
+                    ve derinlemesine astrolojik yorumlar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 border border-white/5 mb-8">
+        <h2 class="text-white font-bold text-xl mb-3">Hemen Başlayın</h2>
+        <p class="text-slate-300 text-sm mb-5">Doğum haritanızı keşfetmek için ücretsiz hesap oluşturun.</p>
+        <a href="/"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 rounded-xl text-white text-sm font-bold transition-all">
+            <span class="material-icons-round">rocket_launch</span>
+            ORBIS'e Giriş Yap
+        </a>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+        <a href="/" class="hover:text-primary transition-colors">Ana Sayfa</a>
+        <span>•</span>
+        <a href="/hakkimizda" class="hover:text-primary transition-colors">Hakkımızda</a>
+        <span>•</span>
+        <a href="/iletisim" class="hover:text-primary transition-colors">İletişim</a>
+        <span>•</span>
+        <a href="/blog" class="hover:text-primary transition-colors">Blog</a>
+    </div>
+
+    <div class="mt-8 max-w-2xl mx-auto">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+            data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>( adsbygoogle = window.adsbygoogle || [] ).push( {} );</script>
+    </div>
+</div>
+{% endblock %}

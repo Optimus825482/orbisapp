@@ -1,0 +1,99 @@
+# =============================================================================
+# FRONTEND ASSET OPTIMIZATION - .htaccess CONFIGURATION
+# =============================================================================
+# Bu dosya, statik asset'lerin optimizasyonu ve lazy loading için Apache/Nginx yapılandırması içerir.
+# Production sunucunda kullanılır.
+
+# Enable Gzip Compression
+<IfModule mod_deflate.c>
+    # Compress HTML, CSS, JavaScript, Text, XML and fonts
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+    AddOutputFilterByType DEFLATE application/x-font
+    AddOutputFilterByType DEFLATE application/x-font-opentype
+    AddOutputFilterByType DEFLATE application/x-font-otf
+    AddOutputFilterByType DEFLATE application/x-font-truetype
+    AddOutputFilterByType DEFLATE application/x-font-ttf
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE font/opentype
+    AddOutputFilterByType DEFLATE font/otf
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE image/x-icon
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+
+    # Remove browser bugs (only needed for really old browsers)
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    Header append Vary User-Agent
+</IfModule>
+
+# Enable Browser Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Default expiration: 1 hour
+    ExpiresDefault "access plus 1 hour"
+    
+    # CSS and JavaScript expiration: 1 year
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+    
+    # Image files expiration: 1 month
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    
+    # Font files expiration: 1 year
+    ExpiresByType font/opentype "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType application/x-font-ttf "access plus 1 year"
+    ExpiresByType application/x-font-opentype "access plus 1 year"
+    
+    # HTML files: Do not cache
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Enable HTTP/2 Server Push (if available)
+<IfModule mod_http2.c>
+    Protocols h2 h2c http/1.1
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    # X-Content-Type-Options
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # X-Frame-Options
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # X-XSS-Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer-Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content-Security-Policy (Basic)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.opencagedata.com;"
+</IfModule>
+
+# Prevent Directory Browsing
+Options -Indexes
+
+# Custom Error Pages
+ErrorDocument 404 /static/error_pages/404.html
+ErrorDocument 500 /static/error_pages/500.html
+ErrorDocument 503 /static/error_pages/503.html

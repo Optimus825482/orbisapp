@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block title %}Blog - ORBIS Astroloji{% endblock %}
+{% block meta_description %}Astroloji, doğum haritası, gezegen transitler ve burç uyumluluğu hakkında uzman yazıları.
+Yapay zeka destekli astroloji bilgileri.{% endblock %}
+{% block canonical_path %}/blog{% endblock %}
+{% block content %}
+<div class="min-h-screen flex flex-col px-4 py-12 max-w-3xl mx-auto">
+
+    <div class="text-center mb-10">
+        <h1 class="font-display text-3xl font-bold text-white mb-3">Blog</h1>
+        <p class="text-primary text-sm uppercase tracking-widest font-bold">Astroloji Yazıları</p>
+    </div>
+
+    <div class="space-y-6">
+
+        <a href="/blog/dogum-haritasi-nedir" class="block group">
+            <article
+                class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2 text-xs text-primary mb-3">
+                    <span class="material-icons-round text-sm">calendar_today</span>
+                    <time datetime="2025-01-15">15 Ocak 2025</time>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">8 dk okuma</span>
+                </div>
+                <h2 class="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">Doğum Haritası
+                    Nedir? Kapsamlı Rehber</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Doğum haritası, astrolojinin temel taşıdır. Doğduğunuz
+                    anda gökyüzündeki gezegen konumlarını gösteren bu harita, kişiliğiniz ve yaşam yolculuğunuz hakkında
+                    derin bilgiler sunar...</p>
+            </article>
+        </a>
+
+        <a href="/blog/transit-gezegen-etkileri" class="block group">
+            <article
+                class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2 text-xs text-primary mb-3">
+                    <span class="material-icons-round text-sm">calendar_today</span>
+                    <time datetime="2025-01-20">20 Ocak 2025</time>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">10 dk okuma</span>
+                </div>
+                <h2 class="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">Transit
+                    Gezegenlerin Hayatınıza Etkileri</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Transit gezegenler, gökyüzündeki anlık hareketleriyle
+                    doğum haritanızdaki pozisyonları tetikler. Jüpiter genişleme, Satürn ise sınırlar getirir...</p>
+            </article>
+        </a>
+
+        <a href="/blog/astrolojide-evler-sistemi" class="block group">
+            <article
+                class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2 text-xs text-primary mb-3">
+                    <span class="material-icons-round text-sm">calendar_today</span>
+                    <time datetime="2025-02-01">1 Şubat 2025</time>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">12 dk okuma</span>
+                </div>
+                <h2 class="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">Astrolojide 12
+                    Ev Sistemi: Yaşam Alanlarınız</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Astrolojik evler, yaşamınızın farklı alanlarını temsil
+                    eder. 1. ev benliğinizi, 7. ev ilişkilerinizi, 10. ev kariyerinizi yönetir...</p>
+            </article>
+        </a>
+
+        <a href="/blog/yapay-zeka-ve-astroloji" class="block group">
+            <article
+                class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2 text-xs text-primary mb-3">
+                    <span class="material-icons-round text-sm">calendar_today</span>
+                    <time datetime="2025-02-10">10 Şubat 2025</time>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">7 dk okuma</span>
+                </div>
+                <h2 class="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">Yapay Zeka ve
+                    Astroloji: Modern Yorumlama</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Yapay zeka, binlerce yıllık astrolojik bilgi
+                    birikimini modern teknoloji ile birleştirerek daha derinlemesine ve kişiselleştirilmiş yorumlar
+                    sunabiliyor...</p>
+            </article>
+        </a>
+
+        <a href="/blog/burc-uyumlulugu" class="block group">
+            <article
+                class="bg-surface-dark/40 backdrop-blur-xl rounded-2xl p-6 border border-white/5 hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2 text-xs text-primary mb-3">
+                    <span class="material-icons-round text-sm">calendar_today</span>
+                    <time datetime="2025-02-20">20 Şubat 2025</time>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">9 dk okuma</span>
+                </div>
+                <h2 class="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">Burç Uyumluluğu
+                    Rehberi: Sinastri Nedir?</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">Burç uyumluluğu sadece güneş burcundan ibaret
+                    değildir. Sinastri tekniği ile iki doğum haritasının tüm gezegen açıları incelenerek gerçek uyum
+                    ortaya çıkar...</p>
+            </article>
+        </a>
+
+    </div>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-4 text-xs text-slate-500">
+        <a href="/" class="hover:text-primary transition-colors">Ana Sayfa</a>
+        <span>•</span>
+        <a href="/hakkimizda" class="hover:text-primary transition-colors">Hakkımızda</a>
+        <span>•</span>
+        <a href="/iletisim" class="hover:text-primary transition-colors">İletişim</a>
+        <span>•</span>
+        <a href="/sss" class="hover:text-primary transition-colors">SSS</a>
+    </div>
+
+    <div class="mt-8 max-w-2xl mx-auto">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2444093901783574" data-ad-slot="auto"
+            data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>( adsbygoogle = window.adsbygoogle || [] ).push( {} );</script>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+# Auto normalize line endings (LF) for text files
+* text=auto eol=lf
+
+# Force LF for shell scripts (Windows CRLF breaks bash)
+*.sh text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp4 binary
+*.webm binary
+*.aab binary
+*.aar binary
+*.jar binary
+
+# Exclude from linguist stats
+orbis-landing/* linguist-vendored
+node_modules/* linguist-vendored

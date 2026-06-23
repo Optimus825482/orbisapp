@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="tr" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#151022" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ORBIS" />
+  <meta name="application-name" content="ORBIS" />
+  <meta name="msapplication-TileColor" content="#151022" />
+  <meta name="msapplication-TileImage" content="/static/all-icons/Android/Icon-144.png" />
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- iOS PWA: Apple Touch Icons (all sizes) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='all-icons/iOS/Icon-180.png') }}" />
+  <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='all-icons/iOS/Icon-152.png') }}" />
+  <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='all-icons/iOS/Icon-144.png') }}" />
+  <link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='all-icons/iOS/Icon-120.png') }}" />
+  <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='all-icons/iOS/Icon-114.png') }}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='all-icons/Android/Icon-192.png') }}" />
+  <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='all-icons/Android/Icon-512.png') }}" />
+  
+  <!-- iOS Safari: mask icon for pinned tabs -->
+  <link rel="mask-icon" href="{{ url_for('static', filename='all-icons/iOS/Icon-1024.png') }}" color="#5b2bee" />
+  
+  <!-- Windows: Tile icon -->
+  <meta name="msapplication-square150x150logo" content="/static/all-icons/Android/Icon-144.png" />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLJEZCGT27"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push( arguments );
+    }
+    gtag( "js", new Date() );
+    gtag( "config", "G-PLJEZCGT27" );
+  </script>
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2444093901783574"
+    crossorigin="anonymous"></script>
+
+  <title>{% block title %}ORBIS - Kaderin Geometrisi{% endblock %}</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="{% block meta_description %}ORBIS - Yapay zeka destekli astroloji platformu. Doğum haritası analizi, transit gezegen yorumları, burç uyumluluğu ve kişiselleştirilmiş kozmik rehberlik.{% endblock %}" />
+  <meta name="keywords"
+    content="astroloji, doğum haritası, burç yorumu, transit gezegenler, yapay zeka astroloji, natal harita, burç uyumluluğu, vedik astroloji" />
+  <meta name="author" content="ORBIS Astrology" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://app.orbisastro.online{% block canonical_path %}/{% endblock %}" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{% block og_title %}ORBIS - Kaderin Geometrisi{% endblock %}" />
+  <meta property="og:description"
+    content="Yapay zeka destekli astroloji platformu. Doğum haritanızı analiz edin, kozmik rehberlik alın." />
+  <meta property="og:url" content="https://app.orbisastro.online/" />
+  <meta property="og:site_name" content="ORBIS Astrology" />
+  <meta property="og:locale" content="tr_TR" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600&family=Cinzel:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round|Material+Icons+Outlined" rel="stylesheet" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#5b2bee",
+            accent: "#38bdf8",
+            "background-light": "#f6f6f8",
+            "background-dark": "#151022",
+            "surface-light": "#ffffff",
+            "surface-dark": "#1e293b",
+            "border-light": "#cbd5e1",
+            "border-dark": "#334155",
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Spline Sans", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["Space Grotesk", "monospace"],
+            serif: ["Cinzel", "serif"],
+          },
+          borderRadius: {
+            DEFAULT: "1rem",
+            lg: "2rem",
+            xl: "3rem",
+            full: "9999px",
+          },
+          animation: {
+            "spin-slow": "spin 40s linear infinite",
+            "spin-reverse-slow": "spin 35s linear infinite reverse",
+            "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            breathe: "breathe 6s ease-in-out infinite",
+            dash: "dash 20s linear infinite",
+            wave: "wave 1.2s ease-in-out infinite",
+          },
+          keyframes: {
+            breathe: {
+              "0%, 100%": { transform: "scale(1)", opacity: "0.8" },
+              "50%": { transform: "scale(1.05)", opacity: "0.4" },
+            },
+            dash: {
+              "0%": { strokeDashoffset: "1000" },
+              "100%": { strokeDashoffset: "0" },
+            },
+            wave: {
+              "0%, 100%": { height: "4px", opacity: "0.5" },
+              "50%": { height: "16px", opacity: "1" },
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      min-height: 100dvh;
+    }
+
+    .hairline-border {
+      border-width: 0.5px;
+    }
+
+    .bg-grid-pattern {
+      background-size: 40px 40px;
+      background-image:
+        linear-gradient(to right,
+          rgba(148, 163, 184, 0.1) 1px,
+          transparent 1px),
+        linear-gradient(to bottom,
+          rgba(148, 163, 184, 0.1) 1px,
+          transparent 1px);
+    }
+
+    .thin-lines {
+      background-image:
+        linear-gradient(to right,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px),
+        linear-gradient(to bottom,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    .geometric-overlay {
+      background-image:
+        radial-gradient(circle at center,
+          transparent 0%,
+          transparent 60%,
+          rgba(56, 189, 248, 0.03) 100%),
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        60px 60px,
+        60px 60px;
+    }
+
+    .mask-image-gradient {
+      -webkit-mask-image: linear-gradient(to bottom,
+          transparent 0%,
+          black 5%,
+          black 95%,
+          transparent 100%);
+      mask-image: linear-gradient(to bottom,
+          transparent 0%,
+          black 5%,
+          black 95%,
+          transparent 100%);
+    }
+
+    /* Transition fix for standalone mode */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    input,
+    textarea,
+    [contenteditable] {
+      user-select: text;
+    }
+  </style>
+
+  <!-- Core Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+  <!-- Firebase SDK (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
+  {% block head %}{% endblock %}
+
+  <!-- Google Analytics 4 (KVKK consent gated) -->
+  <script>
+    window.ORBIS_GA4_ID = "{{ config.get('GA4_MEASUREMENT_ID', '') }}";
+  </script>
+  <script src="{{ url_for('static', filename='js/analytics.js') }}?v=20260623-1" defer></script>
+</head>
+
+<body class="bg-background-dark text-slate-100 overflow-x-hidden selection:bg-primary/30">
+  <!-- Background Elements -->
+  <div class="fixed inset-0 pointer-events-none z-0 thin-lines">
+    <div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white opacity-[0.05]"></div>
+    <div class="absolute top-1/2 left-0 right-0 h-[1px] bg-white opacity-[0.05]"></div>
+  </div>
+
+  <!-- Background Elements (Video removed as per request) -->
+
+  <!-- PWA Installation Prompt -->
+  <div id="install-prompt"
+    class="fixed top-4 left-4 right-4 bg-gradient-to-r from-primary to-violet-600 text-white p-4 rounded-2xl shadow-2xl z-[100] transform -translate-y-[200%] transition-transform duration-500 ease-out"
+    style="display: none">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 flex-1">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <span class="material-icons-round text-xl">install_mobile</span>
+        </div>
+        <div class="flex-1">
+          <span class="text-sm font-bold block">ORBIS'i Yükle</span>
+          <span class="text-[10px] opacity-80">Ana ekrana ekle, daha hızlı eriş</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="install-btn"
+          class="bg-white text-primary px-4 py-2 rounded-xl text-xs font-bold uppercase hover:bg-white/90 transition-colors">
+          Yükle
+        </button>
+        <button id="install-dismiss"
+          class="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+          <span class="material-icons-round text-lg">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS Install Guide (Safari) -->
+  <div id="ios-install-guide"
+    class="fixed bottom-24 left-4 right-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white p-4 rounded-2xl shadow-2xl z-[100] transform translate-y-[200%] transition-transform duration-500 ease-out"
+    style="display: none">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+        <span class="material-icons-round text-xl">ios_share</span>
+      </div>
+      <div class="flex-1">
+        <span class="text-sm font-bold block mb-1">ORBIS'i Ana Ekrana Ekle</span>
+        <p class="text-[10px] opacity-80 leading-relaxed">
+          Safari menüsünden
+          <span class="inline-flex items-center"><span class="material-icons-round text-xs mx-1">ios_share</span></span>
+          simgesine, ardından <strong>"Ana Ekrana Ekle"</strong> seçeneğine
+          dokun.
+        </p>
+      </div>
+      <button id="ios-dismiss"
+        class="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white transition-colors flex-shrink-0">
+        <span class="material-icons-round text-lg">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Outer Box -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <!-- Mobile Top Header with Hamburger -->
+    <header
+      class="flex md:hidden items-center justify-between px-4 py-3 sticky top-0 bg-background-dark/95 backdrop-blur-xl z-40 border-b border-white/5">
+      <a href="{{ url_for('main.index') }}" class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-primary text-2xl">all_inclusive</span>
+        <span class="font-display font-medium text-lg tracking-[0.15em] text-white">ORBIS</span>
+      </a>
+      <button id="hamburger-btn" onclick="toggleMobileMenu()"
+        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/30 flex items-center justify-center text-white hover:from-primary/30 hover:to-accent/20 hover:border-primary/50 active:scale-90 transition-all shadow-lg shadow-primary/10">
+        <span class="material-icons-round text-2xl" id="hamburger-icon">menu</span>
+      </button>
+    </header>
+    
+    <!-- Mobile Slide-Out Menu -->
+    <div id="mobile-menu-overlay"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden transition-opacity duration-300"
+      onclick="closeMobileMenu()"></div>
+    <div id="mobile-menu-drawer"
+      class="fixed top-0 right-0 h-full w-72 bg-slate-900 border-l border-white/10 z-[201] transform translate-x-full transition-transform duration-300 ease-out overflow-y-auto">
+      <!-- Drawer Header -->
+      <div class="flex items-center justify-between p-5 border-b border-white/5">
+        <span class="text-sm font-bold uppercase tracking-widest text-white">Menü</span>
+        <button onclick="closeMobileMenu()"
+          class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+          <span class="material-icons-round text-lg">close</span>
+        </button>
+      </div>
+    
+      <!-- Navigation Links -->
+      <nav class="p-4 space-y-1">
+        <!-- Ana Sayfalar -->
+        <div class="mb-4">
+          <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-3 mb-2">Ana Sayfa</p>
+          <a href="{{ url_for('main.index') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">home</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Ana Sayfa</span>
+          </a>
+          <a href="{{ url_for('main.dashboard') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">explore</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Haritam</span>
+          </a>
+          <a href="{{ url_for('main.show_results') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">auto_awesome</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Analizler</span>
+          </a>
+        </div>
+    
+        <!-- Keşfet -->
+        <div class="mb-4">
+          <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-3 mb-2">Keşfet</p>
+          <a href="{{ url_for('main.how_it_works') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">help_outline</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Nasıl Çalışır?</span>
+          </a>
+          <a href="{{ url_for('main.blog_index') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">article</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Blog</span>
+          </a>
+          <a href="{{ url_for('main.faq') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">quiz</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">SSS</span>
+          </a>
+        </div>
+    
+        <!-- Şirket -->
+        <div class="mb-4">
+          <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-3 mb-2">Şirket</p>
+          <a href="{{ url_for('main.about') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">info</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Hakkımızda</span>
+          </a>
+          <a href="{{ url_for('main.contact') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">mail</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">İletişim</span>
+          </a>
+          <a href="{{ url_for('legal.privacy_policy') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">privacy_tip</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Gizlilik Politikası</span>
+          </a>
+          <a href="{{ url_for('legal.terms_of_service') }}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors group">
+            <span class="material-icons-round text-lg text-slate-400 group-hover:text-primary">gavel</span>
+            <span class="text-sm text-slate-300 group-hover:text-white">Kullanım Koşulları</span>
+          </a>
+        </div>
+      </nav>
+    
+      <!-- Drawer Footer -->
+      <div class="p-4 border-t border-white/5 mt-auto">
+        <p class="text-[10px] text-slate-600 text-center">© 2025 ORBIS Astroloji</p>
+      </div>
+    </div>
+
+    <!-- Navbar (Desktop Only) -->
+    <header
+      class="hidden md:flex items-center justify-between px-8 py-6 sticky top-0 bg-background-dark/80 backdrop-blur-md z-40 border-b border-white/5">
+      <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group">
+        <span
+          class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">all_inclusive</span>
+        <span class="font-display font-medium text-2xl tracking-[0.2em] text-white">ORBIS</span>
+      </a>
+      <nav class="flex items-center gap-8">
+        <a href="{{ url_for('main.index') }}"
+          class="text-xs uppercase tracking-widest font-semibold hover:text-primary transition-colors">Ana Sayfa</a>
+        <a href="{{ url_for('main.dashboard') }}"
+          class="text-xs uppercase tracking-widest font-semibold hover:text-primary transition-colors">Dashboard</a>
+        <a href="{{ url_for('main.about') }}"
+          class="text-xs uppercase tracking-widest font-semibold hover:text-primary transition-colors">Hakkımızda</a>
+        <a href="{{ url_for('main.blog_index') }}"
+          class="text-xs uppercase tracking-widest font-semibold hover:text-primary transition-colors">Blog</a>
+
+        <!-- Auth UI -->
+        <div class="flex items-center gap-3">
+          <!-- Login Button -->
+          <button id="login-btn" onclick="OrbisFirebase.signInWithGoogle()"
+            class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs uppercase tracking-widest font-semibold transition-all">
+            <span class="material-icons-round text-lg">login</span>
+            Giriş Yap
+          </button>
+
+          <!-- User Info (Hidden by default) -->
+          <div id="user-info" class="hidden items-center gap-3">
+            <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border-2 border-primary" />
+            <span id="user-name" class="text-xs font-medium max-w-[100px] truncate"></span>
+            <button onclick="OrbisFirebase.signOut()" class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              title="Çıkış Yap">
+              <span class="material-icons-round text-lg text-slate-400">logout</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Block Content -->
+    <main class="flex-grow flex flex-col">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900/80 border-t border-white/5 py-12 px-6 md:px-12 mt-auto">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+    
+          <!-- Brand -->
+          <div class="col-span-2 md:col-span-1">
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 mb-4 group">
+              <span
+                class="material-symbols-outlined text-primary text-2xl group-hover:scale-110 transition-transform">all_inclusive</span>
+              <span class="font-display font-medium text-xl tracking-[0.2em] text-white">ORBIS</span>
+            </a>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Yapay zeka destekli astroloji platformu. Kozmik rehberliğiniz burada.
+            </p>
+          </div>
+    
+          <!-- Keşfet -->
+          <div>
+            <h4 class="text-xs uppercase tracking-widest font-bold text-white mb-4">Keşfet</h4>
+            <ul class="space-y-2.5">
+              <li><a href="{{ url_for('main.how_it_works') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Nasıl Çalışır</a></li>
+              <li><a href="{{ url_for('main.blog_index') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Blog</a></li>
+              <li><a href="{{ url_for('main.faq') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Sıkça Sorulan Sorular</a></li>
+            </ul>
+          </div>
+    
+          <!-- Şirket -->
+          <div>
+            <h4 class="text-xs uppercase tracking-widest font-bold text-white mb-4">Şirket</h4>
+            <ul class="space-y-2.5">
+              <li><a href="{{ url_for('main.about') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Hakkımızda</a></li>
+              <li><a href="{{ url_for('main.contact') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">İletişim</a></li>
+              <li><a href="{{ url_for('legal.privacy_policy') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Gizlilik Politikası</a></li>
+              <li><a href="{{ url_for('legal.terms_of_service') }}"
+                  class="text-xs text-slate-400 hover:text-primary transition-colors">Kullanım Koşulları</a></li>
+            </ul>
+          </div>
+    
+          <!-- İndir -->
+          <div>
+            <h4 class="text-xs uppercase tracking-widest font-bold text-white mb-4">İndir</h4>
+            <ul class="space-y-2.5">
+              <li>
+                <a href="https://play.google.com/store/apps/details?id=com.orbisastro.orbis" target="_blank" rel="noopener"
+                  class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-primary transition-colors">
+                  <span class="material-icons-round text-sm">android</span> Google Play
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('main.index') }}"
+                  class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-primary transition-colors">
+                  <span class="material-icons-round text-sm">language</span> Web Uygulaması
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+    
+        <!-- Divider & Copyright -->
+        <div class="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p class="text-[10px] text-slate-500">© 2026 ORBIS Astrology. Tüm hakları saklıdır.</p>
+          <div class="flex items-center gap-4">
+            <a href="{{ url_for('legal.privacy_policy') }}"
+              class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">Gizlilik</a>
+            <span class="text-slate-700">·</span>
+            <a href="{{ url_for('legal.terms_of_service') }}"
+              class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">Koşullar</a>
+            <span class="text-slate-700">·</span>
+            <a href="{{ url_for('main.contact') }}"
+              class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">İletişim</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- /Footer -->
+    
+    <!-- Mobilde footer'ın bottom nav altında kalmaması için boşluk -->
+    <div class="h-24 md:hidden"></div>
+
+    <!-- PWA Bottom Navigation (Mobile Only) -->
+    <nav
+      class="fixed bottom-0 left-0 w-full bg-background-dark/95 backdrop-blur-xl border-t border-white/5 pb-safe z-50 md:hidden">
+      <div class="flex justify-around items-center h-20 px-4">
+        <a href="{{ url_for('main.dashboard') }}"
+          class="flex flex-col items-center justify-center w-20 transition-all active:scale-95 {% if request.endpoint == 'main.dashboard' %}text-primary{% else %}text-slate-500{% endif %}">
+          <span class="material-icons-round text-2xl">explore</span>
+          <span class="text-[9px] uppercase tracking-tighter font-bold mt-1">Haritam</span>
+          {% if request.endpoint == 'main.dashboard' %}
+          <div class="w-1 h-1 bg-primary rounded-full mt-1"></div>
+          {% endif %}
+        </a>
+
+        <a href="{{ url_for('main.index') }}"
+          class="flex flex-col items-center justify-center w-20 transition-all active:scale-95 {% if request.endpoint == 'main.index' %}text-primary{% else %}text-slate-500{% endif %}">
+          <span class="material-icons-round text-3xl">home</span>
+          <span class="text-[9px] uppercase tracking-tighter font-bold mt-1">Ana Sayfa</span>
+          {% if request.endpoint == 'main.index' %}
+          <div class="w-1 h-1 bg-primary rounded-full mt-1"></div>
+          {% endif %}
+        </a>
+
+        <a href="{{ url_for('main.show_results') }}"
+          class="flex flex-col items-center justify-center w-20 transition-all active:scale-95 {% if request.endpoint == 'main.show_results' %}text-primary{% else %}text-slate-500{% endif %}">
+          <span class="material-icons-round text-2xl">auto_awesome</span>
+          <span class="text-[9px] uppercase tracking-tighter font-bold mt-1">Analizler</span>
+          {% if request.endpoint == 'main.show_results' %}
+          <div class="w-1 h-1 bg-primary rounded-full mt-1"></div>
+          {% endif %}
+        </a>
+
+        <!-- Mobile Profile/Login Button -->
+        <button id="mobile-profile-btn" onclick="toggleMobileAuth()"
+          class="flex flex-col items-center justify-center w-20 transition-all active:scale-95 text-slate-500">
+          <span id="mobile-profile-icon" class="material-icons-round text-2xl">person</span>
+          <img id="mobile-avatar" src="" alt="" class="w-6 h-6 rounded-full border border-primary hidden" />
+          <span class="text-[9px] uppercase tracking-tighter font-bold mt-1">Profil</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Auth Modal -->
+    <div id="mobile-auth-modal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
+      <div class="bg-slate-900 rounded-2xl p-6 w-full max-w-sm border border-white/10">
+        <!-- Not Logged In -->
+        <div id="auth-login-view">
+          <div class="text-center mb-6">
+            <span class="material-icons-round text-5xl text-primary mb-3">account_circle</span>
+            <h3 class="text-lg font-bold">ORBIS'e Giriş Yap</h3>
+            <p class="text-xs text-slate-400 mt-2">
+              Premium ve kredileriniz tüm cihazlarınızda senkronize olsun
+            </p>
+          </div>
+
+          <button onclick="
+                OrbisFirebase.signInWithGoogle();
+                closeMobileAuth();
+              "
+            class="w-full flex items-center justify-center gap-3 bg-white text-slate-900 py-3 px-4 rounded-xl font-semibold hover:bg-slate-100 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Google ile Giriş Yap
+          </button>
+        </div>
+
+        <!-- Logged In -->
+        <div id="auth-profile-view" class="hidden">
+          <div class="text-center mb-6">
+            <img id="modal-user-avatar" src="" alt="Avatar"
+              class="w-16 h-16 rounded-full border-2 border-primary mx-auto mb-3" />
+            <h3 id="modal-user-name" class="text-lg font-bold"></h3>
+            <p id="modal-user-email" class="text-xs text-slate-400"></p>
+          </div>
+
+          <!-- Status -->
+          <div class="bg-slate-800 rounded-xl p-4 mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs text-slate-400">Durum</span>
+              <span id="modal-premium-badge" class="text-xs font-bold text-primary">Ücretsiz</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">Kredi</span>
+              <span id="modal-credits" class="text-xs font-bold">0</span>
+            </div>
+          </div>
+
+          <button onclick="
+                OrbisFirebase.signOut();
+                closeMobileAuth();
+              "
+            class="w-full flex items-center justify-center gap-2 bg-red-500/20 text-red-400 py-3 px-4 rounded-xl font-semibold hover:bg-red-500/30 transition-colors">
+            <span class="material-icons-round text-lg">logout</span>
+            Çıkış Yap
+          </button>
+        </div>
+
+        <!-- Close Button -->
+        <button onclick="closeMobileAuth()"
+          class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white transition-colors">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core JavaScript -->
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=20260202-3"></script>
+
+  <!-- AdMob Config — tek kaynak (mobile + web paylaşımlı) -->
+  <script src="{{ url_for('static', filename='js/admob-config.js') }}?v=20260623-1"></script>
+
+  <!-- Mobile Bridge (Capacitor + AdMob) -->
+  <script src="{{ url_for('static', filename='js/mobile-bridge.js') }}?v=20260623-2"></script>
+
+  <!-- Firebase Config -->
+  <script src="{{ url_for('static', filename='js/firebase-config.js') }}?v=20260202-3"></script>
+  <!-- Firebase Init -->
+  <script>
+    document.addEventListener( "DOMContentLoaded", async () => {
+      // Firebase'i başlat
+      if ( window.OrbisFirebase ) {
+        await OrbisFirebase.init();
+        console.log( "[ORBIS] Firebase initialized" );
+      }
+    } );
+
+    // Mobile Auth Modal Functions
+    function toggleMobileAuth() {
+      const modal = document.getElementById( "mobile-auth-modal" );
+      modal.classList.remove( "hidden" );
+      modal.classList.add( "flex" );
+      updateMobileAuthView();
+    }
+
+    function closeMobileAuth() {
+      const modal = document.getElementById( "mobile-auth-modal" );
+      modal.classList.add( "hidden" );
+      modal.classList.remove( "flex" );
+    }
+
+    function updateMobileAuthView() {
+      const loginView = document.getElementById( "auth-login-view" );
+      const profileView = document.getElementById( "auth-profile-view" );
+
+      if ( window.OrbisFirebase && OrbisFirebase.isLoggedIn() ) {
+        const user = OrbisFirebase.getCurrentUser();
+        const userData = OrbisFirebase.getUserData();
+
+        loginView.classList.add( "hidden" );
+        profileView.classList.remove( "hidden" );
+
+        // Update profile info
+        document.getElementById( "modal-user-avatar" ).src =
+          user.photoURL || "";
+        document.getElementById( "modal-user-name" ).textContent =
+          user.displayName || "Kullanıcı";
+        document.getElementById( "modal-user-email" ).textContent =
+          user.email || "";
+
+        // Update status
+        const isPremium = userData?.isPremium || false;
+        const credits = userData?.credits || 0;
+        document.getElementById( "modal-premium-badge" ).textContent = isPremium
+          ? "💎 Premium"
+          : "Ücretsiz";
+        document.getElementById( "modal-premium-badge" ).className = isPremium
+          ? "text-xs font-bold text-yellow-400"
+          : "text-xs font-bold text-slate-400";
+        document.getElementById( "modal-credits" ).textContent = credits;
+
+        // Update mobile nav icon
+        document
+          .getElementById( "mobile-profile-icon" )
+          .classList.add( "hidden" );
+        document.getElementById( "mobile-avatar" ).src = user.photoURL || "";
+        document.getElementById( "mobile-avatar" ).classList.remove( "hidden" );
+      } else {
+        loginView.classList.remove( "hidden" );
+        profileView.classList.add( "hidden" );
+
+        // Reset mobile nav icon
+        document
+          .getElementById( "mobile-profile-icon" )
+          .classList.remove( "hidden" );
+        document.getElementById( "mobile-avatar" ).classList.add( "hidden" );
+      }
+    }
+
+    // Close modal on backdrop click
+    document.addEventListener( "click", ( e ) => {
+      const modal = document.getElementById( "mobile-auth-modal" );
+      if ( e.target === modal ) {
+        closeMobileAuth();
+      }
+    } );
+
+  // Mobile Hamburger Menu Functions
+  function toggleMobileMenu() {
+    const overlay = document.getElementById( 'mobile-menu-overlay' );
+    const drawer = document.getElementById( 'mobile-menu-drawer' );
+    const icon = document.getElementById( 'hamburger-icon' );
+
+    if ( drawer.classList.contains( 'translate-x-full' ) ) {
+      // Open
+      overlay.classList.remove( 'hidden' );
+      requestAnimationFrame( () => { overlay.style.opacity = '1'; } );
+      drawer.classList.remove( 'translate-x-full' );
+      icon.textContent = 'close';
+      document.body.style.overflow = 'hidden';
+    } else {
+      closeMobileMenu();
+    }
+  }
+
+  function closeMobileMenu() {
+    const overlay = document.getElementById( 'mobile-menu-overlay' );
+    const drawer = document.getElementById( 'mobile-menu-drawer' );
+    const icon = document.getElementById( 'hamburger-icon' );
+
+    overlay.style.opacity = '0';
+    drawer.classList.add( 'translate-x-full' );
+    icon.textContent = 'menu';
+    document.body.style.overflow = '';
+    setTimeout( () => { overlay.classList.add( 'hidden' ); }, 300 );
+  }
+  </script>
+
+  <!-- PWA Service Worker Registration & Install Prompt -->
+  <script>
+    // Service Worker Registration
+    if ( "serviceWorker" in navigator ) {
+      window.addEventListener( "load", () => {
+        navigator.serviceWorker
+          .register( "/sw.js", { scope: "/" } )
+          .then( ( reg ) => {
+            console.log( "[PWA] Service Worker registered:", reg.scope );
+          } )
+          .catch( ( err ) => {
+            console.log( "[PWA] Service Worker registration failed:", err );
+          } );
+      } );
+    }
+
+    // PWA Install Prompt Logic
+    let deferredPrompt = null;
+    const installPrompt = document.getElementById( "install-prompt" );
+    const installBtn = document.getElementById( "install-btn" );
+    const installDismiss = document.getElementById( "install-dismiss" );
+    const iosGuide = document.getElementById( "ios-install-guide" );
+    const iosDismiss = document.getElementById( "ios-dismiss" );
+
+    // Check if already installed or dismissed
+    const isStandalone =
+      window.matchMedia( "(display-mode: standalone)" ).matches ||
+      window.navigator.standalone;
+    const isDismissed = localStorage.getItem( "pwa-install-dismissed" );
+    const dismissedTime = parseInt(
+      localStorage.getItem( "pwa-install-dismissed-time" ) || "0",
+    );
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+    // Show prompt if not dismissed within a week
+    const shouldShowPrompt =
+      !isDismissed || Date.now() - dismissedTime > oneWeek;
+
+    // Detect iOS Safari
+    const isIOS =
+      /iPad|iPhone|iPod/.test( navigator.userAgent ) && !window.MSStream;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(
+      navigator.userAgent,
+    );
+
+    // For Chrome/Edge/Android - beforeinstallprompt event
+    window.addEventListener( "beforeinstallprompt", ( e ) => {
+      console.log( "[PWA] beforeinstallprompt fired" );
+      e.preventDefault();
+      deferredPrompt = e;
+
+      if ( !isStandalone && shouldShowPrompt ) {
+        showInstallPrompt();
+      }
+    } );
+
+    function showInstallPrompt() {
+      if ( installPrompt ) {
+        installPrompt.style.display = "block";
+        setTimeout( () => {
+          installPrompt.style.transform = "translateY(0)";
+        }, 100 );
+      }
+    }
+
+    function hideInstallPrompt() {
+      if ( installPrompt ) {
+        installPrompt.style.transform = "translateY(-200%)";
+        setTimeout( () => {
+          installPrompt.style.display = "none";
+        }, 500 );
+      }
+    }
+
+    function showIOSGuide() {
+      if ( iosGuide ) {
+        iosGuide.style.display = "block";
+        setTimeout( () => {
+          iosGuide.style.transform = "translateY(0)";
+        }, 100 );
+      }
+    }
+
+    function hideIOSGuide() {
+      if ( iosGuide ) {
+        iosGuide.style.transform = "translateY(200%)";
+        setTimeout( () => {
+          iosGuide.style.display = "none";
+        }, 500 );
+      }
+    }
+
+    // Install button click
+    if ( installBtn ) {
+      installBtn.addEventListener( "click", async () => {
+        if ( deferredPrompt ) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log( "[PWA] User choice:", outcome );
+          if ( outcome === "accepted" ) {
+            hideInstallPrompt();
+          }
+          deferredPrompt = null;
+        }
+      } );
+    }
+
+    // Dismiss button click
+    if ( installDismiss ) {
+      installDismiss.addEventListener( "click", () => {
+        hideInstallPrompt();
+        localStorage.setItem( "pwa-install-dismissed", "true" );
+        localStorage.setItem(
+          "pwa-install-dismissed-time",
+          Date.now().toString(),
+        );
+      } );
+    }
+
+    // iOS dismiss
+    if ( iosDismiss ) {
+      iosDismiss.addEventListener( "click", () => {
+        hideIOSGuide();
+        localStorage.setItem( "pwa-install-dismissed", "true" );
+        localStorage.setItem(
+          "pwa-install-dismissed-time",
+          Date.now().toString(),
+        );
+      } );
+    }
+
+    // Show iOS guide for Safari users
+    if ( isIOS && isSafari && !isStandalone && shouldShowPrompt ) {
+      setTimeout( () => {
+        showIOSGuide();
+      }, 3000 );
+    }
+
+    // Listen for successful install
+    window.addEventListener( "appinstalled", () => {
+      console.log( "[PWA] App installed successfully" );
+      hideInstallPrompt();
+      deferredPrompt = null;
+    } );
+
+    // Smooth fade in animation for hero elements
+    $( document ).ready( function () {
+      $( ".animate-fade-in" ).css( "opacity", "0" ).animate(
+        {
+          opacity: 1,
+        },
+        1200,
+      );
+    } );
+  </script>
+
+  {% block scripts %}{% endblock %}
+
+  <!-- Premium Onboarding Modal -->
+  {% include 'components/premium_onboarding_modal.html' %}
+</body>
+
+</html>

@@ -1,0 +1,147 @@
+/* Monetization Styles */
+
+/* Usage Bar */
+.usage-container {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin: 10px 0;
+}
+
+.usage-bar-wrapper {
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+#usage-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+#usage-bar.premium {
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+}
+
+#usage-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+}
+
+/* Premium Popup */
+.premium-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.premium-popup {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 350px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.premium-popup-header {
+    margin-bottom: 20px;
+}
+
+.premium-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.premium-popup h3 {
+    color: #f5576c;
+    font-size: 24px;
+    margin: 0;
+}
+
+.premium-message {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 20px;
+}
+
+.premium-features {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.feature-item {
+    color: #4ade80;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.feature-item:last-child {
+    border-bottom: none;
+}
+
+.premium-pricing {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-premium-monthly,
+.btn-premium-yearly {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-premium-monthly {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.btn-premium-yearly {
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.btn-premium-yearly:hover,
+.btn-premium-monthly:hover {
+    transform: scale(1.02);
+}
+
+.badge {
+    background: #4ade80;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 14px;
+}

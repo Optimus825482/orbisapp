@@ -1,0 +1,346 @@
+{% extends "layout.html" %} {% block title %}Gizlilik Politikası - ORBIS{%
+endblock %} {% block content %}
+<div class="min-h-screen py-12 px-4">
+  <div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div
+        class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4"
+      >
+        <span class="material-icons-round text-primary text-sm">security</span>
+        <span
+          class="text-[10px] uppercase tracking-widest text-primary font-bold"
+          >Yasal</span
+        >
+      </div>
+      <h1 class="text-3xl font-display font-bold text-white mb-2">
+        Gizlilik Politikası
+      </h1>
+      <p class="text-slate-400 text-sm">Son güncelleme: 10 Ocak 2026</p>
+    </div>
+
+    <!-- Content -->
+    <div
+      class="bg-surface-dark/40 backdrop-blur-xl rounded-3xl p-8 border border-white/5 space-y-8"
+    >
+      <!-- Giriş -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-primary">info</span>
+          Giriş
+        </h2>
+        <p class="text-slate-300 leading-relaxed">
+          ORBIS ("biz", "bizim" veya "uygulama") olarak, kullanıcılarımızın
+          gizliliğine büyük önem veriyoruz. Bu Gizlilik Politikası, ORBIS mobil
+          uygulamasını ve web sitesini kullandığınızda kişisel verilerinizin
+          nasıl toplandığını, kullanıldığını ve korunduğunu açıklamaktadır.
+        </p>
+      </section>
+
+      <!-- Toplanan Veriler -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-accent">storage</span>
+          Toplanan Veriler
+        </h2>
+
+        <div class="space-y-4">
+          <div class="bg-white/5 rounded-xl p-4">
+            <h3 class="font-bold text-white mb-2">
+              1. Kullanıcı Tarafından Sağlanan Veriler
+            </h3>
+            <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
+              <li>Ad/Takma ad (isteğe bağlı)</li>
+              <li>Doğum tarihi ve saati</li>
+              <li>Doğum yeri (şehir/ülke)</li>
+              <li>Transit analizi için konum bilgisi</li>
+            </ul>
+          </div>
+
+          <div class="bg-white/5 rounded-xl p-4">
+            <h3 class="font-bold text-white mb-2">
+              2. Otomatik Toplanan Veriler
+            </h3>
+            <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
+              <li>Cihaz türü ve işletim sistemi</li>
+              <li>Uygulama kullanım istatistikleri</li>
+              <li>Çökme raporları (anonim)</li>
+              <li>IP adresi (anonim hale getirilmiş)</li>
+            </ul>
+          </div>
+
+          <div class="bg-white/5 rounded-xl p-4">
+            <h3 class="font-bold text-white mb-2">
+              3. Reklam Verileri (AdMob)
+            </h3>
+            <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
+              <li>Reklam tanımlayıcısı (GAID/IDFA)</li>
+              <li>Reklam etkileşim verileri</li>
+              <li>Genel konum (ülke/bölge düzeyinde)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Verilerin Kullanımı -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-emerald-400">analytics</span>
+          Verilerin Kullanım Amaçları
+        </h2>
+        <ul class="text-slate-300 space-y-2">
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >check_circle</span
+            >
+            <span>Astrolojik hesaplamalar ve doğum haritası oluşturma</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >check_circle</span
+            >
+            <span>Kişiselleştirilmiş AI yorumları sunma</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >check_circle</span
+            >
+            <span>Uygulama performansını iyileştirme</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >check_circle</span
+            >
+            <span>Reklam gösterimi (ücretsiz sürüm)</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-primary text-sm mt-1"
+              >check_circle</span
+            >
+            <span>Teknik sorunları tespit ve çözme</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Veri Paylaşımı -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-amber-400">share</span>
+          Veri Paylaşımı
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Kişisel verilerinizi üçüncü taraflarla
+          <strong class="text-white">satmıyoruz</strong>. Ancak aşağıdaki
+          durumlarda veri paylaşımı yapılabilir:
+        </p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3 bg-white/5 rounded-xl p-4">
+            <span class="material-icons-round text-blue-400">cloud</span>
+            <div>
+              <h4 class="font-bold text-white text-sm">Google AdMob</h4>
+              <p class="text-slate-400 text-xs">
+                Reklam gösterimi için.
+                <a
+                  href="https://policies.google.com/privacy"
+                  class="text-primary hover:underline"
+                  target="_blank"
+                  >Google Gizlilik Politikası</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 bg-white/5 rounded-xl p-4">
+            <span class="material-icons-round text-green-400">psychology</span>
+            <div>
+              <h4 class="font-bold text-white text-sm">OpenAI / Anthropic</h4>
+              <p class="text-slate-400 text-xs">
+                AI yorumları için (anonim veri). Doğum bilgileriniz kimliğinizle
+                ilişkilendirilmez.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 bg-white/5 rounded-xl p-4">
+            <span class="material-icons-round text-purple-400">gavel</span>
+            <div>
+              <h4 class="font-bold text-white text-sm">Yasal Zorunluluklar</h4>
+              <p class="text-slate-400 text-xs">
+                Mahkeme kararı veya yasal zorunluluk halinde yetkili makamlarla.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Veri Güvenliği -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-red-400">shield</span>
+          Veri Güvenliği
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Verilerinizi korumak için endüstri standardı güvenlik önlemleri
+          uyguluyoruz:
+        </p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <span class="material-icons-round text-primary text-2xl mb-1"
+              >https</span
+            >
+            <p class="text-xs text-slate-300">SSL/TLS Şifreleme</p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <span class="material-icons-round text-primary text-2xl mb-1"
+              >lock</span
+            >
+            <p class="text-xs text-slate-300">Şifreli Depolama</p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <span class="material-icons-round text-primary text-2xl mb-1"
+              >verified_user</span
+            >
+            <p class="text-xs text-slate-300">Erişim Kontrolü</p>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <span class="material-icons-round text-primary text-2xl mb-1"
+              >update</span
+            >
+            <p class="text-xs text-slate-300">Düzenli Güncelleme</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kullanıcı Hakları (KVKK) -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-cyan-400">person</span>
+          Kullanıcı Hakları (KVKK/GDPR)
+        </h2>
+        <p class="text-slate-300 mb-4">
+          6698 sayılı Kişisel Verilerin Korunması Kanunu ve GDPR kapsamında
+          aşağıdaki haklara sahipsiniz:
+        </p>
+        <ul class="text-slate-300 space-y-2">
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>Verilerinizin işlenip işlenmediğini öğrenme</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>İşlenen verileriniz hakkında bilgi talep etme</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>Verilerinizin düzeltilmesini isteme</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>Verilerinizin silinmesini talep etme</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>Veri taşınabilirliği hakkı</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-icons-round text-cyan-400 text-sm mt-1"
+              >arrow_right</span
+            >
+            <span>İşlemeye itiraz etme hakkı</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Çerezler -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-orange-400">cookie</span>
+          Çerezler ve Benzer Teknolojiler
+        </h2>
+        <p class="text-slate-300">
+          Web sitemizde oturum yönetimi ve analitik amaçlı çerezler
+          kullanılmaktadır. Mobil uygulamamızda ise cihaz depolama alanı
+          (localStorage) kullanılmaktadır. Tarayıcı ayarlarınızdan çerezleri
+          yönetebilirsiniz.
+        </p>
+      </section>
+
+      <!-- Çocukların Gizliliği -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-pink-400">child_care</span>
+          Çocukların Gizliliği
+        </h2>
+        <p class="text-slate-300">
+          ORBIS, 13 yaşın altındaki çocuklara yönelik değildir. Bilerek 13 yaşın
+          altındaki bireylerden kişisel veri toplamıyoruz. Eğer bir ebeveyn veya
+          vasi olarak çocuğunuzun veri paylaştığını fark ederseniz, lütfen
+          bizimle iletişime geçin.
+        </p>
+      </section>
+
+      <!-- Değişiklikler -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-violet-400">edit_note</span>
+          Politika Değişiklikleri
+        </h2>
+        <p class="text-slate-300">
+          Bu Gizlilik Politikası'nı zaman zaman güncelleyebiliriz. Önemli
+          değişiklikler olduğunda uygulama içi bildirim veya e-posta yoluyla
+          sizi bilgilendireceğiz. Güncel politikayı düzenli olarak kontrol
+          etmenizi öneririz.
+        </p>
+      </section>
+
+      <!-- İletişim -->
+      <section>
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-icons-round text-teal-400">mail</span>
+          İletişim
+        </h2>
+        <p class="text-slate-300 mb-4">
+          Gizlilik politikamız veya kişisel verileriniz hakkında sorularınız
+          için:
+        </p>
+        <div
+          class="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 border border-primary/30"
+        >
+          <p class="text-white font-bold">ORBIS - Veri Sorumlusu</p>
+          <p class="text-slate-300 text-sm mt-2">
+            E-posta:
+            <a
+              href="mailto:privacy@orbis.app"
+              class="text-primary hover:underline"
+              >privacy@orbis.app</a
+            ><br />
+            Web:
+            <a href="https://orbis.app" class="text-primary hover:underline"
+              >https://orbis.app</a
+            >
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8">
+      <a
+        href="{{ url_for('main.index') }}"
+        class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+      >
+        <span class="material-icons-round text-sm">arrow_back</span>
+        <span class="text-sm">Ana Sayfaya Dön</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
