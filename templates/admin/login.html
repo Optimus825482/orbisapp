@@ -24,9 +24,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260623-1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260623-1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/login.css') }}?v=20260623-1" />
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260623-2" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260623-2" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/login.css') }}?v=20260623-2" />
 </head>
 <body class="login-body">
   <div class="login-shell">
@@ -46,32 +50,104 @@
       </div>
       <header class="login-head">
         <h1 class="login-title">Yönetici Girişi</h1>
-        <p class="login-subtitle">Hesabınızla devam edin</p>
+        <p class="login-subtitle">Google hesabınızla devam edin</p>
       </header>
-      {% if error %}
-      <div class="login-alert" role="alert">
+
+      <div id="error" class="login-alert" role="alert" hidden>
         <span class="material-symbols-outlined" aria-hidden="true">error</span>
-        <span>{{ error }}</span>
+        <span id="error-msg"></span>
       </div>
-      {% endif %}
-      <form method="POST" action="{{ url_for('admin.login') }}" class="login-form stack-4" novalidate>
-        <div>
-          <label for="email">E-posta</label>
-          <input class="input" id="email" name="email" type="email" autocomplete="username" required autofocus placeholder="admin@orbisastro.online" />
-        </div>
-        <div>
-          <label for="password">Şifre</label>
-          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
-        </div>
-        <button class="btn btn--primary" type="submit" style="height: 42px;">
-          <span class="material-symbols-outlined" aria-hidden="true">login</span>
-          Giriş Yap
+
+      <div id="login-section" class="stack-4">
+        <button class="btn btn--primary google-btn" type="button" onclick="signInWithGoogle()" style="height: 44px;">
+          <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Google ile Giriş Yap
         </button>
-      </form>
+      </div>
+
+      <div id="loading-section" hidden>
+        <div class="login-spinner" aria-label="Yükleniyor"></div>
+        <p class="login-loading-text">Doğrulanıyor…</p>
+      </div>
+
       <p class="login-foot">Erişim sorunu? <a href="mailto:support@orbisastro.online">Destek</a></p>
     </main>
     <p class="login-meta"><span class="login-meta-key">v</span> 1.0 · <span class="login-meta-key">build</span> 2026.06.23</p>
   </div>
-  <script src="{{ url_for('static', filename='js/admin/theme.js') }}?v=20260623-1" defer></script>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD9QYFaOQVxEvt3ENEfgaqVyweHuRy-MBQ",
+      authDomain: "orbis-ffa9e.firebaseapp.com",
+      projectId: "orbis-ffa9e",
+      storageBucket: "orbis-ffa9e.firebasestorage.app",
+      messagingSenderId: "768649602152",
+      appId: "1:768649602152:web:d1cd9f7deadcdfef1907dd",
+      measurementId: "G-V3FBQWDN61",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function showError(msg) {
+      const box = document.getElementById('error');
+      document.getElementById('error-msg').textContent = msg;
+      box.hidden = false;
+    }
+    function clearError() {
+      document.getElementById('error').hidden = true;
+    }
+
+    async function signInWithGoogle() {
+      const loginSection = document.getElementById('login-section');
+      const loadingSection = document.getElementById('loading-section');
+      clearError();
+
+      try {
+        loginSection.hidden = true;
+        loadingSection.hidden = false;
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        // Backend'e idToken yolla — verify_id_token + admin claim kontrolü backend'de
+        const idToken = await user.getIdToken();
+
+        const response = await fetch('{{ url_for("admin.verify_admin") }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idToken: idToken,
+            email: user.email,
+            uid: user.uid,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          throw new Error(data.message || 'Yetkilendirme başarısız');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        loginSection.hidden = false;
+        loadingSection.hidden = true;
+        showError(error.message || 'Giriş yapılırken bir hata oluştu');
+        try { await auth.signOut(); } catch (e) {}
+      }
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/admin/theme.js') }}?v=20260623-2" defer></script>
 </body>
 </html>

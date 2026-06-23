@@ -27,12 +27,21 @@ ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', 'erkan@example.com').split(',')
 
 
 def admin_required(f):
-    """Admin yetkisi gerektiren route'lar için decorator"""
+    """Admin yetkisi gerektiren route'lar için decorator.
+
+    Session'da admin_email + admin_uid varsa Allow.
+    Email whitelist env'den gelir (ikincil kontrol).
+    Custom claim (admin: true) login sırasında verify edilir, her istekte tekrar kontrol etmiyoruz
+    (overhead) — session 7 gün geçerli. Claim kaldırılırsa modül yeniden import edilene kadar logged-in kalır.
+    """
+    admin_emails = [e.strip().lower() for e in ADMIN_EMAILS if e.strip()]
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Session'dan admin kontrolü
-        admin_email = session.get('admin_email')
-        if not admin_email or admin_email not in ADMIN_EMAILS:
+        admin_email = (session.get('admin_email') or '').lower()
+        admin_uid = session.get('admin_uid')
+
+        if (not admin_email and not admin_uid) or (admin_email and admin_emails and admin_email not in admin_emails):
             return redirect(url_for('admin.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -47,33 +56,71 @@ def login():
 @admin_bp.route('/auth/verify', methods=['POST'])
 @handle_errors("Admin doğrulama başarısız")
 def verify_admin():
-    """Firebase token'ı doğrula ve admin yetkisi kontrol et"""
-    data = request.get_json()
+    """Firebase idToken'ı doğrula, admin custom claim kontrolü yap, session aç."""
+    from firebase_admin import auth as fb_auth
+
+    data = request.get_json() or {}
+    id_token = data.get('idToken')
     email = data.get('email')
     uid = data.get('uid')
-    
-    if not email:
+
+    if not id_token:
         return jsonify({
-            'success': False, 
-            'error': 'EMAIL_REQUIRED',
-            'message': 'Email gerekli'
+            'success': False,
+            'error': 'TOKEN_REQUIRED',
+            'message': 'idToken gerekli'
         }), 400
-    
-    # Admin kontrolü
-    if email not in ADMIN_EMAILS:
-        logger.warning(f"Unauthorized admin access attempt: {email}")
+
+    # 1) Google ile imzalanmış idToken'ı server-side verify et
+    try:
+        decoded = fb_auth.verify_id_token(id_token)
+    except Exception as e:
+        logger.warning(f"Token verify hatası: {e}")
         return jsonify({
-            'success': False, 
+            'success': False,
+            'error': 'INVALID_TOKEN',
+            'message': 'Token doğrulanamadı'
+        }), 401
+
+    verified_uid = decoded.get('uid')
+    verified_email = decoded.get('email') or email
+
+    # uid/email token ile uyumsuzsa reddet
+    if uid and uid != verified_uid:
+        logger.warning(f"Uid mismatch: client={uid} token={verified_uid}")
+        return jsonify({
+            'success': False,
+            'error': 'UID_MISMATCH',
+            'message': 'Kimlik uyuşmazlığı'
+        }), 403
+
+    # 2) admin custom claim kontrolü
+    is_admin_claim = bool(decoded.get('admin'))
+
+    # Email whitelist (env) opsiyonel ikincil kontrol
+    admin_emails = [e.strip().lower() for e in ADMIN_EMAILS if e.strip()]
+    email_in_whitelist = (
+        verified_email and
+        verified_email.lower() in admin_emails
+    )
+
+    if not (is_admin_claim or email_in_whitelist):
+        logger.warning(f"Unauthorized admin access attempt: {verified_email} "
+                       f"(claim={is_admin_claim}, whitelist={email_in_whitelist})")
+        return jsonify({
+            'success': False,
             'error': 'FORBIDDEN',
             'message': 'Bu hesap admin yetkisine sahip değil'
         }), 403
-    
-    # Session'a kaydet
-    session['admin_email'] = email
-    session['admin_uid'] = uid
-    
-    logger.info(f"Admin login successful: {email}")
-    
+
+    # 3) Session'a kaydet
+    session['admin_email'] = verified_email
+    session['admin_uid'] = verified_uid
+    session.permanent = True
+
+    logger.info(f"Admin login successful: {verified_email} (uid={verified_uid}, "
+                 f"claim={is_admin_claim}, whitelist={email_in_whitelist})")
+
     return jsonify({
         'success': True,
         'redirect': url_for('admin.dashboard')
