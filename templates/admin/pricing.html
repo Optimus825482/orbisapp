@@ -1,38 +1,113 @@
 {% extends "admin/layout.html" %}
-{% block title %}Fiyatlandırma{% endblock %}
-{% block page_title %}Fiyatlandırma{% endblock %}
-{% block page_subtitle %}Premium üyelik fiyatları — değişiklikler anında uygulanır{% endblock %}
+{% block title %}Fiyat Yönetimi{% endblock %}
+{% block page_title %}Fiyat Yönetimi{% endblock %}
+{% block page_subtitle %}Premium üyelik fiyatları — değişiklikler anında uygulamaya yansır{% endblock %}
 
 {% block content %}
-<div class="stack-6" style="max-width: 680px;">
+<div class="stack-6 stagger" style="max-width: 720px;">
   <div id="status-banner" class="alert" hidden></div>
 
   <section class="card">
-    <header class="card-head"><div><h2 class="card-title">Premium Fiyatları</h2><p class="card-subtitle">Tüm fiyatlar Türk Lirası (₺) cinsinden</p></div><span class="badge badge--dot badge--primary">TRY</span></header>
-    <div class="card-body stack-4">
-      <div class="pricing-row"><div class="row" style="gap: var(--space-3);"><span class="metric-icon"><span class="material-symbols-outlined">today</span></span><div><div style="font-weight: 600; font-size: 14px;">Günlük</div><div class="text-muted" style="font-size: 11px;">24 saat reklamsız</div></div></div><div class="row" style="gap: 8px;"><span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span><input id="price-daily" type="number" min="0" class="input" style="width: 100px; text-align: right; font-family: var(--font-mono); font-weight: 700;" /></div></div>
-      <div class="pricing-row"><div class="row" style="gap: var(--space-3);"><span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">calendar_month</span></span><div><div style="font-weight: 600; font-size: 14px;">Aylık</div><div class="text-muted" style="font-size: 11px;">Her ay yenilenir</div></div></div><div class="row" style="gap: 8px;"><span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span><input id="price-monthly" type="number" min="0" class="input" style="width: 100px; text-align: right; font-family: var(--font-mono); font-weight: 700;" /></div></div>
-      <div class="pricing-row pricing-row--highlight"><div class="row" style="gap: var(--space-3);"><span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">stars</span></span><div><div class="row" style="gap: var(--space-2);"><div style="font-weight: 600; font-size: 14px;">Yıllık</div><span class="badge badge--warning">2 Ay Hediye</span></div><div class="text-muted" style="font-size: 11px;">Ayda ₺<span id="yearly-per-month">250</span></div></div></div><div class="row" style="gap: 8px;"><span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span><input id="price-yearly" type="number" min="0" class="input" style="width: 120px; text-align: right; font-family: var(--font-mono); font-weight: 700;" /></div></div>
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Premium Fiyatları</h2>
+        <p class="card-subtitle">Fiyatlar Türk Lirası (₺) cinsinden</p>
+      </div>
+      <span class="badge badge--dot badge--primary">TRY</span>
+    </header>
+    <div class="card-body">
+      <div class="stack-3">
+        <div class="pricing-row">
+          <div class="row" style="gap: var(--space-3); flex: 1;">
+            <div class="metric-icon"><span class="material-symbols-outlined">today</span></div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: var(--ink);">Günlük Premium</div>
+              <div style="font-size: 12px; color: var(--ink-muted);">24 saat reklamsız sınırsız</div>
+            </div>
+          </div>
+          <div class="row" style="gap: var(--space-2);">
+            <span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span>
+            <input id="price-daily" type="number" min="0" class="input" style="width: 120px; text-align: right; font-family: var(--font-mono); font-weight: 700;" />
+          </div>
+        </div>
 
-      <div style="padding: var(--space-5); background: var(--surface-2); border-radius: var(--radius-md);">
-        <h3 style="font-size: 13px; font-weight: 600; margin: 0 0 var(--space-4);">Karşılaştırma</h3>
-        <div class="grid grid--3" style="text-align: center;">
-          <div><div class="text-faint" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Günlük</div><div class="metric-value metric-value--sm tabular" style="margin-top: 4px;">₺<span id="summary-daily">30</span></div></div>
-          <div><div class="text-faint" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Aylık (₺<span id="summary-daily-x30">900</span>)</div><div class="metric-value metric-value--sm tabular" style="margin-top: 4px; color: var(--success);">₺<span id="summary-monthly">300</span></div><div style="font-size: 10px; color: var(--success);">-<span id="summary-monthly-discount">67</span>%</div></div>
-          <div><div class="text-faint" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Yıllık (₺<span id="summary-monthly-x12">3600</span>)</div><div class="metric-value metric-value--sm tabular" style="margin-top: 4px; color: var(--warning);">₺<span id="summary-yearly">3000</span></div><div style="font-size: 10px; color: var(--warning);">+2 ay</div></div>
+        <div class="pricing-row">
+          <div class="row" style="gap: var(--space-3); flex: 1;">
+            <div class="metric-icon metric-icon--info"><span class="material-symbols-outlined">calendar_month</span></div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: var(--ink);">Aylık Premium</div>
+              <div style="font-size: 12px; color: var(--ink-muted);">Her ay yenilenir · indirim uygulanır</div>
+            </div>
+          </div>
+          <div class="row" style="gap: var(--space-2);">
+            <span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span>
+            <input id="price-monthly" type="number" min="0" class="input" style="width: 120px; text-align: right; font-family: var(--font-mono); font-weight: 700;" />
+          </div>
+        </div>
+
+        <div class="pricing-row pricing-row--highlight">
+          <div class="row" style="gap: var(--space-3); flex: 1;">
+            <div class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">stars</span></div>
+            <div>
+              <div class="row" style="gap: var(--space-2);">
+                <div style="font-weight: 600; font-size: 14px; color: var(--ink);">Yıllık Premium</div>
+                <span class="badge" style="background: var(--grad-warning); color: var(--primary-ink); border: none;">2 Ay Hediye</span>
+              </div>
+              <div style="font-size: 12px; color: var(--ink-muted);">Ayda ₺<span id="yearly-per-month">250</span> · en avantajlı</div>
+            </div>
+          </div>
+          <div class="row" style="gap: var(--space-2);">
+            <span style="font-family: var(--font-mono); color: var(--ink-muted);">₺</span>
+            <input id="price-yearly" type="number" min="0" class="input" style="width: 140px; text-align: right; font-family: var(--font-mono); font-weight: 700;" />
+          </div>
         </div>
       </div>
 
-      <div class="row" style="gap: var(--space-3);">
-        <button type="button" onclick="savePricing()" class="btn btn--primary btn--lg" style="flex: 1;"><span class="material-symbols-outlined">save</span>Fiyatları Kaydet</button>
-        <button type="button" onclick="resetPricing()" class="btn btn--secondary btn--lg icon-btn--lg" aria-label="Sıfırla"><span class="material-symbols-outlined">refresh</span></button>
+      <div style="margin-top: var(--space-5); padding: var(--space-5); background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
+        <div class="row row--between" style="margin-bottom: var(--space-4);">
+          <h3 style="font-size: 13px; font-weight: 600; color: var(--ink); margin: 0;">Fiyat Karşılaştırması</h3>
+          <span class="badge badge--success">Anlık</span>
+        </div>
+        <div class="grid grid--3" style="text-align: center; gap: var(--space-4);">
+          <div>
+            <div class="eyebrow">Günlük</div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink); margin-top: 4px;">₺<span id="summary-daily">30</span></div>
+          </div>
+          <div>
+            <div class="eyebrow">Aylık (₺<span id="summary-daily-x30">900</span>)</div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--success); margin-top: 4px;">₺<span id="summary-monthly">300</span></div>
+            <div style="font-size: 10px; color: var(--success); font-weight: 600; margin-top: 2px;">-<span id="summary-monthly-discount">67</span>% indirim</div>
+          </div>
+          <div>
+            <div class="eyebrow">Yıllık (₺<span id="summary-monthly-x12">3600</span>)</div>
+            <div style="font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--warning); margin-top: 4px;">₺<span id="summary-yearly">3000</span></div>
+            <div style="font-size: 10px; color: var(--warning); font-weight: 600; margin-top: 2px;">+2 ay hediye</div>
+          </div>
+        </div>
       </div>
 
-      <div id="last-updated" class="text-center text-faint" style="font-size: 12px;" hidden>Son güncelleme: <span id="last-updated-date"></span> · <span id="last-updated-by"></span></div>
+      <div class="row" style="gap: var(--space-3); margin-top: var(--space-5);">
+        <button type="button" onclick="savePricing()" class="btn btn--primary btn--lg" style="flex: 1;">
+          <span class="material-symbols-outlined">save</span>
+          Fiyatları Kaydet
+        </button>
+        <button type="button" onclick="resetPricing()" class="btn btn--secondary btn--lg icon-btn--lg" aria-label="Sıfırla">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+
+      <div id="last-updated" style="text-align: center; color: var(--ink-faint); font-size: 12px; margin-top: var(--space-3);" hidden>
+        Son güncelleme: <span id="last-updated-date"></span> · <span id="last-updated-by"></span>
+      </div>
     </div>
   </section>
 
-  <div class="alert alert--info"><span class="material-symbols-outlined">info</span><div style="font-size: 13px;">Fiyat güncellemeleri anında tüm kullanıcılara yansır. Yeni AAB build gerekmez.</div></div>
+  <div class="alert alert--info">
+    <span class="material-symbols-outlined">info</span>
+    <div style="font-size: 13px;">
+      <strong>Nasıl çalışır?</strong> Fiyatları güncellediğinizde <code style="background: var(--glass-bg-3); padding: 2px 6px; border-radius: 4px; color: var(--primary); font-size: 12px;">config/pricing</code> dokümanı Firestore'a yazılır. Uygulama <code style="background: var(--glass-bg-3); padding: 2px 6px; border-radius: 4px; color: var(--primary); font-size: 12px;">/api/config/pricing</code> API'sinden okur — değişiklikler <strong>anında</strong> tüm kullanıcılara yansır.
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -51,23 +126,32 @@ async function loadPricing() {
         document.getElementById('last-updated-by').textContent = j.data.updated_by || '?';
       }
     }
-  } catch (e) { console.error(e); }
+  } catch (e) { console.error('Fiyatlar yüklenemedi:', e); }
 }
 
 async function savePricing() {
   const btn = document.querySelector('[onclick="savePricing()"]');
-  const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Kaydediliyor…';
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Kaydediliyor...';
   try {
-    const r = await fetch('/admin/api/pricing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      daily: parseInt(document.getElementById('price-daily').value) || 0,
-      monthly: parseInt(document.getElementById('price-monthly').value) || 0,
-      yearly: parseInt(document.getElementById('price-yearly').value) || 0,
-    })});
+    const r = await fetch('/admin/api/pricing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        daily: parseInt(document.getElementById('price-daily').value) || 0,
+        monthly: parseInt(document.getElementById('price-monthly').value) || 0,
+        yearly: parseInt(document.getElementById('price-yearly').value) || 0
+      })
+    });
     const j = await r.json();
-    if (j.success) { showBanner('success', 'Fiyatlar kaydedildi. Sayfa yenileniyor…'); setTimeout(() => location.reload(), 800); }
-    else showBanner('error', j.message || 'Hata');
-  } catch (e) { showBanner('error', 'Bağlantı hatası: ' + e.message); }
-  finally { btn.disabled = false; btn.innerHTML = orig; }
+    if (j.success) { showBanner('success', '✅ ' + j.message + ' Sayfa yenileniyor...'); setTimeout(() => location.reload(), 800); }
+    else showBanner('error', '❌ ' + (j.message || 'Hata oluştu'));
+  } catch (e) {
+    showBanner('error', '❌ Bağlantı hatası: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
 }
 
 function resetPricing() { setPrices({ daily: 30, monthly: 300, yearly: 3000 }); }
@@ -82,21 +166,23 @@ function updateSummary(d) {
   document.getElementById('summary-daily').textContent = daily;
   document.getElementById('summary-monthly').textContent = monthly;
   document.getElementById('summary-yearly').textContent = yearly;
-  const normal = daily * 30;
-  document.getElementById('summary-daily-x30').textContent = normal;
-  document.getElementById('summary-monthly-discount').textContent = Math.round((1 - monthly / normal) * 100);
+  const normalMonthly = daily * 30;
+  document.getElementById('summary-daily-x30').textContent = normalMonthly;
+  document.getElementById('summary-monthly-discount').textContent = Math.round((1 - monthly / normalMonthly) * 100);
   document.getElementById('summary-monthly-x12').textContent = monthly * 12;
   document.getElementById('yearly-per-month').textContent = Math.round(yearly / 12);
 }
 function showBanner(type, msg) {
   const b = document.getElementById('status-banner');
   b.className = 'alert alert--' + (type === 'success' ? 'success' : 'danger');
-  b.textContent = msg; b.hidden = false; setTimeout(() => { b.hidden = true; }, 5000);
+  b.textContent = msg;
+  b.hidden = false;
+  setTimeout(() => { b.hidden = true; }, 5000);
 }
 document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', () => updateSummary({
   daily: parseInt(document.getElementById('price-daily').value) || 0,
   monthly: parseInt(document.getElementById('price-monthly').value) || 0,
-  yearly: parseInt(document.getElementById('price-yearly').value) || 0,
+  yearly: parseInt(document.getElementById('price-yearly').value) || 0
 })));
 document.addEventListener('DOMContentLoaded', loadPricing);
 </script>

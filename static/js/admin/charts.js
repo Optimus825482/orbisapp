@@ -51,13 +51,19 @@
 
     el.innerHTML =
       '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" width="100%" height="' + h + '" aria-hidden="true">' +
-        '<defs><linearGradient id="spark-' + el.id + '" x1="0" y1="0" x2="0" y2="1">' +
-          '<stop offset="0%" stop-color="' + stroke + '" stop-opacity="0.20"/>' +
-          '<stop offset="100%" stop-color="' + stroke + '" stop-opacity="0"/>' +
-        '</linearGradient></defs>' +
+        '<defs>' +
+          '<linearGradient id="spark-' + el.id + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="' + stroke + '" stop-opacity="0.30"/>' +
+            '<stop offset="100%" stop-color="' + stroke + '" stop-opacity="0"/>' +
+          '</linearGradient>' +
+          '<linearGradient id="spark-line-' + el.id + '" x1="0" y1="0" x2="1" y2="0">' +
+            '<stop offset="0%" stop-color="' + stroke + '" stop-opacity="0.75"/>' +
+            '<stop offset="100%" stop-color="' + stroke + '" stop-opacity="1"/>' +
+          '</linearGradient>' +
+        '</defs>' +
         '<path d="' + areaD + '" fill="url(#spark-' + el.id + ')"/>' +
-        '<path d="' + pathD + '" fill="none" stroke="' + stroke + '" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="2.75" fill="' + stroke + '" stroke="' + bg + '" stroke-width="1.5"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="url(#spark-line-' + el.id + ')" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="3" fill="' + stroke + '" stroke="' + bg + '" stroke-width="2"/>' +
       '</svg>';
   }
 

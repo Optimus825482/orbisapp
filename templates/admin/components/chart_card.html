@@ -14,21 +14,23 @@
 {% macro card(title, subtitle='', chart_id='chart', series=None, x_labels=None, bars=None, kind='line', current_range='7d', base_url='#', label='') %}
 {% import 'admin/components/period_selector.html' as period %}
 <section class="card">
-  <header class="card-header">
+  <header class="card-head">
     <div>
       <h2 class="card-title">{{ title }}</h2>
       {% if subtitle %}<p class="card-subtitle">{{ subtitle }}</p>{% endif %}
     </div>
     {{ period.selector(current=current_range, base_url=base_url) }}
   </header>
-  <div class="chart {% if kind == 'sparkline' %}chart--sm{% endif %}"
-       id="{{ chart_id }}"
-       data-chart='{
-         "type": "{{ kind }}",
-         "label": "{{ label or title|e }}",
-         {% if series %}"series": {{ series | tojson }}, "xLabels": {{ x_labels or [] | tojson }}, "opts": {"height": 240}{% endif %}
-         {% if bars %}"bars": {{ bars | tojson }}{% endif %}
-       }'>
+  <div class="card-body">
+    <div class="chart {% if kind == 'sparkline' %}chart--sm{% endif %}"
+         id="{{ chart_id }}"
+         data-chart='{
+           "type": "{{ kind }}",
+           "label": "{{ label or title|e }}",
+           {% if series %}"series": {{ series | tojson }}, "xLabels": {{ x_labels or [] | tojson }}, "opts": {"height": 240}{% endif %}
+           {% if bars %}"bars": {{ bars | tojson }}{% endif %}
+         }'>
+    </div>
   </div>
 </section>
 {% endmacro %}

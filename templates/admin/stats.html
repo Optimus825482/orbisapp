@@ -1,78 +1,239 @@
 {% extends "admin/layout.html" %}
-{% block title %}İstatistikler{% endblock %}
+{% block title %}ORBIS Admin · İstatistikler{% endblock %}
 {% block page_title %}İstatistikler{% endblock %}
-{% block page_subtitle %}Google Analytics · AdMob · Kullanıcı dağılımı{% endblock %}
+{% block page_subtitle %}Analytics · AdMob · Kullanıcı dağılımı{% endblock %}
 
 {% block content %}
-<div class="grid grid--kpi stagger" style="margin-bottom: var(--space-7);">
-  <div class="metric"><div class="metric-head"><span class="metric-label">Toplam Kullanıcı</span><span class="metric-icon"><span class="material-symbols-outlined">group</span></span></div><div class="metric-value" data-key="totalUsers">—</div></div>
-  <div class="metric"><div class="metric-head"><span class="metric-label">Premium</span><span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">workspace_premium</span></span></div><div class="metric-value" data-key="premiumUsers">—</div></div>
-  <div class="metric"><div class="metric-head"><span class="metric-label">Bugün Aktif</span><span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">online_prediction</span></span></div><div class="metric-value" data-key="activeToday">—</div></div>
-  <div class="metric"><div class="metric-head"><span class="metric-label">Toplam Analiz</span><span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">auto_awesome</span></span></div><div class="metric-value" data-key="totalAnalyses">—</div></div>
+<div class="grid grid--kpi stagger">
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Toplam Kullanıcı</span>
+      <span class="metric-icon"><span class="material-symbols-outlined">group</span></span>
+    </div>
+    <div class="metric-value" data-key="totalUsers">—</div>
+    <div class="metric-foot">
+      <span class="trend trend--flat"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span class="metric-compare">toplam</span>
+    </div>
+  </div>
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Premium</span>
+      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">workspace_premium</span></span>
+    </div>
+    <div class="metric-value" data-key="premiumUsers">—</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
+      <span class="metric-compare">aktif abone</span>
+    </div>
+  </div>
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Bugün Aktif</span>
+      <span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">online_prediction</span></span>
+    </div>
+    <div class="metric-value" data-key="activeToday">—</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
+      <span class="metric-compare">bugün</span>
+    </div>
+  </div>
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Toplam Analiz</span>
+      <span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">auto_awesome</span></span>
+    </div>
+    <div class="metric-value" data-key="totalAnalyses">—</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
+      <span class="metric-compare">tüm zamanlar</span>
+    </div>
+  </div>
 </div>
 
-<div class="grid grid--2 stagger" style="margin-bottom: var(--space-7);">
-  <section class="card">
-    <header class="card-head"><div><h2 class="card-title">Google Analytics (GA4)</h2><p class="card-subtitle">Trafik ve dönüşüm metrikleri</p></div><span class="badge badge--dot badge--primary">GA4</span></header>
-    <div class="card-body">
-      <div class="grid grid--3" style="margin-bottom: var(--space-5);">
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Görüntüleme</div><div class="metric-value metric-value--sm tabular" id="ga-pageviews">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Dönüşüm</div><div class="metric-value metric-value--sm tabular" id="ga-conversions">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Ort. Süre</div><div class="metric-value metric-value--sm tabular" id="ga-avg-time">—</div></div>
-      </div>
-      <div class="chart" id="chart-ga-signups" data-chart='{"type":"line","label":"Signups","series":[],"xLabels":[]}'></div>
-    </div>
-  </section>
-
-  <section class="card">
-    <header class="card-head"><div><h2 class="card-title">AdMob Performans</h2><p class="card-subtitle">Gelir, impression, eCPM</p></div><span class="badge badge--dot badge--success">AdMob</span></header>
-    <div class="card-body">
-      <div class="grid grid--3" style="margin-bottom: var(--space-5);">
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Bugün Gelir</div><div class="metric-value metric-value--sm tabular" id="admob-revenue">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Impression</div><div class="metric-value metric-value--sm tabular" id="admob-impressions">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">eCPM</div><div class="metric-value metric-value--sm tabular" id="admob-ecpm">—</div></div>
-      </div>
-      <div class="metric-spark" id="admob-spark" style="height: 80px;"></div>
-    </div>
-  </section>
+<div class="row row--between" style="margin: var(--space-6) 0 var(--space-4);">
+  <div>
+    <h2 style="font-size: 14px; font-weight: 600; color: var(--ink); margin: 0;">Zaman aralığı</h2>
+    <p class="text-ink-faint" style="font-size: 12px; margin: 2px 0 0;">Analytics ve AdMob aynı periyodu paylaşır</p>
+  </div>
+  <div class="period" role="tablist" aria-label="Zaman aralığı">
+    <a class="period-option {% if request.args.get('range', '7d') == '1d' %}is-active{% endif %}" href="?range=1d">Bugün</a>
+    <a class="period-option {% if request.args.get('range', '7d') == '7d' %}is-active{% endif %}" href="?range=7d">7g</a>
+    <a class="period-option {% if request.args.get('range', '7d') == '30d' %}is-active{% endif %}" href="?range=30d">30g</a>
+    <a class="period-option {% if request.args.get('range', '7d') == '90d' %}is-active{% endif %}" href="?range=90d">90g</a>
+  </div>
 </div>
 
-<div class="grid grid--2 stagger" style="margin-bottom: var(--space-7);">
-  <section class="card"><header class="card-head"><div><h2 class="card-title">Kullanıcı Dağılımı</h2><p class="card-subtitle">Premium oranı</p></div></header>
+<section class="card stagger" style="margin-bottom: var(--space-5);">
+  <header class="card-head">
+    <div>
+      <h2 class="card-title">Google Analytics (GA4)</h2>
+      <p class="card-subtitle">Site trafiği, sayfa görüntüleme, trafik kaynakları</p>
+    </div>
+    <span class="badge badge--dot badge--primary">GA4</span>
+  </header>
+  <div class="card-body">
+    <div class="grid grid--3" style="margin-bottom: var(--space-5);">
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">Sayfa Görüntüleme</div>
+        <div class="metric-value metric-value--sm tabular" id="ga-pageviews">—</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">Dönüşüm</div>
+        <div class="metric-value metric-value--sm tabular" id="ga-conversions">—</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">Ortalama Süre</div>
+        <div class="metric-value metric-value--sm tabular" id="ga-avg-time">—</div>
+      </div>
+    </div>
+    <div class="grid grid--2">
+      <div>
+        <div class="eyebrow" style="margin-bottom: var(--space-2);">Yeni Kullanıcı</div>
+        <div class="chart" id="chart-ga-signups" data-chart='{"type":"line","label":"Signups","series":[{"name":"Signups","values":[],"color":"primary"}],"xLabels":[]}'></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: var(--space-2);">Aktif Oturum</div>
+        <div class="chart" id="chart-ga-sessions" data-chart='{"type":"line","label":"Sessions","series":[{"name":"Sessions","values":[],"color":"accent"}],"xLabels":[]}'></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="card stagger" style="margin-bottom: var(--space-5);">
+  <header class="card-head">
+    <div>
+      <h2 class="card-title">AdMob Performans</h2>
+      <p class="card-subtitle">Reklam geliri, impression, eCPM</p>
+    </div>
+    <span class="badge badge--dot badge--success">AdMob</span>
+  </header>
+  <div class="card-body">
+    <div class="grid grid--3" style="margin-bottom: var(--space-5);">
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">Bugün Gelir</div>
+        <div class="metric-value metric-value--sm tabular" id="admob-revenue">—</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">Impression</div>
+        <div class="metric-value metric-value--sm tabular" id="admob-impressions">—</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">eCPM</div>
+        <div class="metric-value metric-value--sm tabular" id="admob-ecpm">—</div>
+      </div>
+    </div>
+    <div class="metric-spark" id="admob-spark" style="height: 80px;"></div>
+  </div>
+</section>
+
+<div class="grid grid--2 stagger" style="margin-bottom: var(--space-5);">
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Kullanıcı Dağılımı</h2>
+        <p class="card-subtitle">Premium oranı</p>
+      </div>
+    </header>
     <div class="card-body">
       <div class="grid grid--2" style="margin-bottom: var(--space-4);">
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Premium</div><div class="metric-value metric-value--sm tabular" id="stat-premium-pct">-%</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Ücretsiz</div><div class="metric-value metric-value--sm tabular" id="stat-free-pct">-%</div></div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px;">Premium</div>
+          <div class="metric-value metric-value--sm tabular text-gradient" id="stat-premium-pct">-%</div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px;">Ücretsiz</div>
+          <div class="metric-value metric-value--sm tabular" id="stat-free-pct">-%</div>
+        </div>
       </div>
-      <div class="progress"><div id="dist-premium-bar" class="progress-bar" style="width: 0%;"></div></div>
+      <div class="eyebrow" style="margin-bottom: 6px;">Premium Oranı</div>
+      <div class="progress" style="height: 10px;">
+        <div id="dist-premium-bar" class="progress-bar" style="width: 0%;"></div>
+      </div>
     </div>
   </section>
 
-  <section class="card"><header class="card-head"><div><h2 class="card-title">Son 30 Gün Satışlar</h2></div><span class="badge badge--neutral">30d</span></header>
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Son 30 Gün Satışlar</h2>
+        <p class="card-subtitle">Premium + kredi satışları</p>
+      </div>
+      <span class="badge badge--dot badge--info">30d</span>
+    </header>
     <div class="card-body">
       <div class="grid grid--3">
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Premium</div><div class="metric-value metric-value--sm tabular" id="purchase-premium">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Kredi</div><div class="metric-value metric-value--sm tabular" id="purchase-credits">—</div></div>
-        <div><div class="text-faint" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Toplam</div><div class="metric-value metric-value--sm tabular" id="purchase-total-credits">—</div></div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px;">Premium</div>
+          <div class="metric-value metric-value--sm tabular" id="purchase-premium">—</div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px;">Kredi</div>
+          <div class="metric-value metric-value--sm tabular" id="purchase-credits">—</div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px;">Toplam Kredi</div>
+          <div class="metric-value metric-value--sm tabular text-gradient" id="purchase-total-credits">—</div>
+        </div>
       </div>
     </div>
   </section>
 </div>
 
 <div class="grid grid--2 stagger">
-  <section class="card"><header class="card-head"><div><h2 class="card-title">Dönüşüm Metrikleri</h2><p class="card-subtitle">Premium, aktif ve engagement oranları</p></div></header>
-    <div class="card-body stack-3">
-      <div><div class="row row--between text-muted" style="margin-bottom: 4px; font-size: 13px;"><span>Premium Dönüşüm</span><span style="font-weight: 600; color: var(--ink);" id="conv-premium">-%</span></div><div class="progress"><div id="conv-premium-bar" class="progress-bar progress-bar--warning" style="width: 0%;"></div></div></div>
-      <div><div class="row row--between text-muted" style="margin-bottom: 4px; font-size: 13px;"><span>Günlük Aktif</span><span style="font-weight: 600; color: var(--ink);" id="conv-active">-%</span></div><div class="progress"><div id="conv-active-bar" class="progress-bar progress-bar--success" style="width: 0%;"></div></div></div>
-      <div><div class="row row--between text-muted" style="margin-bottom: 4px; font-size: 13px;"><span>Engagement</span><span style="font-weight: 600; color: var(--ink);" id="conv-engaged">-%</span></div><div class="progress"><div id="conv-engaged-bar" class="progress-bar" style="width: 0%;"></div></div></div>
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Dönüşüm Metrikleri</h2>
+        <p class="card-subtitle">Premium, aktif ve engagement oranları</p>
+      </div>
+    </header>
+    <div class="card-body">
+      <div class="stack-4">
+        <div>
+          <div class="row row--between" style="margin-bottom: 6px;">
+            <span class="text-ink-muted" style="font-size: 13px;">Premium Dönüşüm</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink);" id="conv-premium">-%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="conv-premium-bar" class="progress-bar progress-bar--warning" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div>
+          <div class="row row--between" style="margin-bottom: 6px;">
+            <span class="text-ink-muted" style="font-size: 13px;">Günlük Aktif Oran</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink);" id="conv-active">-%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="conv-active-bar" class="progress-bar progress-bar--success" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div>
+          <div class="row row--between" style="margin-bottom: 6px;">
+            <span class="text-ink-muted" style="font-size: 13px;">Engagement</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink);" id="conv-engaged">-%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="conv-engaged-bar" class="progress-bar progress-bar--primary" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="card"><header class="card-head"><div><h2 class="card-title">Kredi & Analiz</h2><p class="card-subtitle">Sistemdeki toplam değerler</p></div></header>
-    <div class="card-body stack-3">
-      <div class="info-row"><span class="info-label">Toplam Kredi</span><span id="credit-total" style="font-weight: 600;">—</span></div>
-      <div class="info-row"><span class="info-label">Ort. Kredi/Kullanıcı</span><span id="credit-avg">—</span></div>
-      <div class="info-row"><span class="info-label">Ort. Analiz/Kullanıcı</span><span id="analysis-avg">—</span></div>
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Kredi & Analiz</h2>
+        <p class="card-subtitle">Sistemdeki toplam ve ortalama değerler</p>
+      </div>
+    </header>
+    <div class="card-body">
+      <div class="stack-4">
+        <div class="info-row"><span class="info-label">Toplam Kredi</span><span id="credit-total" style="font-weight: 600;">—</span></div>
+        <div class="info-row"><span class="info-label">Ortalama Kredi/Kullanıcı</span><span id="credit-avg">—</span></div>
+        <div class="info-row"><span class="info-label">Ortalama Analiz/Kullanıcı</span><span id="analysis-avg">—</span></div>
+      </div>
     </div>
   </section>
 </div>
@@ -82,36 +243,127 @@
 <script>
 (async function () {
   const range = new URLSearchParams(window.location.search).get('range') || '7d';
-  const fmt = n => (n==null||isNaN(n))?'—':new Intl.NumberFormat('tr-TR').format(Math.round(n));
-  const fmtUsd = n => (n==null||isNaN(n))?'—':'$'+Number(n).toFixed(2);
-  const fmtPct = n => (n==null||isNaN(n))?'-%':n.toFixed(1)+'%';
+  const fmt = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : new Intl.NumberFormat('tr-TR').format(Math.round(n));
+  const fmtUsd = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : '$' + Number(n).toFixed(2);
+  const fmtPct = (n) => (n === null || n === undefined || isNaN(n)) ? '-%' : n.toFixed(1) + '%';
+
+  if (window.OrbisCharts) {
+    document.querySelectorAll('[data-chart]').forEach(function (el) {
+      try {
+        var data = JSON.parse(el.getAttribute('data-chart'));
+        if (data.type === 'sparkline') window.OrbisCharts.sparkline(el, data.values || [], data.opts || {});
+        else if (data.type === 'line') window.OrbisCharts.lineChart(el, data.series || [], { xLabels: data.xLabels || [], height: (data.opts && data.opts.height) || 220, label: data.label });
+        else if (data.type === 'bar') window.OrbisCharts.barChart(el, data.bars || [], { height: 240, label: data.label });
+      } catch (e) {}
+    });
+  }
 
   try {
-    const r=await fetch(`/admin/api/stats/overview?range=${range}`,{credentials:'same-origin'});
-    const j=await r.json(); if(!j.success) return;
-    const s=j.data;
-    document.querySelectorAll('[data-key]').forEach(el => { const k=el.getAttribute('data-key'); if(s[k]!==undefined) el.textContent=fmt(s[k]); });
+    const r = await fetch(`/admin/api/stats/overview?range=${range}`, { credentials: 'same-origin' });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (!j.success || !j.data) return;
+    const s = j.data;
 
-    if(s.signupsSeries?.length && window.OrbisCharts) OrbisCharts.line(document.getElementById('chart-ga-signups'),[{name:'Signups',values:s.signupsSeries.map(x=>x.value),color:'accent'}],{xLabels:s.signupsSeries.map(x=>x.label),height:220,label:'Signups'});
-    document.getElementById('ga-pageviews').textContent=fmt(s.gaPageViews);
-    document.getElementById('ga-conversions').textContent=fmt(s.gaConversions);
-    document.getElementById('ga-avg-time').textContent=s.gaAvgTime||'—';
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const k = el.getAttribute('data-key');
+      if (s[k] !== undefined) el.textContent = fmt(s[k]);
+    });
 
-    if(s.admob){document.getElementById('admob-revenue').textContent=fmtUsd(s.admob.revenue_today);document.getElementById('admob-impressions').textContent=fmt(s.admob.impressions_today);document.getElementById('admob-ecpm').textContent=fmtUsd(s.admob.ecpm_today);}
-    if(s.admobSparkline?.length && window.OrbisCharts) OrbisCharts.sparkline(document.getElementById('admob-spark'),s.admobSparkline,{height:80});
+    if (s.admob) {
+      document.getElementById('admob-revenue').textContent = fmtUsd(s.admob.revenue_today);
+      document.getElementById('admob-impressions').textContent = fmt(s.admob.impressions_today);
+      document.getElementById('admob-ecpm').textContent = fmtUsd(s.admob.ecpm_today);
+    } else {
+      document.getElementById('admob-revenue').textContent = '—';
+      document.getElementById('admob-impressions').textContent = '—';
+      document.getElementById('admob-ecpm').textContent = '—';
+    }
+    if (Array.isArray(s.admobSparkline) && s.admobSparkline.length && window.OrbisCharts) {
+      window.OrbisCharts.sparkline(document.getElementById('admob-spark'), s.admobSparkline, { height: 80 });
+    }
 
-    const tu=s.totalUsers||0, pp=tu>0?(s.premiumUsers/tu)*100:0;
-    document.getElementById('stat-premium-pct').textContent=fmtPct(pp);document.getElementById('stat-free-pct').textContent=fmtPct(100-pp);
-    document.getElementById('dist-premium-bar').style.width=pp+'%';
-    document.getElementById('conv-premium').textContent=fmtPct(pp);document.getElementById('conv-premium-bar').style.width=pp+'%';
-    const ap=tu>0?(s.activeToday/tu)*100:0;document.getElementById('conv-active').textContent=fmtPct(ap);document.getElementById('conv-active-bar').style.width=Math.min(ap,100)+'%';
-    const ep=tu>0?Math.min((s.totalAnalyses/tu/5)*100,100):0;document.getElementById('conv-engaged').textContent=fmtPct(ep);document.getElementById('conv-engaged-bar').style.width=ep+'%';
-    document.getElementById('credit-total').textContent=fmt(s.totalCredits);
-    document.getElementById('credit-avg').textContent=tu>0?(s.totalCredits/tu).toFixed(1):'0';
-    document.getElementById('analysis-avg').textContent=tu>0?(s.totalAnalyses/tu).toFixed(1):'0';
-  }catch(err){console.error(err);}
+    const totalUsers = s.totalUsers || 0;
+    const premiumPct = totalUsers > 0 ? (s.premiumUsers / totalUsers) * 100 : 0;
+    const freePct = 100 - premiumPct;
+    document.getElementById('stat-premium-pct').textContent = fmtPct(premiumPct);
+    document.getElementById('stat-free-pct').textContent = fmtPct(freePct);
+    document.getElementById('dist-premium-bar').style.width = premiumPct + '%';
+    document.getElementById('conv-premium').textContent = fmtPct(premiumPct);
+    document.getElementById('conv-premium-bar').style.width = premiumPct + '%';
 
-  try{const r=await fetch('/admin/api/stats/purchases',{credentials:'same-origin'});const j=await r.json();if(j.success){const p=j.data.last30Days;document.getElementById('purchase-premium').textContent=fmt(p.premiumPurchases);document.getElementById('purchase-credits').textContent=fmt(p.creditPurchases);document.getElementById('purchase-total-credits').textContent=fmt(p.totalCreditsSold);}}catch(e){}
+    const activePct = totalUsers > 0 ? (s.activeToday / totalUsers) * 100 : 0;
+    document.getElementById('conv-active').textContent = fmtPct(activePct);
+    document.getElementById('conv-active-bar').style.width = Math.min(activePct, 100) + '%';
+
+    const engagedPct = totalUsers > 0 ? Math.min((s.totalAnalyses / totalUsers / 5) * 100, 100) : 0;
+    document.getElementById('conv-engaged').textContent = fmtPct(engagedPct);
+    document.getElementById('conv-engaged-bar').style.width = engagedPct + '%';
+
+    document.getElementById('credit-total').textContent = fmt(s.totalCredits);
+    document.getElementById('credit-avg').textContent = totalUsers > 0 ? (s.totalCredits / totalUsers).toFixed(1) : '0';
+    document.getElementById('analysis-avg').textContent = totalUsers > 0 ? (s.totalAnalyses / totalUsers).toFixed(1) : '0';
+
+    document.getElementById('ga-pageviews').textContent = fmt(s.gaPageViews);
+    document.getElementById('ga-conversions').textContent = fmt(s.gaConversions);
+    document.getElementById('ga-avg-time').textContent = s.gaAvgTime || '—';
+
+    if (Array.isArray(s.signupsSeries) && s.signupsSeries.length && window.OrbisCharts) {
+      window.OrbisCharts.lineChart(document.getElementById('chart-ga-signups'),
+        [{ name: 'Signups', values: s.signupsSeries.map(x => x.value), color: 'primary' }],
+        { xLabels: s.signupsSeries.map(x => x.label), height: 220, label: 'Signups' });
+    }
+    if (Array.isArray(s.activeSeries) && s.activeSeries.length && window.OrbisCharts) {
+      window.OrbisCharts.lineChart(document.getElementById('chart-ga-sessions'),
+        [{ name: 'Sessions', values: s.activeSeries.map(x => x.value), color: 'accent' }],
+        { xLabels: s.activeSeries.map(x => x.label), height: 220, label: 'Sessions' });
+    }
+  } catch (err) {
+    console.error('stats/overview error:', err);
+  }
+
+  try {
+    const r = await fetch('/admin/api/stats/purchases', { credentials: 'same-origin' });
+    const j = await r.json();
+    if (j.success) {
+      const p = j.data.last30Days;
+      document.getElementById('purchase-premium').textContent = fmt(p.premiumPurchases);
+      document.getElementById('purchase-credits').textContent = fmt(p.creditPurchases);
+      document.getElementById('purchase-total-credits').textContent = fmt(p.totalCreditsSold);
+    }
+  } catch (err) {
+    console.error('stats/purchases error:', err);
+  }
+
+  try {
+    const r = await fetch(`/admin/api/analytics/overview?range=${range}`, { credentials: 'same-origin' });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.success && j.data && j.data.avgSessionDuration) {
+        const sec = Math.round(j.data.avgSessionDuration);
+        const m = Math.floor(sec / 60);
+        const s2 = sec % 60;
+        document.getElementById('ga-avg-time').textContent = m + 'dk ' + s2 + 'sn';
+      }
+    }
+  } catch (e) { /* silent */ }
+
+  try {
+    const r = await fetch(`/admin/api/admob/overview?range=${range}`, { credentials: 'same-origin' });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.success && j.data) {
+        const a = j.data;
+        if (a.revenue_usd !== undefined) document.getElementById('admob-revenue').textContent = fmtUsd(a.revenue_usd);
+        if (a.impressions !== undefined) document.getElementById('admob-impressions').textContent = fmt(a.impressions);
+        if (a.ecpm_usd !== undefined) document.getElementById('admob-ecpm').textContent = fmtUsd(a.ecpm_usd);
+        if (Array.isArray(a.rows) && a.rows.length && window.OrbisCharts) {
+          const series = a.rows.map(rw => (rw.estimatedEarningsMicros || 0) / 1e6);
+          window.OrbisCharts.sparkline(document.getElementById('admob-spark'), series, { height: 80 });
+        }
+      }
+    }
+  } catch (e) { /* silent */ }
 })();
 </script>
 {% endblock %}

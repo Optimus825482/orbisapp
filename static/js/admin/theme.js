@@ -1,7 +1,7 @@
 /**
- * ORBIS Admin — Theme (light/dark)
- * - No-flash: <head> inline script sets data-theme before this loads
- * - localStorage('orbis-theme') | OS preference
+ * ORBIS Admin — Theme (light only)
+ * Glassmorphism sadece light tema destekler (cam efekt light'ta daha iyi).
+ * - No-flash: <head> inline script data-theme=light yapıyor
  * - Fires 'orbis:themechange' event for chart re-render
  */
 (function () {
@@ -9,10 +9,6 @@
 
   var STORAGE_KEY = 'orbis-theme';
   var root = document.documentElement;
-
-  function current() {
-    return root.getAttribute('data-theme') || 'light';
-  }
 
   function apply(theme) {
     root.setAttribute('data-theme', theme);
@@ -29,44 +25,6 @@
     document.dispatchEvent(new CustomEvent('orbis:themechange', { detail: { theme: theme } }));
   }
 
-  // Init icon/label
-  function syncToggleUI(theme) {
-    var btn = document.getElementById('theme-toggle');
-    var icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
-    if (btn) {
-      btn.setAttribute('aria-label', theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç');
-      btn.setAttribute('title', theme === 'dark' ? 'Açık tema' : 'Koyu tema');
-    }
-  }
-
-  apply(current());
-  syncToggleUI(current());
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.addEventListener('click', function () {
-        var next = current() === 'dark' ? 'light' : 'dark';
-        apply(next);
-        syncToggleUI(next);
-      });
-    }
-  });
-
-  // OS preference change — only if user hasn't set explicit override
-  if (window.matchMedia) {
-    var mq = window.matchMedia('(prefers-color-scheme: dark)');
-    var onOSChange = function (e) {
-      var override = false;
-      try { override = !!localStorage.getItem(STORAGE_KEY); } catch (err) {}
-      if (!override) {
-        var next = e.matches ? 'dark' : 'light';
-        apply(next);
-        syncToggleUI(next);
-      }
-    };
-    if (mq.addEventListener) mq.addEventListener('change', onOSChange);
-    else if (mq.addListener) mq.addListener(onOSChange);
-  }
+  // Init: light-only (modern glassmorphism aesthetic)
+  apply('light');
 })();
