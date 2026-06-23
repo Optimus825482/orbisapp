@@ -1,242 +1,232 @@
 <!DOCTYPE html>
-<html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#1a1a24" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f5f5f8" media="(prefers-color-scheme: light)" />
-    <title>{% block title %}ORBIS Admin{% endblock %}</title>
+<html lang="tr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{% block title %}ORBIS Admin{% endblock %} · ORBIS</title>
 
-    <link rel="manifest" href="{{ url_for('static', filename='manifest-admin.json') }}" />
+  <script>
+    // No-flash theme init: set data-theme BEFORE first paint
+    (function () {
+      try {
+        var t = localStorage.getItem('orbis-theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
 
-    <!-- No-flash theme (runs before CSS) -->
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('orbis-theme');
-          if (!t) {
-            t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          document.documentElement.setAttribute('data-theme', t);
-          document.documentElement.style.colorScheme = t;
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'light');
-        }
-      })();
-    </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200&display=block"
+    rel="stylesheet" />
 
-    <!-- Fonts: Space Grotesk (display) + Inter (sans) + JetBrains Mono (numbers) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Material Icons (legacy, eski admin sayfaları) + Material Symbols (yeni) -->
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Round|Material+Icons+Outlined"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200"
-      rel="stylesheet"
-    />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260624" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260624" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=20260624" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20260624" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/motion.css') }}?v=20260624" />
 
-    <!-- Admin CSS (tokens → base → layout → components → motion) — Tailwind CDN kaldırıldı -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260623-4" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260623-4" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=20260623-4" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20260623-3" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/motion.css') }}?v=20260623-3" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <a href="#main" class="skip-link">İçeriğe geç</a>
 
-    {% block head %}{% endblock %}
-  </head>
-  <body>
-    <a href="#main" class="skip-link">İçeriğe geç</a>
+  <div class="app-shell{% if request.args.get('sidebar') == 'collapsed' %} is-collapsed{% endif %}{% if request.args.get('sidebar') == 'open' and not request.cookies.get('sidebar') %} is-mobile-open{% endif %}" id="app-shell">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
-    <div class="admin-shell">
-      <!-- ─── Sidebar ─────────────────────────────────────── -->
-      <aside class="admin-sidebar" aria-label="Ana navigasyon">
-        <div class="sidebar-brand">
-          <a href="{{ url_for('admin.dashboard') }}" class="sidebar-brand-link">
-            <span class="sidebar-brand-mark" aria-hidden="true">
-              <span class="material-symbols-outlined">all_inclusive</span>
-            </span>
-            <span class="sidebar-brand-text">
-              <span class="sidebar-brand-name">ORBIS</span>
-              <span class="sidebar-brand-sub">Admin Panel</span>
-            </span>
-          </a>
+    <aside class="sidebar" id="sidebar" aria-label="Ana navigasyon">
+      <div class="sidebar-brand">
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-brand-mark" aria-label="ORBIS Admin">∞</a>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-name">ORBIS</span>
+          <span class="sidebar-brand-sub">Admin</span>
         </div>
-
-        <nav class="sidebar-nav" aria-label="Sayfa menüsü">
-          <div class="sidebar-section">
-            <span class="sidebar-section-label">Ana Menü</span>
-            <ul class="sidebar-list" role="list">
-              <li>
-                <a href="{{ url_for('admin.dashboard') }}"
-                   class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}is-active{% endif %}"
-                   data-shortcut="g d">
-                  <span class="material-symbols-outlined">dashboard</span>
-                  <span>Dashboard</span>
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin.users') }}"
-                   class="sidebar-link {% if 'users' in (request.endpoint or '') %}is-active{% endif %}"
-                   data-shortcut="g u">
-                  <span class="material-symbols-outlined">group</span>
-                  <span>Kullanıcılar</span>
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin.push_notifications') }}"
-                   class="sidebar-link {% if request.endpoint == 'admin.push_notifications' %}is-active{% endif %}"
-                   data-shortcut="g p">
-                  <span class="material-symbols-outlined">notifications_active</span>
-                  <span>Push Bildirimleri</span>
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin.statistics') }}"
-                   class="sidebar-link {% if request.endpoint == 'admin.statistics' %}is-active{% endif %}"
-                   data-shortcut="g s">
-                  <span class="material-symbols-outlined">monitoring</span>
-                  <span>İstatistikler</span>
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin.pricing') }}"
-                   class="sidebar-link {% if request.endpoint == 'admin.pricing' %}is-active{% endif %}">
-                  <span class="material-symbols-outlined">sell</span>
-                  <span>Fiyat Yönetimi</span>
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin.ai_settings') }}"
-                   class="sidebar-link {% if request.endpoint == 'admin.ai_settings' %}is-active{% endif %}">
-                  <span class="material-symbols-outlined">neurology</span>
-                  <span>AI Yapılandırma</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="sidebar-section">
-            <span class="sidebar-section-label">Hızlı Erişim</span>
-            <ul class="sidebar-list" role="list">
-              <li>
-                <a href="{{ url_for('main.index') }}" target="_blank" rel="noopener" class="sidebar-link">
-                  <span class="material-symbols-outlined">open_in_new</span>
-                  <span>Siteyi Görüntüle</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </nav>
-
-        <div class="sidebar-foot">
-          <div class="admin-info">
-            <div class="admin-avatar" aria-hidden="true">
-              <span class="material-symbols-outlined">shield_person</span>
-            </div>
-            <div class="admin-info-text">
-              <span class="admin-info-name" id="admin-email">{{ session.get('admin_email', 'Admin') }}</span>
-              <span class="admin-info-role">Yönetici</span>
-            </div>
-          </div>
-          <a href="{{ url_for('admin.logout') }}" class="sidebar-link sidebar-link--icon" title="Çıkış" aria-label="Çıkış">
-            <span class="material-symbols-outlined">logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- ─── Main column ────────────────────────────────── -->
-      <div class="admin-main">
-        <header class="admin-topbar" role="banner">
-          <div class="admin-topbar-left">
-            <button class="icon-btn icon-btn--ghost" type="button" id="sidebar-toggle" aria-label="Menüyü aç/kapat" aria-expanded="true">
-              <span class="material-symbols-outlined">menu</span>
-            </button>
-            <div class="page-heading">
-              <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
-              <p class="page-subtitle">{% block page_subtitle %}ORBIS Yönetim Paneli{% endblock %}</p>
-            </div>
-          </div>
-
-          <div class="admin-topbar-right">
-            <span class="topbar-clock tabular" aria-live="polite">
-              <span id="current-time">--:--:--</span>
-              <span class="topbar-date" id="current-date">—</span>
-            </span>
-            <button class="icon-btn icon-btn--ghost" type="button" id="theme-toggle" aria-label="Tema değiştir">
-              <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
-            </button>
-            <button class="icon-btn icon-btn--ghost" type="button" onclick="location.reload()" aria-label="Yenile">
-              <span class="material-symbols-outlined">refresh</span>
-            </button>
-          </div>
-        </header>
-
-        <main id="main" class="admin-content" role="main">
-          {% block content %}{% endblock %}
-        </main>
       </div>
+
+      <nav class="sidebar-nav" aria-label="Sayfa menüsü">
+        <div class="sidebar-section">
+          <span class="sidebar-section-label">Ana Menü</span>
+          <ul class="sidebar-list">
+            <li>
+              <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link{% if request.endpoint == 'admin.dashboard' %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">space_dashboard</span></span>
+                <span class="sidebar-link-label">Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.users') }}" class="sidebar-link{% if request.endpoint and 'users' in request.endpoint %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">group</span></span>
+                <span class="sidebar-link-label">Kullanıcılar</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.push_notifications') }}" class="sidebar-link{% if request.endpoint == 'admin.push_notifications' %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">notifications</span></span>
+                <span class="sidebar-link-label">Push bildirimleri</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.statistics') }}" class="sidebar-link{% if request.endpoint == 'admin.statistics' %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">monitoring</span></span>
+                <span class="sidebar-link-label">İstatistikler</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-section">
+          <span class="sidebar-section-label">Yapılandırma</span>
+          <ul class="sidebar-list">
+            <li>
+              <a href="{{ url_for('admin.pricing') }}" class="sidebar-link{% if request.endpoint == 'admin.pricing' %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">payments</span></span>
+                <span class="sidebar-link-label">Fiyatlandırma</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.ai_settings') }}" class="sidebar-link{% if request.endpoint == 'admin.ai_settings' %} is-active{% endif %}">
+                <span class="sidebar-link-icon"><span class="material-symbols-outlined">neurology</span></span>
+                <span class="sidebar-link-label">AI ayarları</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar" aria-hidden="true">
+            <span class="material-symbols-outlined" style="font-size: 18px;">person</span>
+          </div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+            <div class="sidebar-user-email" id="sidebar-user-email">—</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin.logout') }}" class="icon-btn" title="Çıkış" aria-label="Çıkış yap">
+          <span class="material-symbols-outlined">logout</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="topbar" role="banner">
+        <div class="topbar-left">
+          <button type="button" id="sidebar-toggle" class="sidebar-toggle" aria-label="Menüyü aç/kapat">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <nav class="topbar-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ url_for('admin.dashboard') }}">Admin</a>
+            <span class="material-symbols-outlined">chevron_right</span>
+            <span class="topbar-breadcrumb-current">{% block page_title %}Dashboard{% endblock %}</span>
+          </nav>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-clock" aria-hidden="true">
+            <span class="topbar-clock-time tabular" id="topbar-time">--:--:--</span>
+            <span class="topbar-clock-date" id="topbar-date">—</span>
+          </div>
+          <button type="button" id="theme-toggle" class="icon-btn" aria-label="Tema değiştir">
+            <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main" class="app-content" role="main">
+        <div class="page-head">
+          <div class="page-head-text">
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            <p class="page-subtitle">{% block page_subtitle %}{% endblock %}</p>
+          </div>
+          <div class="page-actions">{% block page_actions %}{% endblock %}</div>
+        </div>
+        {% block content %}{% endblock %}
+      </main>
     </div>
+  </div>
 
-    <!-- Toast container -->
-    <div id="toast-container" class="toast-container" role="region" aria-label="Bildirimler"></div>
+  <div class="toast-container" id="toast-container" role="region" aria-label="Bildirimler"></div>
 
-    <!-- Admin JS (Tailwind preflight kaldırıldı) -->
-    <script src="{{ url_for('static', filename='js/admin/theme.js') }}?v=20260623-4" defer></script>
-    <script src="{{ url_for('static', filename='js/admin/shortcuts.js') }}?v=20260623-4" defer></script>
-    <script src="{{ url_for('static', filename='js/admin/charts.js') }}?v=20260623-4" defer></script>
+  <script src="{{ url_for('static', filename='js/admin/theme.js') }}?v=20260624" defer></script>
+  <script src="{{ url_for('static', filename='js/admin/shortcuts.js') }}?v=20260624" defer></script>
+  <script src="{{ url_for('static', filename='js/admin/charts.js') }}?v=20260624" defer></script>
 
-    <script>
-      // Clock (cheap, render-side)
-      (function () {
-        function tick() {
-          var now = new Date();
-          var tEl = document.getElementById('current-time');
-          var dEl = document.getElementById('current-date');
-          if (tEl) tEl.textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          if (dEl) dEl.textContent = now.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
+  <script>
+    // Sidebar toggle (desktop collapse + mobile drawer) + clock
+    (function () {
+      var STORAGE = 'orbis-admin-sidebar';
+      var shell = document.getElementById('app-shell');
+      var btn = document.getElementById('sidebar-toggle');
+      var backdrop = document.getElementById('sidebar-backdrop');
+      if (!btn || !shell) return;
+
+      function apply(state) {
+        if (state === 'collapsed') shell.classList.add('is-collapsed');
+        else shell.classList.remove('is-collapsed');
+        if (state === 'open' && window.innerWidth < 1024) {
+          shell.classList.add('is-mobile-open');
+          backdrop.classList.add('is-open');
+        } else {
+          shell.classList.remove('is-mobile-open');
+          backdrop.classList.remove('is-open');
         }
-        tick();
-        setInterval(tick, 1000);
-      })();
+      }
+
+      var saved = null;
+      try { saved = localStorage.getItem(STORAGE); } catch (e) {}
+      if (saved) apply(saved);
+
+      btn.addEventListener('click', function () {
+        var isMobile = window.innerWidth < 1024;
+        if (isMobile) {
+          var open = !shell.classList.contains('is-mobile-open');
+          apply(open ? 'open' : 'closed');
+        } else {
+          var collapsed = shell.classList.contains('is-collapsed');
+          apply(collapsed ? 'open' : 'collapsed');
+          try { localStorage.setItem(STORAGE, collapsed ? 'open' : 'collapsed'); } catch (e) {}
+        }
+      });
+      backdrop.addEventListener('click', function () {
+        apply('closed');
+        try { localStorage.setItem(STORAGE, 'closed'); } catch (e) {}
+      });
+
+      // Clock
+      function tick() {
+        var now = new Date();
+        var t = document.getElementById('topbar-time');
+        var d = document.getElementById('topbar-date');
+        if (t) t.textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (d) d.textContent = now.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
+      }
+      tick();
+      setInterval(tick, 1000);
 
       // Toast (global)
       window.showToast = function (message, type) {
         type = type || 'info';
         var container = document.getElementById('toast-container');
         if (!container) return;
-        var toast = document.createElement('div');
-        toast.className = 'toast toast--' + type;
-        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        var t = document.createElement('div');
+        t.className = 'toast toast--' + type;
+        t.setAttribute('role', type === 'error' ? 'alert' : 'status');
         var icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
-        toast.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + icon + '</span>' +
-                          '<span class="toast-message"></span>';
-        toast.querySelector('.toast-message').textContent = message;
-        container.appendChild(toast);
-        // Reduced motion: instant
-        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        setTimeout(function () { toast.classList.add('toast--leave'); }, 3500);
-        setTimeout(function () { toast.remove(); }, reduce ? 3500 : 4000);
+        t.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + icon + '</span><span></span>';
+        t.querySelector('span:last-child').textContent = message;
+        container.appendChild(t);
+        setTimeout(function () { t.classList.add('toast--leave'); }, 3500);
+        setTimeout(function () { t.remove(); }, 4000);
       };
 
-      // Number / date helpers
+      // Format helpers
       window.formatNumber = function (n) {
         if (n === null || n === undefined) return '—';
         return new Intl.NumberFormat('tr-TR').format(n);
-      };
-      window.formatCurrency = function (n, cur) {
-        if (n === null || n === undefined) return '—';
-        cur = cur || 'TRY';
-        try {
-          return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n);
-        } catch (e) { return String(n); }
       };
       window.formatPercent = function (n) {
         if (n === null || n === undefined) return '—';
@@ -246,45 +236,19 @@
         if (!s) return '—';
         var d = new Date(s);
         if (isNaN(d.getTime())) return '—';
-        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
       };
+    })();
+  </script>
 
-      // Sidebar toggle (hamburger) — mobile + desktop collapse
-      (function () {
-        var btn = document.getElementById('sidebar-toggle');
-        if (!btn) return;
-        var STORAGE_KEY = 'orbis-admin-sidebar';
-        var initial = localStorage.getItem(STORAGE_KEY);
-        if (initial === 'collapsed') {
-          document.body.classList.add('sidebar-collapsed');
-          btn.setAttribute('aria-expanded', 'false');
-        }
-        btn.addEventListener('click', function () {
-          var isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-          btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-          try { localStorage.setItem(STORAGE_KEY, isCollapsed ? 'collapsed' : 'open'); } catch (e) {}
-        });
-        // ESC ile kapat (mobile)
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && window.innerWidth < 768 &&
-              !document.body.classList.contains('sidebar-collapsed')) {
-            document.body.classList.add('sidebar-collapsed');
-            btn.setAttribute('aria-expanded', 'false');
-            try { localStorage.setItem(STORAGE_KEY, 'collapsed'); } catch (e) {}
-          }
-        });
-      })();
-    </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('{{ url_for("static", filename="sw-admin.js") }}').catch(function () {});
+      });
+    }
+  </script>
 
-    <!-- Service worker (admin PWA) -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('{{ url_for("static", filename="sw-admin.js") }}').catch(function () {});
-        });
-      }
-    </script>
-
-    {% block scripts %}{% endblock %}
-  </body>
+  {% block scripts %}{% endblock %}
+</body>
 </html>

@@ -1,178 +1,183 @@
 {% extends "admin/layout.html" %}
-{% block title %}ORBIS Admin · Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Genel Bakış{% endblock %}
+{% block page_subtitle %}Operasyonel genel bakış — bugünün ve trendlerin özeti{% endblock %}
 
 {% block content %}
-{% import 'admin/components/metric_card.html' as metric %}
-{% import 'admin/components/period_selector.html' as period %}
-{% import 'admin/components/chart_card.html' as chart %}
-
-{% set ns = namespace(range=request.args.get('range', '7d')) %}
-
-<div class="grid grid--kpi stagger" id="kpi-row">
-  {{ metric.card(label='Toplam Kullanıcı', value='-', icon='group', data_key='totalUsers') }}
-  {{ metric.card(label='Aktif (Bugün)', value='-', icon='online_prediction', data_key='activeToday') }}
-  {{ metric.card(label='Premium', value='-', icon='workspace_premium', data_key='premiumUsers') }}
-  {{ metric.card(label='Bugün Yapılan Analiz', value='-', icon='auto_awesome', data_key='analysesToday') }}
-</div>
-
-<div class="row row--between" style="margin: var(--space-8) 0 var(--space-4);">
-  <div>
-    <h2 style="font-size: 14px; font-weight: 600;">Zaman aralığı</h2>
-    <p class="text-ink-faint" style="font-size: 12px; margin-top: 2px;">Tüm metrikler aynı periyodu paylaşır</p>
+<!-- ═══ KPI Row ═══ -->
+<div class="grid grid--4 stagger" style="margin-bottom: var(--space-7);">
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Toplam Kullanıcı</span>
+      <span class="metric-icon"><span class="material-symbols-outlined">group</span></span>
+    </div>
+    <div class="metric-value" data-key="totalUsers">—</div>
+    <div class="metric-foot">
+      <span class="metric-trend" data-trend="totalUsers"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span>vs önceki dönem</span>
+    </div>
   </div>
-  {{ period.selector(current=ns.range, base_url=request.path) }}
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Aktif (Bugün)</span>
+      <span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">online_prediction</span></span>
+    </div>
+    <div class="metric-value" data-key="activeToday">—</div>
+    <div class="metric-foot">
+      <span class="metric-trend" data-trend="activeToday"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span>vs önceki dönem</span>
+    </div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Premium</span>
+      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">workspace_premium</span></span>
+    </div>
+    <div class="metric-value" data-key="premiumUsers">—</div>
+    <div class="metric-foot">
+      <span class="metric-trend" data-trend="premiumUsers"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span>vs önceki dönem</span>
+    </div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Bugün Yapılan Analiz</span>
+      <span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">auto_awesome</span></span>
+    </div>
+    <div class="metric-value" data-key="analysesToday">—</div>
+    <div class="metric-foot">
+      <span class="metric-trend" data-trend="analysesToday"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span>vs önceki dönem</span>
+    </div>
+  </div>
 </div>
 
-<div class="grid grid--2 stagger">
-  {{ chart.card(title='Signups', subtitle='Yeni kullanıcı kayıtları', chart_id='chart-signups',
-       series=[{'name':'Signups','values':[3,5,8,12,7,15,18,22], 'color':'primary'}],
-       x_labels=['1','2','3','4','5','6','7','8'],
-       current_range=ns.range, base_url=request.path, label='Signups') }}
-  {{ chart.card(title='Aktif Kullanıcılar', subtitle='Günlük aktif kullanıcılar', chart_id='chart-active',
-       series=[{'name':'Aktif','values':[120,135,142,158,165,180,195,210], 'color':'accent'}],
-       x_labels=['1','2','3','4','5','6','7','8'],
-       current_range=ns.range, base_url=request.path, label='Aktif kullanıcılar') }}
-</div>
-
-<div class="grid grid--2 stagger" style="margin-top: var(--space-6);">
-  {{ chart.card(title='Premium Dönüşüm', subtitle="Premium'a geçen kullanıcılar", chart_id='chart-premium',
-       series=[{'name':'Premium','values':[2,4,6,8,5,9,12,15], 'color':'primary'}],
-       x_labels=['1','2','3','4','5','6','7','8'],
-       current_range=ns.range, base_url=request.path, label='Premium dönüşüm') }}
-  {{ chart.card(title='Gelir (IAP + Premium)', subtitle='TRY cinsinden günlük gelir', chart_id='chart-revenue',
-       series=[{'name':'TRY','values':[450,820,1200,1850,2400,3100,4200,5800], 'color':'success'}],
-       x_labels=['1','2','3','4','5','6','7','8'],
-       current_range=ns.range, base_url=request.path, label='Gelir') }}
-</div>
-
-<div class="grid grid--12 stagger" style="margin-top: var(--space-6);">
+<!-- ═══ AdMob performance ═══ -->
+<div class="grid grid--12 stagger" style="margin-bottom: var(--space-7);">
   <section class="card col-span-8">
-    <header class="card-header">
+    <header class="card-head">
       <div>
-        <h2 class="card-title">AdMob Performans</h2>
-        <p class="card-subtitle">Reklam geliri ve impression trendi</p>
+        <h2 class="card-title">AdMob performansı</h2>
+        <p class="card-subtitle">Gelir, impression ve eCPM trendi</p>
       </div>
       <span class="badge badge--dot badge--success">Canlı</span>
     </header>
-    <div class="grid grid--3">
-      <div>
-        <div class="eyebrow">Bugün Gelir</div>
-        <div class="metric-value tabular" data-admob="revenue_today">—</div>
+    <div class="card-body">
+      <div class="grid grid--3" style="margin-bottom: var(--space-5);">
+        <div>
+          <div class="text-faint" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Bugün Gelir</div>
+          <div class="metric-value metric-value--sm tabular" data-admob="revenue_today">—</div>
+        </div>
+        <div>
+          <div class="text-faint" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Impression</div>
+          <div class="metric-value metric-value--sm tabular" data-admob="impressions_today">—</div>
+        </div>
+        <div>
+          <div class="text-faint" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">eCPM</div>
+          <div class="metric-value metric-value--sm tabular" data-admob="ecpm_today">—</div>
+        </div>
       </div>
-      <div>
-        <div class="eyebrow">Impression</div>
-        <div class="metric-value tabular" data-admob="impressions_today">—</div>
-      </div>
-      <div>
-        <div class="eyebrow">eCPM</div>
-        <div class="metric-value tabular" data-admob="ecpm_today">—</div>
-      </div>
+      <div class="metric-spark" id="admob-spark" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}'></div>
     </div>
-    <div class="metric-spark" id="admob-spark" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}' style="height: 60px; margin-top: var(--space-4);"></div>
   </section>
 
   <section class="card col-span-4">
-    <header class="card-header">
+    <header class="card-head">
       <div>
-        <h2 class="card-title">Son Aktivite</h2>
+        <h2 class="card-title">Son aktivite</h2>
         <p class="card-subtitle">Operasyonel olaylar</p>
       </div>
     </header>
-    <ul class="activity" id="activity-feed" aria-live="polite" aria-relevant="additions">
-      <li class="empty" style="padding: var(--space-8) 0;">
-        <div class="empty-icon"><span class="material-symbols-outlined" aria-hidden="true">inbox</span></div>
-        <div class="empty-title">Henüz aktivite yok</div>
-        <div class="empty-desc">Yeni kayıt, premium aktivasyon veya push kampanyası burada görünür.</div>
-      </li>
-    </ul>
+    <div class="card-body" style="padding: 0;">
+      <div id="activity-list" style="padding: var(--space-4) var(--space-6);">
+        <div class="empty-state" style="padding: var(--space-6) 0;">
+          <span class="material-symbols-outlined text-faint" style="font-size: 32px;">inbox</span>
+          <div class="text-faint" style="font-size: 13px;">Yükleniyor…</div>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
+<!-- ═══ Trend charts ═══ -->
+<div class="grid grid--2 stagger">
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Yeni kullanıcı kayıtları</h2>
+        <p class="card-subtitle">Son 7 günlük signup trendi</p>
+      </div>
+      <span class="badge badge--neutral">7d</span>
+    </header>
+    <div class="card-body">
+      <div class="chart" id="chart-signups" data-chart='{"type":"line","label":"Signups","series":[{"name":"Signups","values":[3,5,8,12,7,15,18,22],"color":"accent"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">Aktif kullanıcılar</h2>
+        <p class="card-subtitle">Günlük aktif kullanıcılar</p>
+      </div>
+      <span class="badge badge--neutral">7d</span>
+    </header>
+    <div class="card-body">
+      <div class="chart" id="chart-active" data-chart='{"type":"line","label":"Aktif","series":[{"name":"Aktif","values":[120,135,142,158,165,180,195,210],"color":"info"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
+    </div>
+  </section>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.OrbisCharts) {
-      document.querySelectorAll('[data-chart]').forEach(function (el) {
-        try {
-          var data = JSON.parse(el.getAttribute('data-chart'));
-          if (data.type === 'sparkline') {
-            window.OrbisCharts.sparkline(el, data.values, data.opts || {});
-          } else if (data.type === 'line') {
-            window.OrbisCharts.lineChart(el, data.series || [], {
-              xLabels: data.xLabels || [],
-              height: (data.opts && data.opts.height) || 240,
-              label: data.label
-            });
-          } else if (data.type === 'bar') {
-            window.OrbisCharts.barChart(el, data.bars || [], { height: 240, label: data.label });
-          }
-        } catch (e) {}
+(async function () {
+  const range = new URLSearchParams(window.location.search).get('range') || '7d';
+  const fmt = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : new Intl.NumberFormat('tr-TR').format(Math.round(n));
+
+  try {
+    const r = await fetch(`/admin/api/stats/overview?range=${range}`, { credentials: 'same-origin' });
+    const j = await r.json();
+    if (!j.success) return;
+    const s = j.data;
+
+    document.querySelectorAll('[data-key]').forEach((el) => {
+      const k = el.getAttribute('data-key');
+      if (s[k] !== undefined) el.textContent = fmt(s[k]);
+    });
+
+    if (s.admob) {
+      document.querySelectorAll('[data-admob]').forEach((el) => {
+        const k = el.getAttribute('data-admob');
+        const v = s.admob[k];
+        if (v === undefined) { el.textContent = '—'; return; }
+        el.textContent = k === 'revenue_today' || k === 'ecpm_today' ? '$' + Number(v).toFixed(2) : fmt(v);
       });
     }
-    loadDashboardData();
-  });
 
-  async function loadDashboardData() {
-    try {
-      var res = await fetch('/admin/api/stats/overview?range={{ request.args.get('range', '7d') }}', { credentials: 'same-origin' });
-      if (!res.ok) return;
-      var json = await res.json();
-      if (!json.success || !json.data) return;
-      var d = json.data;
-
-      var map = { totalUsers: d.totalUsers, activeToday: d.activeToday, premiumUsers: d.premiumUsers, analysesToday: d.analysesToday };
-      Object.keys(map).forEach(function (k) {
-        var el = document.querySelector('[data-key="' + k + '"]');
-        if (el) el.textContent = formatNumber(map[k]);
-      });
-
-      if (Array.isArray(d.signupsSeries) && d.signupsSeries.length) {
-        OrbisCharts.lineChart(document.getElementById('chart-signups'),
-          [{ name: 'Signups', values: d.signupsSeries.map(function (x) { return x.value; }), color: 'primary' }],
-          { xLabels: d.signupsSeries.map(function (x) { return x.label; }), height: 240, label: 'Signups' });
-      }
-      if (Array.isArray(d.activeSeries) && d.activeSeries.length) {
-        OrbisCharts.lineChart(document.getElementById('chart-active'),
-          [{ name: 'Aktif', values: d.activeSeries.map(function (x) { return x.value; }), color: 'accent' }],
-          { xLabels: d.activeSeries.map(function (x) { return x.label; }), height: 240, label: 'Aktif' });
-      }
-
-      if (d.admob) {
-        var rev = document.querySelector('[data-admob="revenue_today"]');
-        var imp = document.querySelector('[data-admob="impressions_today"]');
-        var ecpm = document.querySelector('[data-admob="ecpm_today"]');
-        if (rev) rev.textContent = formatCurrency(d.admob.revenue_today, 'USD');
-        if (imp) imp.textContent = formatNumber(d.admob.impressions_today);
-        if (ecpm) ecpm.textContent = '$' + (d.admob.ecpm_today || 0).toFixed(2);
-      }
-      if (Array.isArray(d.admobSparkline) && d.admobSparkline.length) {
-        OrbisCharts.sparkline(document.getElementById('admob-spark'), d.admobSparkline, { height: 60 });
-      }
-
-      if (Array.isArray(d.activity) && d.activity.length) {
-        var feed = document.getElementById('activity-feed');
-        if (feed) {
-          feed.innerHTML = d.activity.map(function (a) {
-            var icon = a.type === 'premium' ? 'workspace_premium' : a.type === 'signup' ? 'person_add' : a.type === 'error' ? 'error' : 'info';
-            var dir = a.type === 'premium' || a.type === 'signup' ? 'up' : a.type === 'error' ? 'down' : 'info';
-            return '<li class="activity-item">' +
-              '<div class="activity-icon activity-icon--' + dir + '" aria-hidden="true"><span class="material-symbols-outlined">' + icon + '</span></div>' +
-              '<div class="activity-body"><div class="activity-title">' + escapeHtml(a.title) + '</div><div class="activity-meta">' + escapeHtml(a.meta || '') + '</div></div>' +
-              '<div class="activity-time">' + (a.relative || formatDate(a.at)) + '</div>' +
-            '</li>';
-          }).join('');
-        }
-      }
-    } catch (e) { console.warn('[admin] dashboard load failed', e); }
+    if (Array.isArray(s.activity) && s.activity.length && window.OrbisCharts) {
+      const list = document.getElementById('activity-list');
+      list.innerHTML = s.activity.slice(0, 8).map((a) => `
+        <div class="info-row" style="padding: var(--space-3) 0;">
+          <div>
+            <div style="font-size: 13px; color: var(--ink);">${escapeHtml(a.title || '')}</div>
+            <div style="font-size: 11px; color: var(--ink-faint); margin-top: 2px;">${escapeHtml(a.meta || '')}</div>
+          </div>
+          <span class="text-faint" style="font-size: 11px; flex-shrink: 0;">${escapeHtml(a.relative || '')}</span>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Dashboard load error:', err);
   }
 
   function escapeHtml(s) {
-    if (!s) return '';
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
+})();
 </script>
 {% endblock %}
