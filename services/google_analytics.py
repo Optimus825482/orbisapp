@@ -14,6 +14,22 @@ logger = logging.getLogger(__name__)
 _cache: Dict[str, tuple] = {}  # key -> (expires_at, value)
 CACHE_TTL = 3600  # 1 saat
 
+# GA4 'date' dimension değeri "YYYYMMDD" → "23 Haz" gibi kısa Türkçe etiket
+_MONTHS_TR = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
+              'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
+
+
+def _fmt_date(d: str) -> str:
+    """GA4 'YYYYMMDD' → '23 Haz' gibi kısa etiket. Beklenmeyen formatta olduğu gibi döner."""
+    if not d or len(d) < 8 or not d.isdigit():
+        return d
+    try:
+        day = int(d[6:8])
+        month = int(d[4:6])
+        return f'{day} {_MONTHS_TR[month]}'
+    except (ValueError, IndexError):
+        return d
+
 
 def _get_property_id() -> Optional[str]:
     return os.environ.get('GA4_PROPERTY_ID')
@@ -98,6 +114,7 @@ def _run_report(date_range: str = '7d') -> Optional[Dict[str, Any]]:
                 Metric(name='sessions'),
                 Metric(name='screenPageViews'),
                 Metric(name='conversions'),
+                Metric(name='averageSessionDuration'),
             ],
             date_ranges=[DateRange(start_date=f'{days}daysAgo', end_date='today')],
         )
@@ -111,6 +128,7 @@ def _run_report(date_range: str = '7d') -> Optional[Dict[str, Any]]:
                     'sessions': int(r.metric_values[1].value),
                     'pageViews': int(r.metric_values[2].value),
                     'conversions': int(r.metric_values[3].value),
+                    'avgDuration': float(r.metric_values[4].value),
                 }
                 for r in resp.rows
             ],
@@ -132,14 +150,21 @@ def get_overview(date_range: str = '7d') -> Optional[Dict[str, Any]]:
     total_sessions = sum(r['sessions'] for r in rows)
     total_pageviews = sum(r['pageViews'] for r in rows)
     total_conversions = sum(r['conversions'] for r in rows)
+    # Ağırlıklı ortalama session süresi (saniye → "1m 24s")
+    if total_sessions > 0:
+        avg_sec = sum(r.get('avgDuration', 0) * r['sessions'] for r in rows) / total_sessions
+        avg_str = f'{int(avg_sec // 60)}m {int(avg_sec % 60)}s'
+    else:
+        avg_str = '—'
     return {
         'range': date_range,
         'totalUsers': total_users,
         'totalSessions': total_sessions,
         'totalPageViews': total_pageviews,
         'totalConversions': total_conversions,
-        'usersSeries': [{'label': r['date'][-5:], 'value': r['users']} for r in rows],
-        'sessionsSeries': [{'label': r['date'][-5:], 'value': r['sessions']} for r in rows],
+        'avgSessionDuration': avg_str,
+        'usersSeries': [{'label': _fmt_date(r['date']), 'value': r['users']} for r in rows],
+        'sessionsSeries': [{'label': _fmt_date(r['date']), 'value': r['sessions']} for r in rows],
     }
 
 

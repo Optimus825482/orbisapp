@@ -20,6 +20,21 @@ _cache: Dict[str, tuple] = {}
 TOKEN_URL = 'https://oauth2.googleapis.com/token'
 ADMob_API = 'https://admob.googleapis.com/v1'
 
+# AdMob 'DATE' dimension değeri "YYYYMMDD" → "23 Haz" gibi kısa Türkçe etiket
+_MONTHS_TR = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
+              'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
+
+
+def _fmt_date(d: str) -> str:
+    if not d or len(d) < 8 or not d.isdigit():
+        return d
+    try:
+        day = int(d[6:8])
+        month = int(d[4:6])
+        return f'{day} {_MONTHS_TR[month]}'
+    except (ValueError, IndexError):
+        return d
+
 
 def _get_config() -> Optional[Dict[str, str]]:
     """OAuth2 config. None dönerse admin dashboard 'credentials missing' gösterir."""
@@ -87,8 +102,60 @@ def _api_get(path: str, cfg: Dict[str, str], params: Optional[Dict] = None) -> O
         return None
 
 
+def _api_post(path: str, cfg: Dict[str, str], body: Dict) -> Optional[Any]:
+    """AdMob report generate (POST + async polling)."""
+    token = _get_access_token(cfg)
+    if not token:
+        return None
+    try:
+        resp = requests.post(
+            f'{ADMob_API}{path}',
+            json=body,
+            headers={'Authorization': f'Bearer {token}'},
+            timeout=30,
+        )
+        if resp.status_code in (200, 201):
+            return resp.json()
+        logger.warning('[AdMob] generate HTTP %s: %s', resp.status_code, resp.text[:300])
+        return None
+    except Exception:
+        logger.exception('[AdMob] generate call failed: %s', path)
+        return None
+
+
+def _generate_and_poll(path: str, body: Dict, cfg: Dict[str, str], max_wait: int = 30) -> Optional[Any]:
+    """AdMob v1: generateReport async → poll sonucu al."""
+    initial = _api_post(path, cfg, body)
+    if not initial:
+        return None
+    # Eğer sync response (bazı küçük raporlar) hemen dönerse
+    if isinstance(initial, dict) and initial.get('rows') is not None:
+        return initial
+    report_name = initial.get('report') or initial.get('name')
+    if not report_name:
+        return initial
+    deadline = time.time() + max_wait
+    while time.time() < deadline:
+        time.sleep(2)
+        data = _api_get(f'/{report_name}', cfg)
+        if not data:
+            continue
+        state = data.get('state') or data.get('reportState') or 'DONE'
+        if state in ('DONE', 'READY', 'COMPLETED', 'SUCCESS', ''):
+            return data
+        if state in ('FAILED', 'ERROR'):
+            logger.error('[AdMob] report failed: %s', data)
+            return None
+    logger.warning('[AdMob] report poll timeout')
+    return None
+
+
 def get_overview(date_range: str = '30d') -> Optional[Dict[str, Any]]:
-    """Reklam performans özeti: revenue, impressions, eCPM."""
+    """Reklam performans özeti: revenue, impressions, eCPM.
+
+    AdMob API v1: networkReport:generate (POST) → async GET aynı name ile.
+    Dönen rows: [{ "row": { "dimensionValues": {...}, "metricValues": {...} } }, ...]
+    """
     cfg = _get_config()
     if not cfg:
         return None
@@ -97,40 +164,77 @@ def get_overview(date_range: str = '30d') -> Optional[Dict[str, Any]]:
     if cached is not None:
         return cached
 
-    days = {'7d': 7, '30d': 30, '90d': 90}.get(date_range, 30)
-    spec = {
-        'date_range': {
-            'start_date': {'year': time.gmtime().tm_year, 'month': time.gmtime().tm_mon, 'day': 1},
-            'end_date': {'year': time.gmtime().tm_year, 'month': time.gmtime().tm_mon, 'day': time.gmtime().tm_mday},
-        },
-        'metrics': ['ESTIMATED_EARNINGS', 'IMPRESSIONS', 'IMPRESSION_CTR', 'OBSERVED_ECPM'],
-        'dimension_filters': {},
-    }
-    # Sadece son N gün (rough)
     import datetime
+    days = {'7d': 7, '30d': 30, '90d': 90}.get(date_range, 30)
     end = datetime.date.today()
     start = end - datetime.timedelta(days=days)
-    spec['date_range'] = {
-        'start_date': {'year': start.year, 'month': start.month, 'day': start.day},
-        'end_date': {'year': end.year, 'month': end.month, 'day': end.day},
+
+    account_id = _strip_pub(cfg['publisher_id'])
+    spec = {
+        'reportSpec': {
+            'dateRange': {
+                'startDate': {'year': start.year, 'month': start.month, 'day': start.day},
+                'endDate': {'year': end.year, 'month': end.month, 'day': end.day},
+            },
+            'metrics': ['ESTIMATED_EARNINGS', 'IMPRESSIONS', 'IMPRESSION_CTR', 'OBSERVED_ECPM'],
+            'dimensions': ['DATE'],
+            'localizationSettings': {'currencyCode': 'USD', 'languageCode': 'en-US'},
+        }
     }
 
-    data = _api_get(
-        f'/accounts/{_strip_pub(cfg["publisher_id"])}/mediationReport:generate',
-        cfg,
-        params={},
-    ) if False else None
-    # AdMob API: generate report → async polling. Skip full impl; return cached
-    # placeholder or None for now.
-    if not data:
-        # Fallback: empty result. Real impl needs account networkReport.
-        data = {'rows': []}
+    data = _generate_and_poll(
+        f'/accounts/{account_id}/networkReport:generate',
+        spec, cfg, max_wait=45,
+    )
+    rows = []
+    if data and isinstance(data, list):
+        rows = data
+    elif data and isinstance(data, dict):
+        rows = data.get('rows', [])
+
+    # Aggregate totals + daily series
+    total_revenue = 0.0
+    total_impressions = 0
+    daily = []
+    for r in rows:
+        row = r.get('row', r) if isinstance(r, dict) else {}
+        mv = row.get('metricValues', {}) or {}
+        def _num(d, key):
+            cell = d.get(key, {}) or {}
+            if 'microsValue' in cell:
+                try:
+                    return float(cell['microsValue']) / 1e6
+                except Exception:
+                    return 0.0
+            if 'doubleValue' in cell:
+                try:
+                    return float(cell['doubleValue'])
+                except Exception:
+                    return 0.0
+            if 'intValue' in cell:
+                try:
+                    return int(cell['intValue'])
+                except Exception:
+                    return 0
+            return 0
+        rev = _num(mv, 'ESTIMATED_EARNINGS')
+        imp = _num(mv, 'IMPRESSIONS')
+        total_revenue += rev
+        total_impressions += int(imp)
+        dv = row.get('dimensionValues', {}) or {}
+        date_cell = dv.get('DATE', {}) or {}
+        d_str = date_cell.get('value', '') or ''
+        daily.append({'date': _fmt_date(d_str), 'date_raw': d_str,
+                      'revenue_usd': rev, 'impressions': int(imp)})
+
+    ecpm = (total_revenue / total_impressions * 1000.0) if total_impressions else 0.0
+
     result = {
         'range': date_range,
-        'revenue_usd': 0.0,
-        'impressions': 0,
-        'ecpm_usd': 0.0,
-        'rows': data.get('rows', []),
+        'revenue_usd': round(total_revenue, 4),
+        'impressions': int(total_impressions),
+        'ecpm_usd': round(ecpm, 4),
+        'rows': daily,
     }
     _cache_set(cache_key, result)
     return result

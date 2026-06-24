@@ -61,6 +61,25 @@ class StatsCounter:
         except Exception as e:
             logger.error(f"[Stats] set_active_today error: {e}")
 
+    def _increment_today_counter(self, field: str):
+        """Bugünlük counter: gün değiştiyse sıfırla, sonra Increment."""
+        if not self.db:
+            return
+        try:
+            from datetime import datetime
+            from firebase_admin import firestore
+            today = datetime.now().strftime("%Y-%m-%d")
+            doc = self._doc.get()
+            data = doc.to_dict() or {}
+            cur_date = data.get(f'{field}_date')
+            doc_ref = self._doc
+            if cur_date != today:
+                doc_ref.update({field: 0, f'{field}_date': today, field: firestore.Increment(1)})
+            else:
+                doc_ref.update({field: firestore.Increment(1)})
+        except Exception as e:
+            logger.error(f"[Stats] today counter error ({field}): {e}")
+
     # ═══════════════════════════════════════════════════════════════
     # PUBLIC API - Kullanici islemleri
     # ═══════════════════════════════════════════════════════════════
@@ -102,6 +121,7 @@ class StatsCounter:
     def on_analysis_completed(self):
         """Analiz yapildi"""
         self._increment(FIELD_TOTAL_ANALYSES, 1)
+        self._increment_today_counter('analyses_today')
 
     def on_daily_activity(self, today: str):
         """Gunluk aktif kullanici sayisini guncelle"""

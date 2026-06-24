@@ -219,6 +219,7 @@ def get_stats_overview():
             'totalCredits': stats.get('total_credits', 0),
             'totalAnalyses': stats.get('total_analyses', 0),
             'activeToday': stats.get('active_today', 0),
+            'analysesToday': stats.get('analyses_today', 0),
             'lastLoginEmail': stats.get('last_login_email', ''),
             'lastLoginName': stats.get('last_login_name', ''),
             'lastLoginTime': stats.get('last_login_time', ''),
@@ -239,11 +240,16 @@ def _attach_ga_data(date_range: str) -> dict:
         data = get_overview(date_range)
         if not data:
             return {}
+        rows = data.get('rows', []) or []
+        today = rows[-1] if rows else {}
         return {
             'signupsSeries': data.get('usersSeries', []),
             'activeSeries': data.get('sessionsSeries', []),
             'gaConversions': data.get('totalConversions', 0),
             'gaPageViews': data.get('totalPageViews', 0),
+            'gaUsersToday': today.get('users', 0),
+            'gaSessionsToday': today.get('sessions', 0),
+            'gaAvgTime': data.get('avgSessionDuration', '—'),
         }
     except Exception:
         return {}

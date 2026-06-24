@@ -212,25 +212,41 @@
     if (!j.success || !j.data) return;
     const s = j.data;
 
-    // KPI values
+    // KPI values (data-key attribute'li elementler)
     document.querySelectorAll('[data-key]').forEach((el) => {
       const k = el.getAttribute('data-key');
       if (s[k] !== undefined) el.textContent = fmt(s[k]);
     });
 
-    // AdMob values
-    if (s.admob) {
-      document.querySelectorAll('[data-admob]').forEach((el) => {
-        const k = el.getAttribute('data-admob');
-        const v = s.admob[k];
-        if (v === undefined) { el.textContent = '—'; return; }
-        el.textContent = k === 'revenue_today' || k === 'ecpm_today' ? '$' + Number(v).toFixed(2) : fmt(v);
-      });
+    // "Bugün Yapılan Analiz" — s.analysesToday yoksa aktif seri son değerini kullan
+    if (s.analysesToday !== undefined) {
+      const el = document.querySelector('[data-key="analysesToday"]');
+      if (el) el.textContent = fmt(s.analysesToday);
+    }
+    // Aktif (Bugün) için: s.activeToday varsa onu, yoksa activeSeries[son] değerini
+    const activeEl = document.querySelector('[data-key="activeToday"]');
+    if (activeEl) {
+      let val = s.activeToday;
+      if (val === undefined || val === 0) {
+        if (Array.isArray(s.activeSeries) && s.activeSeries.length) {
+          val = s.activeSeries[s.activeSeries.length - 1].value;
+        }
+      }
+      if (val !== undefined) activeEl.textContent = fmt(val);
     }
 
+    // AdMob values — yoksa "—"
+    const hasAdmob = s.admob && (s.admob.revenue_today || s.admob.impressions_today || s.admob.ecpm_today);
+    document.querySelectorAll('[data-admob]').forEach((el) => {
+      const k = el.getAttribute('data-admob');
+      const v = s.admob && s.admob[k];
+      if (!hasAdmob || v === undefined || v === 0) { el.textContent = '—'; return; }
+      el.textContent = k === 'revenue_today' || k === 'ecpm_today' ? '$' + Number(v).toFixed(2) : fmt(v);
+    });
+
     // Activity feed
-    if (Array.isArray(s.activity) && s.activity.length && window.OrbisCharts) {
-      const list = document.getElementById('activity-list');
+    const list = document.getElementById('activity-list');
+    if (Array.isArray(s.activity) && s.activity.length) {
       list.innerHTML = s.activity.slice(0, 8).map((a) => {
         var dir = a.type === 'premium' || a.type === 'signup' ? 'up' : a.type === 'error' ? 'down' : 'info';
         var icon = a.type === 'premium' ? 'workspace_premium' : a.type === 'signup' ? 'person_add' : a.type === 'error' ? 'error' : 'info';
@@ -243,6 +259,12 @@
           '<div class="activity-time">' + escapeHtml(a.relative || '') + '</div>' +
         '</li>';
       }).join('');
+    } else {
+      list.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);">' +
+        '<div class="empty-icon"><span class="material-symbols-outlined">inbox</span></div>' +
+        '<div class="empty-title">Henüz aktivite yok</div>' +
+        '<div class="empty-meta" style="font-size: 12px; color: var(--ink-faint); margin-top: 4px;">Yeni signup/premium/satış olayları buraya düşer</div>' +
+      '</li>';
     }
 
     // Update charts from API
