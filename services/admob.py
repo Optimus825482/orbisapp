@@ -313,8 +313,23 @@ def _strip_pub(p: str) -> str:
     return p.replace('pub-', '') if p else ''
 
 
+def _extract_app_id(a: Dict[str, Any]) -> str:
+    """AdMob v1 API: appId direkt string ('ca-app-pub-...').
+    Eski format: nested object {'appId': {'value': '...'}}.
+    İki formatı da güvenli handle et.
+    """
+    if not isinstance(a, dict):
+        return ''
+    app_id = a.get('appId', '')
+    if isinstance(app_id, dict):
+        return app_id.get('value', '') or ''
+    return str(app_id or '')
+
+
 def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
-    """Uygulama bazlı performans."""
+    """AdMob hesabına bağlı uygulamalar."""
+    if _is_in_cooldown():
+        return None
     cfg = _get_config()
     if not cfg:
         return None
@@ -325,15 +340,17 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
 
     parent = cfg['publisher_id'] if cfg['publisher_id'].startswith('pub-') else f'pub-{_strip_pub(cfg["publisher_id"])}'
     apps_data = _api_get(f'/accounts/{parent}/apps', cfg)
-    if not apps_data:
+    if not apps_data or not isinstance(apps_data, dict):
         return None
+    apps_list = apps_data.get('apps') or []
     result = [
         {
-            'appId': a.get('appId', {}).get('value', ''),
-            'name': a.get('name', ''),
-            'platform': a.get('platform', ''),
+            'appId': _extract_app_id(a),
+            'name': (a.get('name', '') if isinstance(a, dict) else '') or '',
+            'platform': (a.get('platform', '') if isinstance(a, dict) else '') or '',
         }
-        for a in apps_data.get('apps', [])
+        for a in apps_list
+        if isinstance(a, dict)
     ]
     _cache_set(cache_key, result)
     return result
