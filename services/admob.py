@@ -175,29 +175,37 @@ def _api_post(path: str, cfg: Dict[str, str], body: Dict) -> Optional[Any]:
 
 
 def _generate_and_poll(path: str, body: Dict, cfg: Dict[str, str], max_wait: int = 30) -> Optional[Any]:
-    """AdMob v1: generateReport async → poll sonucu al."""
+    """AdMob v1: generateReport async → poll sonucu al.
+
+    AdMob bazı durumlarda senkron olarak doğrudan rows listesi döndürür.
+    Bu durumda initial bir list olur; list/dict ayrımını güvenli yap.
+    """
     initial = _api_post(path, cfg, body)
     if not initial:
         return None
-    # Eğer sync response (bazı küçük raporlar) hemen dönerse
-    if isinstance(initial, dict) and initial.get('rows') is not None:
+    if isinstance(initial, list):
         return initial
-    report_name = initial.get('report') or initial.get('name')
-    if not report_name:
-        return initial
-    deadline = time.time() + max_wait
-    while time.time() < deadline:
-        time.sleep(2)
-        data = _api_get(f'/{report_name}', cfg)
-        if not data:
-            continue
-        state = data.get('state') or data.get('reportState') or 'DONE'
-        if state in ('DONE', 'READY', 'COMPLETED', 'SUCCESS', ''):
-            return data
-        if state in ('FAILED', 'ERROR'):
-            logger.error('[AdMob] report failed: %s', data)
-            return None
-    logger.warning('[AdMob] report poll timeout')
+    if isinstance(initial, dict):
+        if initial.get('rows') is not None:
+            return initial
+        report_name = initial.get('report') or initial.get('name')
+        if not report_name:
+            return initial
+        deadline = time.time() + max_wait
+        while time.time() < deadline:
+            time.sleep(2)
+            data = _api_get(f'/{report_name}', cfg)
+            if not data:
+                continue
+            state = data.get('state') or data.get('reportState') or 'DONE'
+            if state in ('DONE', 'READY', 'COMPLETED', 'SUCCESS', ''):
+                return data
+            if state in ('FAILED', 'ERROR'):
+                logger.error('[AdMob] report failed: %s', data)
+                return None
+        logger.warning('[AdMob] report poll timeout')
+        return None
+    logger.warning('[AdMob] generate returned unexpected type: %s', type(initial).__name__)
     return None
 
 
@@ -315,7 +323,8 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
     if cached is not None:
         return cached
 
-    apps_data = _api_get(f'/accounts/{_strip_pub(cfg["publisher_id"])}/apps', cfg)
+    parent = cfg['publisher_id'] if cfg['publisher_id'].startswith('pub-') else f'pub-{_strip_pub(cfg["publisher_id"])}'
+    apps_data = _api_get(f'/accounts/{parent}/apps', cfg)
     if not apps_data:
         return None
     result = [
