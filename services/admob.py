@@ -340,9 +340,29 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
 
     parent = cfg['publisher_id'] if cfg['publisher_id'].startswith('pub-') else f'pub-{_strip_pub(cfg["publisher_id"])}'
     apps_data = _api_get(f'/accounts/{parent}/apps', cfg)
-    if not apps_data or not isinstance(apps_data, dict):
+    # Debug: response shape — bir sonraki deploy'da çıkarılabilir
+    if apps_data is not None:
+        try:
+            sample = apps_data if isinstance(apps_data, list) else (
+                list(apps_data.keys()) if isinstance(apps_data, dict) else type(apps_data).__name__
+            )
+            sample_count = len(apps_data) if hasattr(apps_data, '__len__') else 0
+            logger.info(f'[AdMob] /apps response: type={type(apps_data).__name__}, len={sample_count}, sample={str(sample)[:300]}')
+        except Exception:
+            pass
+    if not apps_data:
         return None
-    apps_list = apps_data.get('apps') or []
+    # Birçok format: dict {apps: [...]}, dict {app: [...]}, direkt list [...]
+    apps_list = []
+    if isinstance(apps_data, list):
+        apps_list = apps_data
+    elif isinstance(apps_data, dict):
+        for key in ('apps', 'app', 'items', 'results'):
+            if isinstance(apps_data.get(key), list):
+                apps_list = apps_data[key]
+                break
+        if not apps_list:
+            apps_list = [apps_data]
     result = [
         {
             'appId': _extract_app_id(a),
