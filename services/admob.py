@@ -316,14 +316,23 @@ def _strip_pub(p: str) -> str:
 def _extract_app_id(a: Dict[str, Any]) -> str:
     """AdMob v1 API: appId direkt string ('ca-app-pub-...').
     Eski format: nested object {'appId': {'value': '...'}}.
-    İki formatı da güvenli handle et.
+    Farklı field adları da desteklenir: appCode, applicationCode, app_id.
     """
     if not isinstance(a, dict):
         return ''
-    app_id = a.get('appId', '')
-    if isinstance(app_id, dict):
-        return app_id.get('value', '') or ''
-    return str(app_id or '')
+    for key in ('appId', 'appCode', 'applicationCode', 'app_id', 'id'):
+        app_id = a.get(key, '')
+        if not app_id:
+            continue
+        if isinstance(app_id, dict):
+            v = app_id.get('value', '') or app_id.get('id', '')
+            if v:
+                return str(v)
+        else:
+            s = str(app_id)
+            if s:
+                return s
+    return ''
 
 
 def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
@@ -347,7 +356,14 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
                 list(apps_data.keys()) if isinstance(apps_data, dict) else type(apps_data).__name__
             )
             sample_count = len(apps_data) if hasattr(apps_data, '__len__') else 0
-            logger.info(f'[AdMob] /apps response: type={type(apps_data).__name__}, len={sample_count}, sample={str(sample)[:300]}')
+            logger.info(f'[AdMob] /apps response: type={type(apps_data).__name__}, len={sample_count}, sample={str(sample)[:500]}')
+            if isinstance(apps_data, dict) and apps_data.get('apps'):
+                first = apps_data['apps'][0] if isinstance(apps_data['apps'], list) and apps_data['apps'] else None
+                if first is not None:
+                    logger.info(f'[AdMob] first app keys: {list(first.keys()) if isinstance(first, dict) else type(first).__name__}')
+            elif isinstance(apps_data, list) and apps_data:
+                first = apps_data[0]
+                logger.info(f'[AdMob] first app keys: {list(first.keys()) if isinstance(first, dict) else type(first).__name__}')
         except Exception:
             pass
     if not apps_data:
@@ -372,5 +388,8 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
         for a in apps_list
         if isinstance(a, dict)
     ]
+    logger.info(f'[AdMob] get_apps result count={len(result)}, raw apps_list count={len(apps_list)}')
+    if result:
+        logger.info(f'[AdMob] first app: {result[0]}')
     _cache_set(cache_key, result)
     return result
