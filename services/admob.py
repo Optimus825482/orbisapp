@@ -379,6 +379,16 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
                 break
         if not apps_list:
             apps_list = [apps_data]
+    def _is_valid_app(a: Dict[str, Any]) -> bool:
+        if not isinstance(a, dict):
+            return False
+        app_id = _extract_app_id(a)
+        name = (a.get('name', '') or '').strip()
+        if not app_id.startswith('ca-app-pub-'):
+            return False
+        if not name or name.startswith('accounts/') or '/' in name:
+            return False
+        return True
     result = [
         {
             'appId': _extract_app_id(a),
@@ -386,7 +396,7 @@ def get_apps(date_range: str = '30d') -> Optional[List[Dict[str, Any]]]:
             'platform': (a.get('platform', '') if isinstance(a, dict) else '') or '',
         }
         for a in apps_list
-        if isinstance(a, dict)
+        if _is_valid_app(a)
     ]
     logger.info(f'[AdMob] get_apps result count={len(result)}, raw apps_list count={len(apps_list)}')
     if result:

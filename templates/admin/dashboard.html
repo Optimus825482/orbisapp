@@ -241,7 +241,13 @@
       const k = el.getAttribute('data-admob');
       const v = s.admob && s.admob[k];
       if (!hasAdmob || v === undefined || v === 0) { el.textContent = '—'; return; }
-      el.textContent = k === 'revenue_today' || k === 'ecpm_today' ? '$' + Number(v).toFixed(2) : fmt(v);
+      if (k === 'revenue_today' || k === 'ecpm_today') {
+        const usd = Number(v).toFixed(2);
+        const tryV = s.admob[k + '_try'];
+        el.textContent = tryV != null ? '$' + usd + ' (₺' + Number(tryV).toFixed(2) + ')' : '$' + usd;
+      } else {
+        el.textContent = fmt(v);
+      }
     });
 
     // Activity feed

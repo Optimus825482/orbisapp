@@ -268,18 +268,29 @@ def _attach_admob_data(date_range: str) -> dict:
     """AdMob API'den revenue/impressions. Service yoksa boş döner."""
     try:
         from services.admob import get_overview
+        from services.fx import to_try
         data = get_overview(date_range)
         if not data:
             return {}
-        rows = data.get('rows', [])
+        rows = data.get('rows', []) or []
+        today = rows[-1] if rows else {}
+        rev_today_usd = today.get('revenue_usd', data.get('revenue_usd', 0)) or 0
+        rev_total_usd = data.get('revenue_usd', 0) or 0
+        ecpm_usd = data.get('ecpm_usd', 0) or 0
+        spark_usd = [float(r.get('revenue_usd', 0) or 0) for r in rows[-8:]]
         return {
             'admob': {
-                'revenue_today': data.get('revenue_usd', 0),
-                'impressions_today': data.get('impressions', 0),
-                'ecpm_today': data.get('ecpm_usd', 0),
+                'revenue_today': rev_today_usd,
+                'revenue_today_try': to_try(rev_today_usd),
+                'impressions_today': today.get('impressions', data.get('impressions', 0)),
+                'ecpm_today': ecpm_usd,
+                'ecpm_today_try': to_try(ecpm_usd),
+                'revenue_total': rev_total_usd,
+                'revenue_total_try': to_try(rev_total_usd),
+                'impressions_total': data.get('impressions', 0),
+                'range': data.get('range', date_range),
             },
-            'admobSparkline': [r.get('estimatedEarningsMicros', 0) / 1e6
-                              for r in rows[-8:]] or None,
+            'admobSparkline': spark_usd or None,
         }
     except Exception:
         return {}
@@ -381,9 +392,17 @@ def get_admob_overview():
         return jsonify({
             'success': False,
             'error': 'ADMOB_NOT_CONFIGURED',
-            'message': 'AdMob OAuth credentials eksik.',
+            'message': 'AdMob OAuth credentials eksik. env.example\'a bakın.',
         }), 503
     return jsonify({'success': True, 'data': data})
+
+
+@admin_bp.route('/api/fx/rate', methods=['GET'])
+@admin_required
+def get_fx_rate():
+    """USD→TRY kuru (client-side hesaplama için)."""
+    from services.fx import get_usd_to_try
+    return jsonify({'success': True, 'rate': get_usd_to_try(), 'base': 'USD', 'symbol': 'TRY'})
 
 
 @admin_bp.route('/api/admob/apps', methods=['GET'])

@@ -136,6 +136,19 @@
   const fmtInt = (v) => Number(v || 0).toLocaleString('en-US');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+  // TRY kuru — sayfa yüklendiğinde /admin/api/fx/rate'ten çekilir
+  window._fxRate = null;
+  fetch('/admin/api/fx/rate', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j && j.success) window._fxRate = j.rate; })
+    .catch(() => {});
+  const fmtUSDandTRY = (usd, tryV) => {
+    const u = Number(usd || 0).toFixed(2);
+    if (tryV != null) return '$' + u + ' (₺' + Number(tryV).toFixed(2) + ')';
+    if (window._fxRate) return '$' + u + ' (₺' + (Number(usd) * window._fxRate).toFixed(2) + ')';
+    return '$' + u;
+  };
+
   let currentRange = '30d';
 
   function setActive(range) {
@@ -158,16 +171,16 @@
   }
 
   function renderOverview(d) {
-    document.getElementById('admob-total-revenue').textContent = fmtUSD(d.revenue_usd);
+    document.getElementById('admob-total-revenue').textContent = fmtUSDandTRY(d.revenue_usd, d.revenue_usd_try);
     document.getElementById('admob-total-revenue-range').textContent =
       d.range === '7d' ? 'son 7 gün' : d.range === '30d' ? 'son 30 gün' : 'son 90 gün';
     document.getElementById('admob-total-impressions').textContent = fmtInt(d.impressions);
-    document.getElementById('admob-total-ecpm').textContent = fmtUSD(d.ecpm_usd);
+    document.getElementById('admob-total-ecpm').textContent = fmtUSDandTRY(d.ecpm_usd, d.ecpm_usd_try);
 
     const rows = d.rows || [];
     const last = rows[rows.length - 1];
     if (last) {
-      document.getElementById('admob-last-revenue').textContent = fmtUSD(last.revenue_usd);
+      document.getElementById('admob-last-revenue').textContent = fmtUSDandTRY(last.revenue_usd, last.revenue_usd_try);
       document.getElementById('admob-last-revenue-date').textContent = last.date || 'son veri';
     } else {
       document.getElementById('admob-last-revenue').textContent = '$0.00';
@@ -182,12 +195,14 @@
       tbody.innerHTML = rows.slice().reverse().map((r) => {
         const imp = Number(r.impressions || 0);
         const rev = Number(r.revenue_usd || 0);
+        const revTry = Number(r.revenue_usd_try || 0);
         const rpm = imp ? (rev / imp * 1000) : 0;
+        const rpmTry = rpm * (window._fxRate || 1);
         return '<tr>' +
           '<td>' + esc(r.date || '—') + '</td>' +
-          '<td class="text-right tabular">' + fmtUSD(rev) + '</td>' +
+          '<td class="text-right tabular">' + fmtUSDandTRY(rev, revTry) + '</td>' +
           '<td class="text-right tabular">' + fmtInt(imp) + '</td>' +
-          '<td class="text-right tabular">' + fmtUSD(rpm) + '</td>' +
+          '<td class="text-right tabular">' + fmtUSDandTRY(rpm, rpmTry) + '</td>' +
         '</tr>';
       }).join('');
     }
