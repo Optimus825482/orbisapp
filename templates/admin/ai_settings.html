@@ -27,7 +27,7 @@
   </section>
 </div>
 
-<div id="provider-modal" class="modal-backdrop" hidden>
+<div id="provider-modal" class="modal-backdrop" hidden style="display: none;">
   <div class="modal">
     <div class="modal-head"><h2 id="modal-title" class="modal-title">Provider Ekle</h2><button type="button" class="icon-btn" onclick="closeModal()"><span class="material-symbols-outlined">close</span></button></div>
     <div class="modal-body stack-3">
@@ -39,7 +39,7 @@
     <div class="modal-foot"><button type="button" onclick="closeModal()" class="btn btn--ghost">İptal</button><button type="button" onclick="saveProvider()" class="btn btn--primary">Kaydet</button></div>
   </div>
 </div>
-<div id="test-result-modal" class="modal-backdrop" hidden>
+<div id="test-result-modal" class="modal-backdrop" hidden style="display: none;">
   <div class="modal">
     <div class="modal-head" id="test-result-header"><h2 id="test-result-title" class="modal-title">Test Sonucu</h2><button type="button" class="icon-btn" onclick="closeTestModal()"><span class="material-symbols-outlined">close</span></button></div>
     <div class="modal-body"><p id="test-result-status" class="text-muted" style="font-size: 13px;"></p><pre id="test-result-detail" class="code-block" style="margin-top: var(--space-3); max-height: 280px;"></pre><button id="test-result-raw-btn" class="btn btn--ghost" hidden style="margin-top: var(--space-2);">Ham yanıt</button></div>
@@ -82,10 +82,11 @@ async function testProvider(i) {
     document.getElementById('test-result-header').style.background = j.success ? 'var(--success-soft)' : 'var(--danger-soft)';
     document.getElementById('test-result-raw-btn').hidden = j.success;
     document.getElementById('test-result-raw-btn').onclick = () => { document.getElementById('test-result-detail').textContent = j.error_raw || j.error; };
-    document.getElementById('test-result-modal').hidden = false;
+    const ttm = document.getElementById('test-result-modal');
+    ttm.hidden = false; ttm.style.display = '';
   } finally { btn.innerHTML=orig; btn.disabled=false; }
 }
-function closeTestModal() { document.getElementById('test-result-modal').hidden = true; }
+function closeTestModal() { const ttm = document.getElementById('test-result-modal'); ttm.hidden = true; ttm.style.display = 'none'; }
 function populateSelects() {
   const s = ['active-provider','backup-1','backup-2','backup-3'];
   const v = {}; s.forEach(id => { v[id]=document.getElementById(id).value; });
@@ -117,8 +118,8 @@ async function saveToFirestore(after=true) {
 async function saveAssignments(){const data={providers,active_provider:document.getElementById('active-provider').value,backup_1:document.getElementById('backup-1').value,backup_2:document.getElementById('backup-2').value,backup_3:document.getElementById('backup-3').value};
   try{const r=await fetch('/admin/api/ai-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();
   if(j.success){showBanner('success',j.message+' Sayfa yenileniyor...');setTimeout(()=>location.reload(),800);}else showBanner('error',j.message);}catch(e){showBanner('error','Hata: '+e.message);}}
-function showModal(){document.getElementById('provider-modal').hidden=false;}
-function closeModal(){document.getElementById('provider-modal').hidden=true;clearModal();}
+function showModal(){const m=document.getElementById('provider-modal');m.hidden=false;m.style.display='';}
+function closeModal(){const m=document.getElementById('provider-modal');m.hidden=true;m.style.display='none';clearModal();}
 function clearModal(){['prov-name','prov-base-url','prov-api-key','prov-model'].forEach(id=>document.getElementById(id).value='');}
 function showBanner(t,m){const b=document.getElementById('status-banner');b.className='alert alert--'+(t==='success'?'success':'danger');b.textContent=m;b.hidden=false;setTimeout(()=>{b.hidden=true;},5000);}
 document.addEventListener('DOMContentLoaded',loadData);

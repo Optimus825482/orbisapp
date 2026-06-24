@@ -60,7 +60,7 @@
 </div>
 
 <!-- ═══ Edit Modal ═══ -->
-<div id="edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kullanıcı düzenle" hidden>
+<div id="edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kullanıcı düzenle" hidden style="display: none;">
   <div class="modal">
     <header class="modal-head">
       <h2 class="modal-title">Kullanıcı Düzenle</h2>
@@ -186,12 +186,12 @@
     document.getElementById('credit-amount').value = 0;
     document.getElementById('premium-options').hidden = !u.isPremium;
     const modal = document.getElementById('edit-modal');
-    if (modal) modal.hidden = false;
+    if (modal) { modal.hidden = false; modal.style.display = ''; }
   }
 
   function closeEditModal() {
     const modal = document.getElementById('edit-modal');
-    if (modal) modal.hidden = true;
+    if (modal) { modal.hidden = true; modal.style.display = 'none'; }
   }
 
   async function saveUserChanges() {
