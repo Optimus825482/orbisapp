@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Cache (Redis varsa kullan, yoksa in-process dict)
 _cache: Dict[str, tuple] = {}
-CACHE_TTL = 3600  # 1 saat
+CACHE_TTL = 60  # 1 dakika — admin dashboard taze veri göstermek için
 
 # Terminal hata sonrası cooldown
 _FATAL_COOLDOWN = 12 * 3600

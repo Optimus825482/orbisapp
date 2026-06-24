@@ -235,18 +235,18 @@
       if (val !== undefined) activeEl.textContent = fmt(val);
     }
 
-    // AdMob values — yoksa "—"
-    const hasAdmob = s.admob && (s.admob.revenue_today || s.admob.impressions_today || s.admob.ecpm_today);
+    // AdMob values — API ne döndürüyorsa onu göster (0 dahil)
     document.querySelectorAll('[data-admob]').forEach((el) => {
       const k = el.getAttribute('data-admob');
       const v = s.admob && s.admob[k];
-      if (!hasAdmob || v === undefined || v === 0) { el.textContent = '—'; return; }
+      if (v === undefined || v === null || Number.isNaN(v)) { el.textContent = '—'; return; }
+      const numV = Number(v);
       if (k === 'revenue_today' || k === 'ecpm_today') {
-        const usd = Number(v).toFixed(2);
+        const usd = numV.toFixed(2);
         const tryV = s.admob[k + '_try'];
-        el.textContent = tryV != null ? '$' + usd + ' (₺' + Number(tryV).toFixed(2) + ')' : '$' + usd;
+        el.textContent = tryV != null && tryV > 0 ? '$' + usd + ' (₺' + Number(tryV).toFixed(2) + ')' : '$' + usd;
       } else {
-        el.textContent = fmt(v);
+        el.textContent = fmt(numV);
       }
     });
 

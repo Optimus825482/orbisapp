@@ -16,7 +16,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-CACHE_TTL = 6 * 3600  # 6 saat (AdMob data 24h gecikmeli)
+CACHE_TTL = 60  # 1 dakika — admin dashboard taze veri göstermek için
 _cache: Dict[str, tuple] = {}
 
 TOKEN_URL = 'https://oauth2.googleapis.com/token'
