@@ -134,8 +134,9 @@ class StatsCounter:
             ).count().get()
             count = result[0][0].value
             self._set_active_today(count)
-        except Exception as e:
-            logger.error(f"[Stats] daily_activity error: {e}")
+        except Exception:
+            import traceback
+            logger.error("[Stats] daily_activity failed: %s", traceback.format_exc())
 
     def on_user_login(self, email: str, display_name: str):
         """Kullanici giris yapti - son login kaydi"""
