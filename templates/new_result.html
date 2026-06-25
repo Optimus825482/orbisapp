@@ -2878,7 +2878,7 @@ super() }}
       const deviceId = localStorage.getItem( 'orbis_device_id' ) || 'web_' + Date.now();
       const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
 
-      const response = await fetch( "/api/get_ai_interpretation", {
+      fetch( "/api/get_ai_interpretation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {
@@ -2888,12 +2888,19 @@ super() }}
           device_id: deviceId,
           email: userEmail
         } )
-      } );
-      const result = await response.json();
+      } )
+        .then( function ( response ) {
+          return response.json().then( function ( result ) {
+            return { response: response, result: result };
+          } );
+        } )
+        .then( function ( data ) {
+          var response = data.response;
+          var result = data.result;
 
-      // Günlük limit kontrolü
-      if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
-        $body.html( `
+          // Günlük limit kontrolü
+          if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
+            $body.html( `
                 <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
                     <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
                         <span class="material-icons-round text-4xl text-amber-400">videocam</span>
@@ -2908,30 +2915,32 @@ super() }}
                     </button>
                 </div>
             `);
-        return;
-      }
+            return;
+          }
 
-      if ( result.success ) {
-        currentInterpretationText = result.interpretation;
-        $body.html( marked.parse( result.interpretation ) );
-        // Yorum yüklenince footer'ı göster
-        $( '#ai-modal-footer' ).removeClass( 'hidden' );
+          if ( result.success ) {
+            currentInterpretationText = result.interpretation;
+            $body.html( marked.parse( result.interpretation ) );
+            // Yorum yüklenince footer'ı göster
+            $( '#ai-modal-footer' ).removeClass( 'hidden' );
 
-        console.log( "[ORBIS] 📊 Result usage:", result.usage );
+            console.log( "[ORBIS] 📊 Result usage:", result.usage );
 
-        // Kalan yorum durumunu göster
-        if ( result.usage && !result.usage.is_premium ) {
-          console.log( "[ORBIS] 📊 Ücretsiz kullanıcı - reklam izleyerek devam" );
-          $body.prepend( `<div class="text-[10px] text-center mb-4 py-2 px-3 bg-white/5 rounded-lg text-amber-400">📺 Reklam izleyerek sınırsız AI yorum</div>` );
-        } else if ( result.usage && result.usage.is_premium ) {
-          console.log( "[ORBIS] 💎 Premium user - unlimited access" );
-        }
-      } else {
-        console.error( "[ORBIS] ❌ AI interpretation error:", result.error );
-        $body.html( `<p class="text-red-400 text-xs">Error: ${result.error}</p>` );
-      }
-    } catch ( error ) {
-      $body.html( `<p class="text-red-400 text-xs">Bağlantı Hatası.</p>` );
+            // Kalan yorum durumunu göster
+            if ( result.usage && !result.usage.is_premium ) {
+              console.log( "[ORBIS] 📊 Ücretsiz kullanıcı - reklam izleyerek devam" );
+              $body.prepend( `<div class="text-[10px] text-center mb-4 py-2 px-3 bg-white/5 rounded-lg text-amber-400">📺 Reklam izleyerek sınırsız AI yorum</div>` );
+            } else if ( result.usage && result.usage.is_premium ) {
+              console.log( "[ORBIS] 💎 Premium user - unlimited access" );
+            }
+          } else {
+            console.error( "[ORBIS] ❌ AI interpretation error:", result.error );
+            $body.html( `<p class="text-red-400 text-xs">Error: ${result.error}</p>` );
+          }
+        } )
+        .catch( function ( error ) {
+          $body.html( `<p class="text-red-400 text-xs">Bağlantı Hatası.</p>` );
+        } );
     }
   }
 
