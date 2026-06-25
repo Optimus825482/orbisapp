@@ -589,7 +589,7 @@ def api_record_ad_watch():
 
 
 @bp.route("/api/stats/user-created", methods=["POST"])
-    @handle_errors("İstatistik güncellenemedi")
+@handle_errors("İstatistik güncellenemedi")
 def api_user_created():
     """Yeni kullanıcı oluşturulduğunda stats counter'ı güncelle"""
     from services.stats_counter import stats_counter
