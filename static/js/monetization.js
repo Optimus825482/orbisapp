@@ -1,6 +1,8 @@
 /**
  * Monetization Module
- * Kullanım takibi ve premium kontrolü
+ * - Kullanim takibi (sadece reklam destekli)
+ * - PREMIUM KALDIRILDI: Uygulama tamamen ucretsiz.
+ * - Geriye uyumluluk: isPremium() her zaman false dondurur.
  */
 
 class MonetizationManager {
@@ -10,7 +12,7 @@ class MonetizationManager {
         this.API_BASE = '/api/monetization';
     }
 
-    // Benzersiz cihaz ID'si oluştur/al
+    // Benzersiz cihaz ID'si olustur/al
     getOrCreateDeviceId() {
         let deviceId = localStorage.getItem('astro_device_id');
         if (!deviceId) {
@@ -20,7 +22,7 @@ class MonetizationManager {
         return deviceId;
     }
 
-    // Kullanım durumunu kontrol et
+    // Kullanim durumunu kontrol et
     async checkUsage() {
         try {
             const response = await fetch(`${this.API_BASE}/check-usage`, {
@@ -31,120 +33,75 @@ class MonetizationManager {
             this.usageData = await response.json();
             return this.usageData;
         } catch (error) {
-            console.error('Kullanım kontrolü hatası:', error);
+            console.error('Kullanim kontrolu hatasi:', error);
             return null;
         }
     }
 
-    // Özellik kullanılabilir mi?
+    // Ozellik kullanilabilir mi?
     async canUseFeature(feature = 'interpretation') {
         const usage = await this.checkUsage();
         if (!usage) return { allowed: true }; // Hata durumunda izin ver
         return usage.can_use;
     }
 
-    // Kullanımı kaydet
+    // Kullanimi kaydet
     async recordUsage(feature = 'interpretation') {
         try {
             const response = await fetch(`${this.API_BASE}/record-usage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     device_id: this.deviceId,
                     feature: feature
                 })
             });
             return await response.json();
         } catch (error) {
-            console.error('Kullanım kaydı hatası:', error);
+            console.error('Kullanim kaydi hatasi:', error);
             return null;
         }
     }
 
-    // Premium durumunu kontrol et
+    // DEPRECATED: Premium kaldirildi. Her zaman false dondurur (geriye uyumluluk).
     async isPremium() {
-        const usage = await this.checkUsage();
-        return usage?.usage?.is_premium || false;
+        return false;
     }
 
-    // Kalan kullanım sayısı
+    // DEPRECATED: Premium kaldirildi. Her zaman Infinity dondurur.
     async getRemainingUsage() {
-        const usage = await this.checkUsage();
-        if (usage?.usage?.is_premium) return Infinity;
-        return usage?.usage?.remaining || 0;
+        return Infinity;
     }
 
-    // Premium popup göster
-    showPremiumPopup(message = 'Günlük ücretsiz limitiniz doldu!') {
-        const popup = document.createElement('div');
-        popup.className = 'premium-popup-overlay';
-        popup.innerHTML = `
-            <div class="premium-popup">
-                <div class="premium-popup-header">
-                    <span class="premium-icon">⭐</span>
-                    <h3>Premium'a Geç</h3>
-                </div>
-                <p class="premium-message">${message}</p>
-                <div class="premium-features">
-                    <div class="feature-item">✓ Sınırsız AI yorumu</div>
-                    <div class="feature-item">✓ Detaylı natal analiz</div>
-                    <div class="feature-item">✓ Transit yorumları</div>
-                    <div class="feature-item">✓ Reklamsız deneyim</div>
-                </div>
-                <div class="premium-pricing">
-                    <button class="btn-premium-monthly" onclick="monetization.purchase('premium_daily')">
-                        Günlük - ₺30
-                    </button>
-                    <button class="btn-premium-monthly" onclick="monetization.purchase('premium_monthly')">
-                        Aylık - ₺300 <span class="badge">🔥 İndirim</span>
-                    </button>
-                    <button class="btn-premium-yearly" onclick="monetization.purchase('premium_yearly')">
-                        Yıllık - ₺3000 <span class="badge">2 ay hediye!</span>
-                    </button>
-                </div>
-                <button class="btn-close" onclick="this.closest('.premium-popup-overlay').remove()">
-                    Daha sonra
-                </button>
-            </div>
-        `;
-        document.body.appendChild(popup);
+    // DEPRECATED: Premium kaldirildi. No-op (geriye uyumluluk).
+    showPremiumPopup(message) {
+        console.info('[Monetization] showPremiumPopup called but premium is removed:', message);
     }
 
-    // Satın alma başlat (TWA/Capacitor ile)
+    // DEPRECATED: Premium satin alma kaldirildi. No-op.
     async purchase(productId) {
-        // Android'de Google Play Billing ile entegre olacak
-        if (window.Android && window.Android.purchase) {
-            window.Android.purchase(productId);
-        } else {
-            // Web'de alternatif ödeme (Stripe/PayPal)
-            alert('Satın alma özelliği yakında aktif olacak!');
-        }
+        console.info('[Monetization] purchase called but premium is removed:', productId);
+        return { success: false, message: 'Premium kaldirildi. Uygulama tamamen ucretsizdir.' };
     }
 
-    // Kullanım UI'ını güncelle
+    // Kullanim UI'ini guncelle (premium kaldirildi: sadece reklam uyarisi)
     async updateUsageUI() {
-        const usage = await this.checkUsage();
         const usageBar = document.getElementById('usage-bar');
         const usageText = document.getElementById('usage-text');
-        
+
         if (!usageBar || !usageText) return;
-        
-        if (usage?.usage?.is_premium) {
-            usageText.textContent = '⭐ Premium - Sınırsız';
-            usageBar.style.width = '100%';
-            usageBar.classList.add('premium');
-        } else {
-            // Ücretsiz kullanıcı = Her analiz için reklam zorunlu
-            usageText.textContent = '📺 Reklam izleyerek sınırsız analiz yapın';
-            usageBar.style.width = '100%';
-        }
+
+        // Tum kullanicilar ucretsiz — her analiz icin reklam izleme zorunlulugu
+        usageText.textContent = 'Ucretsiz uygulama - Her analiz icin reklam izleyin';
+        usageBar.style.width = '100%';
+        usageBar.classList.remove('premium');
     }
 }
 
 // Global instance
 const monetization = new MonetizationManager();
 
-// Sayfa yüklendiğinde kullanımı kontrol et
+// Sayfa yuklendiginde kullanimi kontrol et
 document.addEventListener('DOMContentLoaded', () => {
     monetization.updateUsageUI();
 });

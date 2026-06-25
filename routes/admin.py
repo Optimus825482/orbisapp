@@ -29,21 +29,12 @@ ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', 'erkan@example.com').split(',')
 
 
 def admin_required(f):
-    """Admin yetkisi gerektiren route'lar için decorator.
-
-    Session'da admin_email + admin_uid varsa Allow.
-    Email whitelist env'den gelir (ikincil kontrol).
-    Custom claim (admin: true) login sırasında verify edilir, her istekte tekrar kontrol etmiyoruz
-    (overhead) — session 7 gün geçerli. Claim kaldırılırsa modül yeniden import edilene kadar logged-in kalır.
-    """
-    admin_emails = [e.strip().lower() for e in ADMIN_EMAILS if e.strip()]
-
+    """Admin yetkisi gerektiren route'lar için decorator"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        admin_email = (session.get('admin_email') or '').lower()
-        admin_uid = session.get('admin_uid')
-
-        if (not admin_email and not admin_uid) or (admin_email and admin_emails and admin_email not in admin_emails):
+        # Session'dan admin kontrolü
+        admin_email = session.get('admin_email')
+        if not admin_email or admin_email not in ADMIN_EMAILS:
             return redirect(url_for('admin.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -58,71 +49,33 @@ def login():
 @admin_bp.route('/auth/verify', methods=['POST'])
 @handle_errors("Admin doğrulama başarısız")
 def verify_admin():
-    """Firebase idToken'ı doğrula, admin custom claim kontrolü yap, session aç."""
-    from firebase_admin import auth as fb_auth
-
-    data = request.get_json() or {}
-    id_token = data.get('idToken')
+    """Firebase token'ı doğrula ve admin yetkisi kontrol et"""
+    data = request.get_json()
     email = data.get('email')
     uid = data.get('uid')
-
-    if not id_token:
+    
+    if not email:
         return jsonify({
-            'success': False,
-            'error': 'TOKEN_REQUIRED',
-            'message': 'idToken gerekli'
+            'success': False, 
+            'error': 'EMAIL_REQUIRED',
+            'message': 'Email gerekli'
         }), 400
-
-    # 1) Google ile imzalanmış idToken'ı server-side verify et
-    try:
-        decoded = fb_auth.verify_id_token(id_token)
-    except Exception as e:
-        logger.warning(f"Token verify hatası: {e}")
+    
+    # Admin kontrolü
+    if email not in ADMIN_EMAILS:
+        logger.warning(f"Unauthorized admin access attempt: {email}")
         return jsonify({
-            'success': False,
-            'error': 'INVALID_TOKEN',
-            'message': 'Token doğrulanamadı'
-        }), 401
-
-    verified_uid = decoded.get('uid')
-    verified_email = decoded.get('email') or email
-
-    # uid/email token ile uyumsuzsa reddet
-    if uid and uid != verified_uid:
-        logger.warning(f"Uid mismatch: client={uid} token={verified_uid}")
-        return jsonify({
-            'success': False,
-            'error': 'UID_MISMATCH',
-            'message': 'Kimlik uyuşmazlığı'
-        }), 403
-
-    # 2) admin custom claim kontrolü
-    is_admin_claim = bool(decoded.get('admin'))
-
-    # Email whitelist (env) opsiyonel ikincil kontrol
-    admin_emails = [e.strip().lower() for e in ADMIN_EMAILS if e.strip()]
-    email_in_whitelist = (
-        verified_email and
-        verified_email.lower() in admin_emails
-    )
-
-    if not (is_admin_claim or email_in_whitelist):
-        logger.warning(f"Unauthorized admin access attempt: {verified_email} "
-                       f"(claim={is_admin_claim}, whitelist={email_in_whitelist})")
-        return jsonify({
-            'success': False,
+            'success': False, 
             'error': 'FORBIDDEN',
             'message': 'Bu hesap admin yetkisine sahip değil'
         }), 403
-
-    # 3) Session'a kaydet
-    session['admin_email'] = verified_email
-    session['admin_uid'] = verified_uid
-    session.permanent = True
-
-    logger.info(f"Admin login successful: {verified_email} (uid={verified_uid}, "
-                 f"claim={is_admin_claim}, whitelist={email_in_whitelist})")
-
+    
+    # Session'a kaydet
+    session['admin_email'] = email
+    session['admin_uid'] = uid
+    
+    logger.info(f"Admin login successful: {email}")
+    
     return jsonify({
         'success': True,
         'redirect': url_for('admin.dashboard')
@@ -223,12 +176,16 @@ def get_stats_overview():
         'success': True,
         'data': {
             'totalUsers': stats.get('total_users', 0),
-            'premiumUsers': stats.get('premium_users', 0),
-            'freeUsers': stats.get('free_users', 0),
-            'totalCredits': stats.get('total_credits', 0),
+            # Premium kaldirildi: geriye uyumluluk icin 0 dondurulur
+            'premiumUsers': 0,
+            'freeUsers': stats.get('total_users', 0),
+            'totalCredits': 0,
             'totalAnalyses': stats.get('total_analyses', 0),
+            'totalAdsWatched': stats.get('total_ads_watched', 0),
+            'totalRewardedAds': stats.get('total_rewarded_ads', 0),
             'activeToday': stats.get('active_today', 0),
             'analysesToday': stats.get('analyses_today', 0),
+            'rewardedAdsToday': stats.get('rewarded_ads_today', 0),
             'lastLoginEmail': stats.get('last_login_email', ''),
             'lastLoginName': stats.get('last_login_name', ''),
             'lastLoginTime': stats.get('last_login_time', ''),
@@ -250,7 +207,9 @@ def _attach_ga_data(date_range: str) -> dict:
         if not data:
             return {}
         rows = data.get('rows', []) or []
+        # Son gün (bugün) değerleri
         today = rows[-1] if rows else {}
+        avg_time = (data.get('totalPageViews') and data.get('totalConversions'))
         return {
             'signupsSeries': data.get('usersSeries', []),
             'activeSeries': data.get('sessionsSeries', []),
@@ -259,6 +218,23 @@ def _attach_ga_data(date_range: str) -> dict:
             'gaUsersToday': today.get('users', 0),
             'gaSessionsToday': today.get('sessions', 0),
             'gaAvgTime': data.get('avgSessionDuration', '—'),
+        }
+    except Exception:
+        return {}
+
+
+def _attach_ga_data(date_range: str) -> dict:
+    """GA4 Data API'den series çek. Service yoksa boş döner (client default)."""
+    try:
+        from services.google_analytics import get_overview
+        data = get_overview(date_range)
+        if not data:
+            return {}
+        return {
+            'signupsSeries': data.get('usersSeries', []),
+            'activeSeries': data.get('sessionsSeries', []),
+            'gaConversions': data.get('totalConversions', 0),
+            'gaPageViews': data.get('totalPageViews', 0),
         }
     except Exception:
         return {}
@@ -273,10 +249,12 @@ def _attach_admob_data(date_range: str) -> dict:
         if not data:
             return {}
         rows = data.get('rows', []) or []
+        # Bugünün (son gün) değeri
         today = rows[-1] if rows else {}
         rev_today_usd = today.get('revenue_usd', data.get('revenue_usd', 0)) or 0
         rev_total_usd = data.get('revenue_usd', 0) or 0
         ecpm_usd = data.get('ecpm_usd', 0) or 0
+        # Sparkline: son N günlük gelir (USD)
         spark_usd = [float(r.get('revenue_usd', 0) or 0) for r in rows[-8:]]
         return {
             'admob': {
@@ -297,12 +275,13 @@ def _attach_admob_data(date_range: str) -> dict:
 
 
 def _attach_activity() -> dict:
-    """Firestore son 10 olay (signup, premium, push, error)."""
+    """Firestore son 10 olay (signup, push, error). Premium kaldirildi."""
     try:
+        from services.firebase_service import firebase_service
         if not firebase_service.db:
             return {}
+        # purchases koleksiyonundan son 10 kayıt (geriye uyumluluk)
         from google.cloud.firestore import Query
-        from datetime import datetime, timezone
         docs = firebase_service.db.collection('purchases') \
             .order_by('timestamp', direction=Query.DESCENDING) \
             .limit(10).stream()
@@ -313,6 +292,7 @@ def _attach_activity() -> dict:
             rel = ''
             if t:
                 try:
+                    from datetime import datetime, timezone
                     dt = t if isinstance(t, datetime) else datetime.fromisoformat(str(t))
                     if dt.tzinfo is None:
                         dt = dt.replace(tzinfo=timezone.utc)
@@ -327,9 +307,10 @@ def _attach_activity() -> dict:
                         rel = 'az önce'
                 except Exception:
                     rel = ''
+            # Premium kaldirildi: sadece push/info olaylari goster
             items.append({
-                'type': 'premium' if data.get('type') == 'premium' else 'info',
-                'title': f"Premium aktivasyonu · {data.get('packageId', 'bilinmiyor')}",
+                'type': 'info',
+                'title': f"Etkinlik · {data.get('packageId', data.get('type', 'bilinmiyor'))}",
                 'meta': f"uid: {data.get('userId', '?')[:12]}…",
                 'relative': rel,
                 'at': str(t) if t else None,
@@ -352,7 +333,7 @@ def get_analytics_overview():
         return jsonify({
             'success': False,
             'error': 'GA4_NOT_CONFIGURED',
-            'message': 'GA4 service account / property ID eksik.',
+            'message': 'GA4 service account / property ID eksik. env.example\'a bakın.',
         }), 503
     return jsonify({'success': True, 'data': data})
 
@@ -434,18 +415,15 @@ def get_users():
     filter_type = request.args.get('filter', 'all')
     search = request.args.get('search', '').lower()
 
-    # Sadece gerekli field'lari oku
-    PROJECTION = ["email", "displayName", "photoURL", "isPremium",
-                   "premiumPackageId", "premiumExpiry", "credits",
-                   "totalAnalyses", "createdAt", "dailyUsage"]
+    # Sadece gerekli field'lari oku (premium/credits kaldirildi)
+    PROJECTION = ["email", "displayName", "photoURL",
+                   "totalAnalyses", "adsWatched", "rewardedAdsWatched",
+                   "createdAt", "dailyUsage"]
 
     users_ref = db.collection('users')
 
-    # Filter uygula
-    if filter_type == 'premium':
-        users_ref = users_ref.where(filter=FieldFilter('isPremium', '==', True))
-    elif filter_type == 'free':
-        users_ref = users_ref.where(filter=FieldFilter('isPremium', '==', False))
+    # Premium/free filtreleri kaldirildi — uygulama ucretsiz.
+    # Geriye uyumluluk: filter=all kabul edilir, premium/free no-op sayilir.
 
     # Search varsa tumunu oku (Firestore text search desteklemez)
     if search:
@@ -476,11 +454,11 @@ def get_users():
         'email': data.get('email'),
         'displayName': data.get('displayName'),
         'photoURL': data.get('photoURL'),
-        'isPremium': data.get('isPremium', False),
-        'premiumPackageId': data.get('premiumPackageId'),
-        'premiumExpiry': data.get('premiumExpiry'),
-        'credits': data.get('credits', 0),
+        'isPremium': False,  # geriye uyumluluk: artik herkes ucretsiz
+        'credits': 0,        # geriye uyumluluk
         'totalAnalyses': data.get('totalAnalyses', 0),
+        'adsWatched': data.get('adsWatched', 0),
+        'rewardedAdsWatched': data.get('rewardedAdsWatched', 0),
         'createdAt': data.get('createdAt'),
         'dailyUsage': data.get('dailyUsage', {})
     } for uid, data in users]
@@ -539,7 +517,7 @@ def get_user_detail(user_id):
             'amount': pdata.get('amount') or pdata.get('credits'),
             'timestamp': pdata.get('timestamp')
         })
-    
+
     return jsonify({
         'success': True,
         'data': {
@@ -547,11 +525,14 @@ def get_user_detail(user_id):
             'email': data.get('email'),
             'displayName': data.get('displayName'),
             'photoURL': data.get('photoURL'),
-            'isPremium': data.get('isPremium', False),
-            'premiumPackageId': data.get('premiumPackageId'),
-            'premiumExpiry': data.get('premiumExpiry'),
-            'credits': data.get('credits', 0),
+            # Premium/credits kaldirildi: sabit degerler dondurulur (geriye uyumluluk)
+            'isPremium': False,
+            'premiumPackageId': None,
+            'premiumExpiry': None,
+            'credits': 0,
             'totalAnalyses': data.get('totalAnalyses', 0),
+            'adsWatched': data.get('adsWatched', 0),
+            'rewardedAdsWatched': data.get('rewardedAdsWatched', 0),
             'createdAt': data.get('createdAt'),
             'dailyUsage': data.get('dailyUsage', {}),
             'fcmTokens': data.get('fcmTokens', []),
@@ -564,46 +545,18 @@ def get_user_detail(user_id):
 @admin_required
 @handle_errors("Premium durum güncellenemedi")
 def update_user_premium(user_id):
-    """Kullanıcı premium durumunu güncelle"""
-    data = request.get_json()
-    
-    is_premium = data.get('isPremium', False)
-    package_id = data.get('packageId')
-    months = data.get('months', 1)
-    credits = data.get('credits', 0)
-    
-    from services.stats_counter import stats_counter
-    
-    if is_premium:
-        success = firebase_service.activate_premium(
-            user_id, 
-            package_id or 'admin_grant',
-            credits,
-            months
-        )
-        # Premium'a gecti
-        stats_counter.on_premium_changed(became_premium=True)
-        if credits:
-            stats_counter.on_credits_changed(credits)
-    else:
-        # Premium'u kaldir - once mevcut durumu kontrol et
-        db = firebase_service.db
-        doc = db.collection('users').document(user_id).get()
-        was_premium = doc.to_dict().get('isPremium', False) if doc.exists else False
-        
-        db.collection('users').document(user_id).update({
-            'isPremium': False,
-            'premiumPackageId': None,
-            'premiumExpiry': None
-        })
-        success = True
-        
-        if was_premium:
-            stats_counter.on_premium_changed(became_premium=False)
-    
+    """DEPRECATED: Premium kaldirildi. Uygulama ucretsiz.
+
+    Geriye uyumluluk icin no-op dondurur. Yeni premium alanlari kullanmayin.
+    """
+    logger.warning(
+        "[admin] update_user_premium called for %s but premium is removed (no-op)",
+        user_id,
+    )
     return jsonify({
-        'success': success,
-        'message': 'Premium durumu güncellendi' if success else 'Güncelleme başarısız'
+        'success': True,
+        'message': 'Premium kaldirildi. Uygulama tamamen ucretsiz, sadece reklam destekli.',
+        'deprecated': True,
     })
 
 
@@ -611,68 +564,18 @@ def update_user_premium(user_id):
 @admin_required
 @handle_errors("Kredi güncellenemedi")
 def update_user_credits(user_id):
-    """Kullanıcı kredisini güncelle"""
-    data = request.get_json()
-    
-    action = data.get('action', 'add')
-    amount = data.get('amount', 0)
-    
-    db = firebase_service.db
-    if not db:
-        return jsonify({
-            'success': False,
-            'error': 'DATABASE_UNAVAILABLE',
-            'message': 'Firebase bağlantısı yok'
-        }), 500
-    
-    from firebase_admin import firestore
-    
-    delta = 0
-    if action == 'add':
-        db.collection('users').document(user_id).update({
-            'credits': firestore.Increment(amount)
-        })
-        delta = amount
-    elif action == 'subtract':
-        db.collection('users').document(user_id).update({
-            'credits': firestore.Increment(-amount)
-        })
-        delta = -amount
-    elif action == 'set':
-        # set isleminde farki hesapla
-        doc = db.collection('users').document(user_id).get()
-        old_credits = doc.to_dict().get('credits', 0) if doc.exists else 0
-        db.collection('users').document(user_id).update({
-            'credits': amount
-        })
-        delta = amount - old_credits
-    
-    # Stats counter guncelle
-    if delta != 0:
-        from services.stats_counter import stats_counter
-        stats_counter.on_credits_changed(delta)
-        db.collection('users').document(user_id).update({
-            'credits': firestore.Increment(-amount)
-        })
-    elif action == 'set':
-        db.collection('users').document(user_id).update({
-            'credits': amount
-        })
-    
-    # Admin log
-    db.collection('admin_logs').add({
-        'action': 'credit_update',
-        'targetUser': user_id,
-        'adminEmail': session.get('admin_email'),
-        'details': {'action': action, 'amount': amount},
-        'timestamp': firestore.SERVER_TIMESTAMP
-    })
-    
-    logger.info(f"Credits updated for {user_id} by {session.get('admin_email')}: {action} {amount}")
-    
+    """DEPRECATED: Krediler kaldirildi. Analizler reklam destekli ucretsiz.
+
+    Geriye uyumluluk icin no-op dondurur.
+    """
+    logger.warning(
+        "[admin] update_user_credits called for %s but credits are removed (no-op)",
+        user_id,
+    )
     return jsonify({
         'success': True,
-        'message': f'Kredi güncellendi ({action}: {amount})'
+        'message': 'Krediler kaldirildi. Analizler reklam izleyerek ucretsiz.',
+        'deprecated': True,
     })
 
 
@@ -751,37 +654,30 @@ def get_purchase_stats():
             'message': 'Firebase bağlantısı yok'
         }), 500
     
-    # Son 30 günlük satın almalar
+    # Son 30 günlük etkinlikler (premium/credits kaldirildi)
     from datetime import datetime, timedelta
     thirty_days_ago = datetime.now() - timedelta(days=30)
-    
+
     purchases = list(
         db.collection('purchases')
         .where(filter=FieldFilter('timestamp', '>=', thirty_days_ago))
         .stream()
     )
-    
-    # Grupla
-    premium_count = 0
-    credit_count = 0
-    total_credits_sold = 0
-    
-    for p in purchases:
-        data = p.to_dict()
-        if data.get('type') == 'premium':
-            premium_count += 1
-        elif data.get('type') == 'credits':
-            credit_count += 1
-            total_credits_sold += data.get('amount', 0)
-    
+
+    # Premium/credit satisi kaldirildi — sadece toplam kayit sayisi
+    total_events = len(purchases)
+
     return jsonify({
         'success': True,
         'data': {
             'last30Days': {
-                'premiumPurchases': premium_count,
-                'creditPurchases': credit_count,
-                'totalCreditsSold': total_credits_sold,
-                'totalPurchases': len(purchases)
+                # Premium ve kredi satisi kaldirildi
+                'premiumPurchases': 0,
+                'creditPurchases': 0,
+                'totalCreditsSold': 0,
+                'totalEvents': total_events,
+                'totalPurchases': total_events,
+                'message': 'Premium ve krediler kaldirildi. Uygulama tamamen ucretsizdir.'
             }
         }
     })

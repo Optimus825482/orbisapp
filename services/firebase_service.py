@@ -230,8 +230,9 @@ class FirebaseService:
         
         Topics:
             - 'all_users': Tüm kullanıcılar
-            - 'premium_users': Premium kullanıcılar
             - 'daily_horoscope': Günlük burç yorumu isteyenler
+
+        Not: 'premium_users' topic'i kaldirildi. Uygulama ucretsiz.
         """
         try:
             # Android config - çift ses olmasın
@@ -346,111 +347,8 @@ class FirebaseService:
         except Exception as e:
             logger.error(f"[Firebase] Token silme hatası: {e}")
     
-    def activate_premium(
-        self,
-        user_id: str,
-        package_id: str,
-        credits: int,
-        months: int
-    ) -> bool:
-        """
-        Kullanıcıya premium aktivasyonu yap (satın alma sonrası)
-        Bu fonksiyon sadece backend'den çağrılmalı!
-        """
-        if not self.db:
-            return False
-
-        try:
-            from datetime import datetime, timedelta
-
-            expiry_date = datetime.now() + timedelta(days=months * 30)
-
-            self.db.collection('users').document(user_id).update({
-                'isPremium': True,
-                'premiumPackageId': package_id,
-                'premiumExpiry': expiry_date.isoformat(),
-                'credits': firestore.Increment(credits),
-                'updatedAt': firestore.SERVER_TIMESTAMP
-            })
-
-            # Satın alma kaydı
-            self.db.collection('purchases').add({
-                'userId': user_id,
-                'type': 'premium',
-                'packageId': package_id,
-                'credits': credits,
-                'months': months,
-                'timestamp': firestore.SERVER_TIMESTAMP
-            })
-
-            logger.info(f"[Firebase] Premium aktivasyonu: {user_id} -> {package_id}")
-            return True
-
-        except Exception as e:
-            logger.error(f"[Firebase] Premium aktivasyon hatası: {e}")
-            return False
-
-    def activate_premium_days(self, user_id: str, days: int, product_id: str) -> bool:
-        """
-        Satın alma sonrası premium aktivasyonu (days-based, reklam-zorunlu model).
-        users/{uid}.isPremium — tek kaynak. Client rules yazamaz, Admin SDK yazar.
-        """
-        if not self.db:
-            return False
-
-        try:
-            from datetime import datetime, timedelta
-
-            expiry_date = datetime.now() + timedelta(days=days)
-
-            self.db.collection('users').document(user_id).update({
-                'isPremium': True,
-                'premiumPackageId': product_id,
-                'premiumExpiry': expiry_date.isoformat(),
-                'premiumActivatedAt': firestore.SERVER_TIMESTAMP,
-                'updatedAt': firestore.SERVER_TIMESTAMP,
-            })
-
-            self.db.collection('purchases').add({
-                'userId': user_id,
-                'type': 'premium',
-                'packageId': product_id,
-                'days': days,
-                'timestamp': firestore.SERVER_TIMESTAMP,
-            })
-
-            logger.info(f"[Firebase] Premium aktivasyonu (days): {user_id} -> {product_id} ({days}d)")
-            return True
-
-        except Exception as e:
-            logger.error(f"[Firebase] activate_premium_days hatası: {e}")
-            return False
-    
-    def add_credits(self, user_id: str, amount: int, package_price: float) -> bool:
-        """Kullanıcıya kredi ekle (satın alma sonrası)"""
-        if not self.db:
-            return False
-            
-        try:
-            self.db.collection('users').document(user_id).update({
-                'credits': firestore.Increment(amount),
-                'updatedAt': firestore.SERVER_TIMESTAMP
-            })
-            
-            # Satın alma kaydı
-            self.db.collection('purchases').add({
-                'userId': user_id,
-                'type': 'credits',
-                'amount': amount,
-                'price': package_price,
-                'timestamp': firestore.SERVER_TIMESTAMP
-            })
-            
-            return True
-
-        except Exception as e:
-            logger.error(f"[Firebase] Kredi ekleme hatası: {e}")
-            return False
+    # Premium aktivasyon metodları kaldırıldı.
+    # Uygulama tamamen ücretsiz, her analiz için rewarded ad zorunlu.
 
 
 # Singleton instance

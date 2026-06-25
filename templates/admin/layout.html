@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260624-2" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260624-2" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=20260624-2" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20260624-2" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20260624-4" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/motion.css') }}?v=20260624-2" />
 
   {% block head %}{% endblock %}
@@ -86,8 +86,6 @@
                 <span class="sidebar-link-icon"><span class="material-symbols-outlined">monitoring</span></span>
                 <span class="sidebar-link-label">İstatistikler</span>
               </a>
-            </li>
-            <li>
               <a href="{{ url_for('admin.admob_page') }}" class="sidebar-link{% if request.endpoint == 'admin.admob_page' %} is-active{% endif %}" data-shortcut="g a">
                 <span class="sidebar-link-icon"><span class="material-symbols-outlined">ads_click</span></span>
                 <span class="sidebar-link-label">AdMob</span>

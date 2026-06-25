@@ -1,7 +1,7 @@
 {% extends "admin/layout.html" %}
 {% block title %}ORBIS Admin · İstatistikler{% endblock %}
 {% block page_title %}İstatistikler{% endblock %}
-{% block page_subtitle %}Analytics · AdMob · Kullanıcı dağılımı{% endblock %}
+{% block page_subtitle %}Analytics · AdMob · Kullanıcı dağılımı (uygulama ucretsiz){% endblock %}
 
 {% block content %}
 <div class="grid grid--kpi stagger">
@@ -18,13 +18,13 @@
   </div>
   <div class="metric">
     <div class="metric-head">
-      <span class="metric-label">Premium</span>
-      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">workspace_premium</span></span>
+      <span class="metric-label">İzlenen Reklam</span>
+      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">play_circle</span></span>
     </div>
-    <div class="metric-value" data-key="premiumUsers">—</div>
+    <div class="metric-value" data-key="totalAdsWatched">—</div>
     <div class="metric-foot">
       <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
-      <span class="metric-compare">aktif abone</span>
+      <span class="metric-compare">tüm zamanlar</span>
     </div>
   </div>
   <div class="metric">
@@ -131,74 +131,12 @@
   <section class="card">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Kullanıcı Dağılımı</h2>
-        <p class="card-subtitle">Premium oranı</p>
-      </div>
-    </header>
-    <div class="card-body">
-      <div class="grid grid--2" style="margin-bottom: var(--space-4);">
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Premium</div>
-          <div class="metric-value metric-value--sm tabular text-gradient" id="stat-premium-pct">-%</div>
-        </div>
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Ücretsiz</div>
-          <div class="metric-value metric-value--sm tabular" id="stat-free-pct">-%</div>
-        </div>
-      </div>
-      <div class="eyebrow" style="margin-bottom: 6px;">Premium Oranı</div>
-      <div class="progress" style="height: 10px;">
-        <div id="dist-premium-bar" class="progress-bar" style="width: 0%;"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <header class="card-head">
-      <div>
-        <h2 class="card-title">Son 30 Gün Satışlar</h2>
-        <p class="card-subtitle">Premium + kredi satışları</p>
-      </div>
-      <span class="badge badge--dot badge--info">30d</span>
-    </header>
-    <div class="card-body">
-      <div class="grid grid--3">
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Premium</div>
-          <div class="metric-value metric-value--sm tabular" id="purchase-premium">—</div>
-        </div>
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Kredi</div>
-          <div class="metric-value metric-value--sm tabular" id="purchase-credits">—</div>
-        </div>
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Toplam Kredi</div>
-          <div class="metric-value metric-value--sm tabular text-gradient" id="purchase-total-credits">—</div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<div class="grid grid--2 stagger">
-  <section class="card">
-    <header class="card-head">
-      <div>
-        <h2 class="card-title">Dönüşüm Metrikleri</h2>
-        <p class="card-subtitle">Premium, aktif ve engagement oranları</p>
+        <h2 class="card-title">Engagement Metrikleri</h2>
+        <p class="card-subtitle">Aktif ve engagement oranları</p>
       </div>
     </header>
     <div class="card-body">
       <div class="stack-4">
-        <div>
-          <div class="row row--between" style="margin-bottom: 6px;">
-            <span class="text-ink-muted" style="font-size: 13px;">Premium Dönüşüm</span>
-            <span style="font-size: 13px; font-weight: 600; color: var(--ink);" id="conv-premium">-%</span>
-          </div>
-          <div class="progress" style="height: 8px;">
-            <div id="conv-premium-bar" class="progress-bar progress-bar--warning" style="width: 0%;"></div>
-          </div>
-        </div>
         <div>
           <div class="row row--between" style="margin-bottom: 6px;">
             <span class="text-ink-muted" style="font-size: 13px;">Günlük Aktif Oran</span>
@@ -217,6 +155,15 @@
             <div id="conv-engaged-bar" class="progress-bar progress-bar--primary" style="width: 0%;"></div>
           </div>
         </div>
+        <div>
+          <div class="row row--between" style="margin-bottom: 6px;">
+            <span class="text-ink-muted" style="font-size: 13px;">Bugünkü Rewarded</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ink);" id="conv-rewarded">—</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="conv-rewarded-bar" class="progress-bar progress-bar--warning" style="width: 0%;"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -224,14 +171,14 @@
   <section class="card">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Kredi & Analiz</h2>
+        <h2 class="card-title">Reklam & Analiz</h2>
         <p class="card-subtitle">Sistemdeki toplam ve ortalama değerler</p>
       </div>
     </header>
     <div class="card-body">
       <div class="stack-4">
-        <div class="info-row"><span class="info-label">Toplam Kredi</span><span id="credit-total" style="font-weight: 600;">—</span></div>
-        <div class="info-row"><span class="info-label">Ortalama Kredi/Kullanıcı</span><span id="credit-avg">—</span></div>
+        <div class="info-row"><span class="info-label">Toplam İzlenen Reklam</span><span id="ads-total" style="font-weight: 600;">—</span></div>
+        <div class="info-row"><span class="info-label">Toplam Rewarded Reklam</span><span id="rewarded-total" style="font-weight: 600;">—</span></div>
         <div class="info-row"><span class="info-label">Ortalama Analiz/Kullanıcı</span><span id="analysis-avg">—</span></div>
       </div>
     </div>
@@ -284,13 +231,6 @@
     }
 
     const totalUsers = s.totalUsers || 0;
-    const premiumPct = totalUsers > 0 ? (s.premiumUsers / totalUsers) * 100 : 0;
-    const freePct = 100 - premiumPct;
-    document.getElementById('stat-premium-pct').textContent = fmtPct(premiumPct);
-    document.getElementById('stat-free-pct').textContent = fmtPct(freePct);
-    document.getElementById('dist-premium-bar').style.width = premiumPct + '%';
-    document.getElementById('conv-premium').textContent = fmtPct(premiumPct);
-    document.getElementById('conv-premium-bar').style.width = premiumPct + '%';
 
     const activePct = totalUsers > 0 ? (s.activeToday / totalUsers) * 100 : 0;
     document.getElementById('conv-active').textContent = fmtPct(activePct);
@@ -300,8 +240,13 @@
     document.getElementById('conv-engaged').textContent = fmtPct(engagedPct);
     document.getElementById('conv-engaged-bar').style.width = engagedPct + '%';
 
-    document.getElementById('credit-total').textContent = fmt(s.totalCredits);
-    document.getElementById('credit-avg').textContent = totalUsers > 0 ? (s.totalCredits / totalUsers).toFixed(1) : '0';
+    const rewardedToday = s.rewardedAdsToday || 0;
+    document.getElementById('conv-rewarded').textContent = fmt(rewardedToday);
+    const rewardedBarPct = rewardedToday > 0 ? Math.min((rewardedToday / Math.max(totalUsers, 1)) * 100, 100) : 0;
+    document.getElementById('conv-rewarded-bar').style.width = rewardedBarPct + '%';
+
+    document.getElementById('ads-total').textContent = fmt(s.totalAdsWatched);
+    document.getElementById('rewarded-total').textContent = fmt(s.totalRewardedAds);
     document.getElementById('analysis-avg').textContent = totalUsers > 0 ? (s.totalAnalyses / totalUsers).toFixed(1) : '0';
 
     document.getElementById('ga-pageviews').textContent = fmt(s.gaPageViews);
@@ -322,18 +267,8 @@
     console.error('stats/overview error:', err);
   }
 
-  try {
-    const r = await fetch('/admin/api/stats/purchases', { credentials: 'same-origin' });
-    const j = await r.json();
-    if (j.success) {
-      const p = j.data.last30Days;
-      document.getElementById('purchase-premium').textContent = fmt(p.premiumPurchases);
-      document.getElementById('purchase-credits').textContent = fmt(p.creditPurchases);
-      document.getElementById('purchase-total-credits').textContent = fmt(p.totalCreditsSold);
-    }
-  } catch (err) {
-    console.error('stats/purchases error:', err);
-  }
+  // Purchases endpoint'i artik sadece event sayisi donduruyor (premium/credit kaldirildi)
+  // Bu yuzden ek istek gerekmez.
 
   try {
     const r = await fetch(`/admin/api/analytics/overview?range=${range}`, { credentials: 'same-origin' });

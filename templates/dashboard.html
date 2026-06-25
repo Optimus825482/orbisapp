@@ -875,8 +875,36 @@ endblock %} {% block head %} {{ super() }}
           }
         };
 
-        const cancelCallback = function () {
-          console.log( "[ORBIS] Analiz iptal edildi" );
+        const cancelCallback = function (reason) {
+          console.log( "[ORBIS] Analiz iptal edildi. reason:", reason );
+
+          // Loading overlay'i HER DURUMDA gizle
+          const loadingEl = document.getElementById( "loadingOverlay" );
+          if ( loadingEl ) {
+            $( loadingEl ).addClass( "hidden" ).removeClass( "flex" );
+          }
+
+          // Reason bilgisini UI'a yansıt
+          // Öncelik sırası: OrbisBridge.showAdErrorToast > OrbisBridge.explainAdFail > fallback alert
+          if ( window.OrbisBridge && typeof window.OrbisBridge.explainAdFail === "function" ) {
+            const msg = window.OrbisBridge.explainAdFail( reason );
+            if ( msg ) {
+              if ( typeof window.OrbisBridge.showAdErrorToast === "function" ) {
+                window.OrbisBridge.showAdErrorToast( msg, reason );
+              } else {
+                // Fallback: native alert
+                alert( "⚠️ " + msg );
+              }
+              return;
+            }
+            // msg null ise (örn. user_cancelled) — hiçbir şey gösterme, sessizce çık
+            return;
+          }
+
+          // OrbisBridge yoksa fallback
+          if ( reason ) {
+            alert( "⚠️ Analiz başlatılamadı. Tekrar deneyin. (kod: " + reason + ")" );
+          }
         };
 
         // Async fonksiyonu çağır

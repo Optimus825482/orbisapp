@@ -585,7 +585,7 @@
             <span class="material-icons-round text-5xl text-primary mb-3">account_circle</span>
             <h3 class="text-lg font-bold">ORBIS'e Giriş Yap</h3>
             <p class="text-xs text-slate-400 mt-2">
-              Premium ve kredileriniz tüm cihazlarınızda senkronize olsun
+              Analiz gecmisiniz tum cihazlarinizda senkronize olsun
             </p>
           </div>
 
@@ -617,15 +617,11 @@
             <p id="modal-user-email" class="text-xs text-slate-400"></p>
           </div>
 
-          <!-- Status -->
+          <!-- Status (Premium/credit kaldirildi) -->
           <div class="bg-slate-800 rounded-xl p-4 mb-4">
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-xs text-slate-400">Durum</span>
-              <span id="modal-premium-badge" class="text-xs font-bold text-primary">Ücretsiz</span>
-            </div>
             <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Kredi</span>
-              <span id="modal-credits" class="text-xs font-bold">0</span>
+              <span class="text-xs text-slate-400">Uyelik</span>
+              <span id="modal-premium-badge" class="text-xs font-bold text-primary">Ucretsiz</span>
             </div>
           </div>
 
@@ -702,16 +698,15 @@
         document.getElementById( "modal-user-email" ).textContent =
           user.email || "";
 
-        // Update status
-        const isPremium = userData?.isPremium || false;
-        const credits = userData?.credits || 0;
-        document.getElementById( "modal-premium-badge" ).textContent = isPremium
-          ? "💎 Premium"
-          : "Ücretsiz";
-        document.getElementById( "modal-premium-badge" ).className = isPremium
-          ? "text-xs font-bold text-yellow-400"
-          : "text-xs font-bold text-slate-400";
-        document.getElementById( "modal-credits" ).textContent = credits;
+        // Update status (Premium/credit kaldirildi)
+        const badge = document.getElementById( "modal-premium-badge" );
+        if (badge) {
+          badge.textContent = "Ucretsiz";
+          badge.className = "text-xs font-bold text-slate-400";
+        }
+        // Geriye uyumluluk: modal-credits artik kullanilmiyor ama varsa hata vermesin
+        const creditEl = document.getElementById( "modal-credits" );
+        if (creditEl) creditEl.textContent = "";
 
         // Update mobile nav icon
         document

@@ -1,10 +1,14 @@
 /**
  * ORBIS Monetizasyon & Capacitor Bridge
- * Reklam, Kredi ve Premium Sistemi
+ * - Sadece reklam destekli uygulama
+ * - PREMIUM KALDIRILDI: Uygulama tamamen ucretsiz.
+ *   Geriye uyumluluk icin state.isPremium her zaman false dondurulur,
+ *   premium satin alma/paket gosterim fonksiyonlari no-op.
  *
  * KURALLAR:
- * - Ücretsiz: İlk gün 8 (3 reklamsız + 5 reklamlı), sonra günlük 5 reklamlı
- * - Premium (₺300/ay): reklamsız sınırsız
+ * - Her analiz icin Rewarded reklam ZORUNLU
+ * - Banner + interstitial ek gelir
+ * - Premium satin alma KAPALI
  */
 
 const OrbisBridge = {
@@ -66,9 +70,10 @@ const OrbisBridge = {
 
   state: {
     isNative: false,
+    // Premium kaldirildi: her zaman false. Eski localStorage verileri temizlenir.
     isPremium: false,
     credits: 0,
-    premiumPackageId: null, // Hangi premium paketi aldı
+    premiumPackageId: null, // Hangi premium paketi aldı (artik kullanilmiyor)
 
     // Ücretsiz kullanıcı için
     installDate: null, // İlk kurulum tarihi
@@ -77,7 +82,7 @@ const OrbisBridge = {
     lastUsageDate: null, // Son kullanım tarihi
     totalAnalyses: 0, // Toplam analiz (interstitial için)
 
-    // Premium için
+    // Premium için (artik kullanilmiyor)
     premiumExpiry: null, // Premium bitiş tarihi
   },
 
@@ -119,40 +124,14 @@ const OrbisBridge = {
   // ═══════════════════════════════════════════════════════════════
 
   async verifyPremiumWithBackend() {
-    // Sadece localStorage'da premium görünüyorsa kontrol et
-    if (!this.state.isPremium) return;
-
-    try {
-      const deviceId = this.getDeviceId();
-      const email = window.OrbisFirebase?.getCurrentUser()?.email || null;
-
-      const res = await fetch("/api/monetization/premium-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ device_id: deviceId, email: email }),
-      });
-      const json = await res.json();
-
-      if (json.success && !json.is_premium) {
-        // Backend premium demiyor - localStorage'ı düzelt
-        console.warn("[ORBIS] Premium state local'de var ama backend'de yok! Sıfırlanıyor.");
-        this.state.isPremium = false;
-        this.state.premiumPackageId = null;
-        this.state.premiumExpiry = null;
-        this.saveState();
-        this.updateUI();
-        if (this.state.isNative) this.showBanner();
-      }
-    } catch (e) {
-      // Backend'e ulasilamadi - GUVENLIK: premium'u sifirla, reklam goster
-      console.warn("[ORBIS] Premium dogrulama basarisiz, guvenlik icin sifirlaniyor:", e.message);
-      if (this.state.isPremium) {
-        this.state.isPremium = false;
-        this.state.premiumPackageId = null;
-        this.state.premiumExpiry = null;
-        this.saveState();
-        this.updateUI();
-      }
+    // DEPRECATED: Premium kaldirildi. Eski premium state'lerini temizle.
+    if (this.state.isPremium || this.state.premiumPackageId || this.state.premiumExpiry || this.state.credits > 0) {
+      console.info("[ORBIS] Eski premium/credit state temizleniyor (premium kaldirildi).");
+      this.state.isPremium = false;
+      this.state.premiumPackageId = null;
+      this.state.premiumExpiry = null;
+      this.state.credits = 0;
+      this.saveState();
     }
   },
 
@@ -791,9 +770,9 @@ const OrbisBridge = {
     if (this.needsAd()) {
       console.log("[ORBIS] Reklam gerekiyor...");
       // Reklam izletmemiz lazım
-      const adWatched = await this.showRewardedAdFlow();
+      const adResult = await this.showRewardedAdFlow();
 
-      if (adWatched) {
+      if (adResult && adResult.success) {
         this.state.todayUsage++;
         this.state.todayAdsWatched++;
         this.state.totalAnalyses++;
@@ -825,12 +804,14 @@ const OrbisBridge = {
         // GA: Reklam izlenmedi event'i
         this.trackEvent("ad_skipped", {
           ad_type: "rewarded",
+          reason: (adResult && adResult.reason) || "unknown",
         });
 
-        console.log("[ORBIS] Reklam izlenmedi");
+        console.log("[ORBIS] Reklam izlenmedi / başarısız. reason:", adResult && adResult.reason);
         if (onCancel) {
-          console.log("[ORBIS] Calling onCancel (ad not watched)...");
-          onCancel();
+          console.log("[ORBIS] Calling onCancel with reason...");
+          // Yeni imza: onCancel(reason) — dashboard.html bunu toast/alert göstermek için kullanır
+          onCancel((adResult && adResult.reason) || "unknown");
         }
       }
     } else {
@@ -883,25 +864,32 @@ const OrbisBridge = {
 
       // ⚠️ KRİTİK: AdMob.initialize() zorunlu. Bu çağrılmadan prepare/show
       // sessizce başarısız olur → AdMob panelinde "0 istek" gözükür.
-      // initializeForTesting:true → test reklam (NO_FILL) — production'da false olmalı.
+      // initializeForTesting:true, prod reklam yerine test reklamı yükler
+      // ve NO_FILL hatasına neden olur — bu yüzden false.
       await AdMob.initialize({
+        // initializeForTesting:true → test reklam (NO_FILL)
+        // initializeForTesting:false → gerçek reklam (production)
         initializeForTesting: this.CONFIG.IS_TESTING,
-        testingDevices: this.CONFIG.IS_TESTING ? [] : [],
-        // TR mevzuatı gereği çocuk yönelimli değiliz → false. Yanlışlıkla true
-        // yapılırsa AdMob tüm reklamları reddeder → 0 etkin kalır.
+        // TagForChildDirectedTreatment: TR mevzuatı gereği çocuk yönelimli
+        // değiliz → false. Yanlışlıkla true yapılırsa AdMob tüm reklamları
+        // reddeder → 0 etkin kalır.
         tagForChildDirectedTreatment: false,
+        // tagForUnderAgeOfConsent: aynı şekilde false
         tagForUnderAgeOfConsent: false,
       });
 
       console.log("[ORBIS] ✅ AdMob.initialize başarılı (appId=" + adConfig.APP_ID + ")");
 
-      // AppId sanity check
+      // ⚠️ KRİTİK: AppId sadece AndroidManifest.xml'de tanımlı olur; burada
+      // tekrar set etmek gerekmez. Ama config sanity check yapalım:
       if (!adConfig.APP_ID || !adConfig.APP_ID.startsWith("ca-app-pub-")) {
         console.error("[ORBIS] ❌ Geçersiz AdMob APP_ID:", adConfig.APP_ID);
         return;
       }
 
-      // iOS 14+ ATT (App Tracking Transparency) — ayrı method, Android silent
+      // iOS 14+ ATT (App Tracking Transparency) — ayrı method.
+      // Android'de silent ignore. iOS'ta popup gösterir.
+      // Sadece native iOS'ta çalışır; Android'de plugin "unimplemented" döner.
       try {
         if (typeof AdMob.trackingAuthorizationStatus === "function") {
           const tracking = await AdMob.trackingAuthorizationStatus();
@@ -914,7 +902,9 @@ const OrbisBridge = {
         console.log("[ORBIS] ATT atlandı (Android veya unsupported):", e?.message || "");
       }
 
-      // GDPR/KVKK consent sorgula
+      // GDPR/KVKK: TR kullanıcıları için non-personalized ads default.
+      // consentStatus='NON_PERSONALIZED' veya 'UNKNOWN' ise NPA kullan.
+      // (Detaylı consent dialog Options sayfasında gösterilebilir.)
       try {
         if (typeof AdMob.requestConsentInfo === "function") {
           const consent = await AdMob.requestConsentInfo({});
@@ -1092,16 +1082,13 @@ const OrbisBridge = {
               </div>
               <h3 class="text-xl font-bold text-white mb-2">Reklam İzle</h3>
               <p class="text-sm text-slate-400 mb-6 leading-relaxed">
-                AI yorumun kilidini açmak için reklam izlemen gerekiyor. 
-                Premium üyeler reklamsız sınırsız kullanır.
+                AI yorumun kilidini acmak icin lutfen kisa bir reklam izleyin.
+                Uygulamamiz tamamen ucretsizdir.
               </p>
               <div class="flex flex-col gap-3">
                 <button id="ad-reward-watch-btn" class="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">
                   <span class="material-icons-round">play_arrow</span>
                   Reklam İzle ve Devam Et
-                </button>
-                <button id="ad-reward-premium-btn" class="w-full py-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-bold rounded-2xl transition-all border border-amber-500/30">
-                  💎 Premium'a Geç (₺30/gün)
                 </button>
                 <button id="ad-reward-cancel-btn" class="w-full py-3 text-slate-500 hover:text-slate-300 text-sm transition-colors">
                   Vazgeç
@@ -1113,7 +1100,6 @@ const OrbisBridge = {
 
           // Buton event'leri
           const watchBtn = document.getElementById('ad-reward-watch-btn');
-          const premiumBtn = document.getElementById('ad-reward-premium-btn');
           const cancelBtn = document.getElementById('ad-reward-cancel-btn');
 
           // İzle butonu
@@ -1122,21 +1108,25 @@ const OrbisBridge = {
             this.trackEvent("ad_impression", { ad_type: "rewarded_web" });
             this.trackEvent("ad_reward", { ad_type: "rewarded_web", reward_type: "analysis_credit" });
             modal.remove();
-            resolve(true);
+            resolve({ success: true, reason: null });
           });
 
-          // Premium butonu
-          premiumBtn.addEventListener('click', () => {
-            modal.remove();
-            this.showPremiumPackages();
-            resolve(false);
-          });
+          // Premium butonu kaldirildi (premium artik yok).
+          // Geriye uyumluluk: eski 'ad-reward-premium-btn' varsa tiklama no-op yapar.
+          const legacyPremiumBtn = document.getElementById('ad-reward-premium-btn');
+          if (legacyPremiumBtn) {
+            legacyPremiumBtn.addEventListener('click', () => {
+              console.info("[ORBIS] Legacy premium buton ignored (premium removed).");
+              modal.remove();
+              resolve({ success: false, reason: "user_cancelled" });
+            });
+          }
 
           // İptal butonu
           cancelBtn.addEventListener('click', () => {
             console.log("[ORBIS] Web reklam iptal edildi");
             modal.remove();
-            resolve(false);
+            resolve({ success: false, reason: "user_cancelled" });
           });
 
           return;
@@ -1156,13 +1146,67 @@ const OrbisBridge = {
           cleanupFns = [];
         };
 
-        const safeResolve = (val) => {
+        // smartResolve: AdMob reason + native-to-web fallback akıllı çözümleyici
+        // Başarıda {success:true, reason:null}; başarısızlıkta {success:false, reason}
+        // Native AdMob başarısız olduğunda (no-fill / timeout / load error) web modal
+        // fallback dener — kök neden çözümü.
+        const smartResolve = (success, reason) => {
           if (notified) return;
           notified = true;
           cleanup();
           // Yeni reklam yükle
           this.loadRewardedAd();
-          setTimeout(() => resolve(val), 200);
+
+          const needsFallback =
+            success === false &&
+            this.state.isNative &&
+            (reason === "ad_load_failed:3" ||
+              reason === "ad_load_failed:0" ||
+              reason === "ad_timeout" ||
+              reason === "ad_show_failed");
+
+          if (needsFallback) {
+            console.log(
+              "[ORBIS] AdMob native başarısız, web modal fallback deneniyor. reason:",
+              reason
+            );
+            // Web modal fallback dene (async). Kullanıcı seçerse success=true döner.
+            this.showWebRewardedFallback(reason)
+              .then((webResult) => {
+                if (webResult === true) {
+                  setTimeout(
+                    () =>
+                      resolve({
+                        success: true,
+                        reason: "web_fallback",
+                      }),
+                    200
+                  );
+                } else {
+                  setTimeout(
+                    () =>
+                      resolve({
+                        success: false,
+                        reason: "user_cancelled",
+                      }),
+                    200
+                  );
+                }
+              })
+              .catch((err) => {
+                console.error("[ORBIS] Web fallback hata:", err);
+                setTimeout(
+                  () => resolve({ success: false, reason }),
+                  200
+                );
+              });
+            return;
+          }
+
+          setTimeout(
+            () => resolve({ success: success, reason: success ? null : reason }),
+            200
+          );
         };
 
         // Ödül kazanıldı
@@ -1176,21 +1220,23 @@ const OrbisBridge = {
         // Reklam kapatıldı
         const dl = await AdMob.addListener("onRewardedVideoAdDismissed", () => {
           console.log("[ORBIS] Reklam kapatıldı, ödül:", rewarded);
-          safeResolve(rewarded);
+          smartResolve(rewarded, rewarded ? null : "user_dismissed_without_reward");
         });
         cleanupFns.push(() => dl.remove());
 
         // Yüklenemedi
         const fl = await AdMob.addListener("onRewardedVideoAdFailedToLoad", (error) => {
           console.error("[ORBIS] Ad yüklenemedi:", error);
-          safeResolve(false);
+          const code = (error && (error.code !== undefined ? error.code : error)) || "unknown";
+          smartResolve(false, "ad_load_failed:" + code);
         });
         cleanupFns.push(() => fl.remove());
 
         // Gösterilemedi
         const fs = await AdMob.addListener("onRewardedVideoAdFailedToShow", (error) => {
           console.error("[ORBIS] Ad gösterilemedi:", error);
-          safeResolve(false);
+          const code = (error && (error.code !== undefined ? error.code : error)) || "unknown";
+          smartResolve(false, "ad_show_failed:" + code);
         });
         cleanupFns.push(() => fs.remove());
 
@@ -1198,7 +1244,7 @@ const OrbisBridge = {
         const timeoutId = setTimeout(() => {
           if (!notified) {
             console.warn("[ORBIS] Ad timeout - 30sn doldu");
-            safeResolve(false);
+            smartResolve(false, "ad_timeout");
           }
         }, 30000);
         cleanupFns.push(() => clearTimeout(timeoutId));
@@ -1206,7 +1252,7 @@ const OrbisBridge = {
         console.log("[ORBIS] Rewarded video gösteriliyor...");
         this.trackEvent("ad_impression", { ad_type: "rewarded" });
         await AdMob.showRewardVideoAd();
-        
+
       } catch (error) {
         console.error("[ORBIS] Rewarded ad hatası:", error);
         // Hata durumunda bile web'de bir modal göster
@@ -1214,101 +1260,36 @@ const OrbisBridge = {
           try { document.getElementById('ad-reward-overlay')?.remove(); } catch(e) {}
           // Basit confirm ile dene
           const retry = confirm("📺 Reklam gösterilemedi. Tekrar dene?");
-          resolve(retry);
+          resolve({ success: retry, reason: retry ? "web_retry" : "user_cancelled" });
         } else {
-          if (!notified) resolve(false);
+          if (!notified) {
+            // Native throw — fallback dene
+            const errMsg = (error && (error.message || String(error))) || "unknown";
+            smartResolve(false, "ad_throw:" + errMsg);
+          }
         }
       }
     });
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // PREMIUM & KREDİ
+  // PREMIUM & KREDİ - KALDIRILDI
   // ═══════════════════════════════════════════════════════════════
 
   showPremiumPackages() {
-    let message = `💎 ORBIS PREMIUM PAKETLERİ\n\n`;
-
-    this.CONFIG.PREMIUM_PACKAGES.forEach((pkg, i) => {
-      const monthsText = pkg.months > 0 ? `${pkg.months} ay` : "24 saat";
-      message += `${i + 1}. ${pkg.name}: ₺${pkg.price}\n`;
-      message += `   → Sınırsız analiz (${monthsText})\n`;
-      message += `   → Reklamsız deneyim\n\n`;
-    });
-
-    message += `Satın almak için numara girin (1-${this.CONFIG.PREMIUM_PACKAGES.length}):`;
-
-    const choice = prompt(message);
-    if (choice) {
-      const index = parseInt(choice) - 1;
-      if (index >= 0 && index < this.CONFIG.PREMIUM_PACKAGES.length) {
-        this.purchasePremium(index);
-      }
+    // DEPRECATED: Premium kaldirildi. Uygulama tamamen ucretsiz.
+    console.info("[ORBIS] showPremiumPackages called but premium is removed.");
+    if (typeof alert !== "undefined") {
+      alert("Uygulamamiz tamamen ucretsizdir. Premium satin alma ozellikleri kaldirildi.");
     }
   },
 
   async purchasePremium(index_or_pkg = 0) {
-    // Hem index (number) hem de obje kabul et
-    let pkg = index_or_pkg;
-    if (typeof pkg === "number") {
-      pkg = this.CONFIG.PREMIUM_PACKAGES[pkg];
+    // DEPRECATED: Premium satin alma kaldirildi. Uygulama tamamen ucretsiz.
+    console.info("[ORBIS] purchasePremium called but premium is removed:", index_or_pkg);
+    if (typeof alert !== "undefined") {
+      alert("Premium satin alma kaldirildi. Uygulama tamamen ucretsizdir.");
     }
-    if (!pkg) {
-      pkg = this.CONFIG.PREMIUM_PACKAGES[1]; // monthly default
-    }
-
-    // TODO: Gerçek In-App Purchase entegrasyonu
-    const months = pkg.months || 0;
-    const monthsText = months > 0 ? `${months} ay geçerlilik` : "24 saat geçerli";
-
-    const confirmed = confirm(
-      `💎 ORBIS Premium - ${pkg.name}\n\n` +
-        `✅ Reklamsız deneyim\n` +
-        `✅ Sınırsız analiz\n` +
-        `✅ ${monthsText}\n\n` +
-        `Fiyat: ₺${pkg.price}\n\n` +
-        `Satın almak istiyor musunuz?`
-    );
-
-    if (confirmed) {
-      // Test için aktif et
-      this.state.isPremium = true;
-      this.state.premiumPackageId = pkg.id;
-      this.state.premiumExpiry = months > 0
-        ? new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString()
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Günlük = 24 saat
-      this.saveState();
-
-      // Banner'ı gizle
-      this.hideBanner();
-
-      this.updateUI();
-
-      // GA: Premium satın alma event'i
-      this.trackEvent("purchase", {
-        transaction_id: `premium_${Date.now()}`,
-        value: pkg.price,
-        currency: "TRY",
-        items: [
-          {
-            item_id: pkg.id,
-            item_name: `Premium ${pkg.name}`,
-            category: "subscription",
-            price: pkg.price,
-            quantity: 1,
-          },
-        ],
-      });
-
-      alert(
-        `🎉 Premium aktivasyonu başarılı!\n\n` +
-          `📦 Paket: ${pkg.name}\n` +
-          `📅 ${monthsText}\n` +
-          `💰 ₺${pkg.price}`
-      );
-      return true;
-    }
-
     return false;
   },
 
@@ -1317,41 +1298,233 @@ const OrbisBridge = {
   // ═══════════════════════════════════════════════════════════════
 
   showLimitReachedModal() {
-    if (this.state.isPremium) {
-      // Premium ama kredi bitti (eski kredi sistemi - artık sınırsız)
-      alert("💎 Premium üyeliğiniz aktif. Sınırsız analiz yapabilirsiniz.");
-    } else {
-      // Ücretsiz kullanıcı - her analiz için reklam gerekli
-      const monthly = this.CONFIG.PREMIUM_PACKAGES.find(p => p.id === "monthly");
-      const goPremium = confirm(
-        `⏰ Reklam izlemek istemiyor musunuz?\n\n` +
-          `💎 Premium ile reklamsız sınırsız analiz yapın!\n` +
-          `• Reklamsız deneyim\n` +
-          `• Sınırsız analiz ve AI yorum\n` +
-          `• Günlük ₺30 · Aylık ₺${monthly?.price || 300}\n\n` +
-          `Premium'a geçmek ister misiniz?`
-      );
-
-      if (goPremium) {
-        this.showPremiumPackages();
-      }
+    // Herkes ucretsiz — sadece reklam izleme uyarisi
+    if (typeof alert !== "undefined") {
+      alert("Analiz icin lutfen kisa bir reklam izleyin.");
     }
   },
 
-  showPremiumPromo() {
-    const monthly = this.CONFIG.PREMIUM_PACKAGES.find(p => p.id === "monthly");
-    const daily = this.CONFIG.PREMIUM_PACKAGES.find(p => p.id === "daily");
-    const goPremium = confirm(
-      `💎 ORBIS Premium\n\n` +
-        `✅ Sınırsız analiz\n` +
-        `✅ Reklamsız deneyim\n` +
-        `✅ Öncelikli destek\n\n` +
-        `Günlük ₺${daily?.price || 30} · Aylık ₺${monthly?.price || 300}\n\n` +
-        `Premium'a geçmek ister misiniz?`
-    );
+  /**
+   * AdMob hata nedenini kullanıcı dostu Türkçe mesaja çevirir.
+   * dashboard.html'deki cancelCallback bunu kullanır.
+   * @param {string} reason - showRewardedAd'dan dönen reason string
+   * @returns {string|null} - Mesaj veya bilinmeyen nedenler için null
+   */
+  explainAdFail(reason) {
+    if (!reason) return null;
 
-    if (goPremium) {
-      this.showPremiumPackages();
+    // En yaygın nedenler önce
+    if (reason === "ad_timeout") {
+      return "Reklam 30 saniye içinde yüklenemedi. İnternet bağlantınızı kontrol edin ve tekrar deneyin.";
+    }
+    if (reason === "ad_load_failed:3") {
+      return "Reklam envanteri şu an bu cihaz için boş. Birkaç saat sonra tekrar deneyin veya Premium'a geçerek reklamsız kullanın.";
+    }
+    if (reason === "ad_load_failed:0") {
+      return "Reklam isteği başarısız oldu. İnternet bağlantınızı kontrol edin.";
+    }
+    if (reason === "ad_load_failed:1") {
+      return "Reklam sunucusundan geçersiz yanıt alındı. Tekrar deneyin.";
+    }
+    if (reason === "ad_load_failed:2") {
+      return "Reklam ağı bağlantısı kurulamadı. İnternet bağlantınızı kontrol edin.";
+    }
+    if (reason.startsWith("ad_load_failed")) {
+      return "Reklam yüklenemedi (kod: " + reason + "). Lütfen tekrar deneyin.";
+    }
+    if (reason.startsWith("ad_show_failed")) {
+      return "Reklam gösterilemedi. Uygulamayı yeniden başlatıp tekrar deneyin.";
+    }
+    if (reason.startsWith("ad_throw")) {
+      return "Reklam sistemi başlatılamadı. Uygulamayı kapatıp yeniden açın.";
+    }
+    if (reason === "user_cancelled") {
+      return null; // Kullanıcı kendisi iptal etti — bilgi gösterme
+    }
+    if (reason === "user_dismissed_without_reward") {
+      return "Reklam tam izlenmedi. Ödül kazanılamadığı için analiz başlatılamadı.";
+    }
+    if (reason === "premium_chosen") {
+      return null; // Premium'a yönlendirildi — bilgi gösterme
+    }
+    if (reason === "web_retry") {
+      return "Reklam gösterilemedi. Tekrar denemek istiyor musunuz?";
+    }
+    if (reason === "web_fallback") {
+      return null; // Web fallback başarılı — bilgi gösterme
+    }
+    return "Reklam gösterilemedi. Lütfen tekrar deneyin. (kod: " + reason + ")";
+  },
+
+  /**
+   * Üstten slide-in toast: AdMob hatasını kullanıcıya gösterir.
+   * 60 sn sonra otomatik kapanır, kullanıcı da kapatabilir.
+   * "Tekrar Dene" butonu formu yeniden submit eder.
+   * @param {string} message - explainAdFail'den gelen mesaj
+   * @param {string} reason - opsiyonel, console'a log için
+   */
+  showAdErrorToast(message, reason) {
+    try {
+      // Mevcut toast varsa kaldır
+      const existing = document.getElementById("orbis-ad-error-toast");
+      if (existing) existing.remove();
+
+      const toast = document.createElement("div");
+      toast.id = "orbis-ad-error-toast";
+      toast.style.cssText =
+        "position:fixed;top:1rem;left:1rem;right:1rem;z-index:300;transform:translateY(-220%);transition:transform 0.4s ease-out;pointer-events:none";
+      toast.innerHTML =
+        '<div style="pointer-events:auto" class="bg-red-500/95 backdrop-blur-sm text-white px-4 py-3 rounded-2xl shadow-2xl border border-red-400/30 flex items-center gap-3 max-w-md mx-auto">' +
+        '<span class="material-icons-round text-2xl flex-shrink-0">error_outline</span>' +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="text-sm font-bold leading-tight">Reklam Yüklenemedi</p>' +
+        '<p class="text-xs opacity-90 mt-0.5 leading-snug">' +
+        String(message).replace(/</g, "&lt;") +
+        "</p>" +
+        "</div>" +
+        '<button id="orbis-toast-retry" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors flex-shrink-0" aria-label="Tekrar Dene">' +
+        '<span class="material-icons-round text-sm">refresh</span><span>Tekrar</span>' +
+        "</button>" +
+        '<button id="orbis-toast-close" class="text-white/70 hover:text-white flex-shrink-0" aria-label="Kapat">' +
+        '<span class="material-icons-round text-lg">close</span>' +
+        "</button>" +
+        "</div>";
+      document.body.appendChild(toast);
+
+      // Slide-in (çift rAF ile layout settle olduktan sonra)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          toast.style.transform = "translateY(0)";
+        });
+      });
+
+      // Close handler
+      const close = () => {
+        toast.style.transform = "translateY(-220%)";
+        setTimeout(() => {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 400);
+      };
+      const closeBtn = document.getElementById("orbis-toast-close");
+      const retryBtn = document.getElementById("orbis-toast-retry");
+      if (closeBtn) closeBtn.addEventListener("click", close);
+      if (retryBtn) {
+        retryBtn.addEventListener("click", () => {
+          close();
+          // Form'u yeniden submit et
+          const form = document.getElementById("orbisForm");
+          if (form) {
+            console.log("[ORBIS] Toast retry: form yeniden submit ediliyor");
+            form.dispatchEvent(
+              new Event("submit", { cancelable: true, bubbles: true })
+            );
+          }
+        });
+      }
+
+      // 60 sn sonra otomatik kapat (güvenlik)
+      setTimeout(close, 60000);
+    } catch (e) {
+      console.error("[ORBIS] showAdErrorToast hatası:", e);
+      // Son çare: native alert
+      try {
+        alert("⚠️ " + message);
+      } catch (_) {}
+    }
+  },
+
+  /**
+   * Native AdMob başarısız olduğunda web modal fallback gösterir.
+   * Kullanıcı "Reklam İzle" derse true, "Vazgeç" derse false döner.
+   * @param {string} reason - smartResolve'den gelen reason
+   * @returns {Promise<boolean|null>} - true/false = kullanıcı seçti, null = modal oluşturulamadı
+   */
+  showWebRewardedFallback(reason) {
+    return new Promise((resolve) => {
+      try {
+        // Mevcut modal varsa kaldır
+        const existing = document.getElementById("ad-reward-overlay");
+        if (existing) existing.remove();
+
+        const isNoFill = reason === "ad_load_failed:3";
+        const reasonText = isNoFill
+          ? "Reklam envanteri şu an bu cihaz için boş. Yine de devam etmek için aşağıdan onaylayın."
+          : reason === "ad_timeout"
+          ? "Reklam zaman aşımına uğradı. Yine de devam etmek için aşağıdan onaylayın."
+          : "Reklam yüklenemedi. Yine de devam etmek için aşağıdan onaylayın.";
+
+        const modal = document.createElement("div");
+        modal.id = "ad-reward-overlay";
+        modal.style.cssText =
+          "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)";
+        // Premium kaldirildi: sadece 'Yine de Devam Et' ve 'Vazgeç' butonlari
+        modal.innerHTML =
+          '<div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 w-full max-w-sm mx-4 border border-white/10 shadow-2xl text-center animate-fade-in">' +
+          '<div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-500/30 to-orange-500/30 flex items-center justify-center">' +
+          '<span class="material-icons-round text-4xl text-amber-400">info</span>' +
+          "</div>" +
+          '<h3 class="text-xl font-bold text-white mb-2">Reklam Gösterilemedi</h3>' +
+          '<p class="text-sm text-slate-400 mb-6 leading-relaxed">' +
+          reasonText +
+          "</p>" +
+          '<div class="flex flex-col gap-3">' +
+          '<button id="ad-fallback-confirm" class="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">' +
+          '<span class="material-icons-round">play_arrow</span>' +
+          "Yine de Devam Et" +
+          "</button>" +
+          '<button id="ad-fallback-cancel" class="w-full py-3 text-slate-500 hover:text-slate-300 text-sm transition-colors">' +
+          "Vazgeç" +
+          "</button>" +
+          "</div>" +
+          "</div>";
+        document.body.appendChild(modal);
+
+        const cleanup = () => {
+          if (modal.parentNode) modal.parentNode.removeChild(modal);
+        };
+
+        const confirmBtn = document.getElementById("ad-fallback-confirm");
+        const cancelBtn = document.getElementById("ad-fallback-cancel");
+
+        if (confirmBtn) {
+          confirmBtn.addEventListener("click", () => {
+            console.log(
+              "[ORBIS] Web fallback: kullanıcı 'Yine de Devam Et' seçti"
+            );
+            this.trackEvent("ad_fallback_used", { reason: reason });
+            cleanup();
+            resolve(true);
+          });
+        }
+        // Premium butonu kaldirildi. Geriye uyumluluk: varsa no-op.
+        const legacyPremiumBtn = document.getElementById("ad-fallback-premium");
+        if (legacyPremiumBtn) {
+          legacyPremiumBtn.addEventListener("click", () => {
+            console.info("[ORBIS] Legacy premium buton ignored (premium removed).");
+            cleanup();
+            resolve(false);
+          });
+        }
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", () => {
+            console.log("[ORBIS] Web fallback: kullanıcı vazgeçti");
+            cleanup();
+            resolve(false);
+          });
+        }
+      } catch (e) {
+        console.error("[ORBIS] showWebRewardedFallback modal hatası:", e);
+        resolve(null);
+      }
+    });
+  },
+
+  showPremiumPromo() {
+    // DEPRECATED: Premium kaldirildi. Uygulama tamamen ucretsiz.
+    // Geriye uyumluluk: sadece bilgilendirme.
+    console.info("[ORBIS] showPremiumPromo called but premium is removed.");
+    if (typeof alert !== "undefined") {
+      alert("Uygulamamiz tamamen ucretsizdir. Premium satin alma kaldirildi.");
     }
   },
 
@@ -1471,4 +1644,6 @@ window.OrbisRewardedAds = {
 // Sayfa yüklendiğinde başlat
 document.addEventListener("DOMContentLoaded", async () => {
   await OrbisBridge.init();
+  // Analytics: app_open (web PWA + mobile WebView)
+  if (window.OrbisAnalytics) window.OrbisAnalytics.event('app_open', { platform: window.Capacitor?.isNativePlatform() ? 'native' : 'web' });
 });

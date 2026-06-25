@@ -39,7 +39,6 @@
           <label for="topic" class="form-label">Topic Seç</label>
           <select id="topic" class="select">
             <option value="all_users">Tüm Kullanıcılar</option>
-            <option value="premium_users">Premium Kullanıcılar</option>
             <option value="daily_horoscope">Günlük Burç Aboneleri</option>
             <option value="weekly_horoscope">Haftalık Burç Aboneleri</option>
           </select>
@@ -95,11 +94,11 @@
             </div>
             <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
           </button>
-          <button class="template-row" type="button" onclick="useTemplate('promo')">
-            <span class="metric-icon metric-icon--success" style="width: 40px; height: 40px;"><span class="material-symbols-outlined">local_offer</span></span>
+          <button class="template-row" type="button" onclick="useTemplate('engagement')">
+            <span class="metric-icon metric-icon--success" style="width: 40px; height: 40px;"><span class="material-symbols-outlined">auto_awesome</span></span>
             <div style="flex: 1; text-align: left;">
-              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Premium Kampanya</div>
-              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Özel indirim fırsatı!</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Yeni Analiz Hatırlatma</div>
+              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Bugün yıldızlar sizi bekliyor!</div>
             </div>
             <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
           </button>
@@ -149,7 +148,6 @@
       </header>
       <div class="card-body" style="padding-top: 0;">
         <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">all_users</span><span style="font-size: 12px; color: var(--ink-muted);">Tüm kayıtlı cihazlar</span></div>
-        <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">premium_users</span><span style="font-size: 12px; color: var(--ink-muted);">Premium üyeler</span></div>
         <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">daily_horoscope</span><span style="font-size: 12px; color: var(--ink-muted);">Günlük aboneler</span></div>
       </div>
     </section>
@@ -182,7 +180,7 @@
   const TEMPLATES = {
     daily:  { title: '🌟 Günlük Burç Yorumunuz Hazır!', body: 'Bugün yıldızlar sizin için ne söylüyor? Günlük kozmik rehberinizi keşfedin.' },
     weekly: { title: '📅 Haftalık Kozmik Analiz',         body: 'Bu haftanın astrolojik enerjileri ve size özel tavsiyeleri görüntüleyin.' },
-    promo:  { title: '💎 Premium\'da %50 İndirim!',     body: 'Sınırlı süre! Premium üyelikte büyük fırsat. Hemen keşfedin.' },
+    engagement: { title: '✨ Yeni Analiz Sizi Bekliyor', body: 'Bugün yıldızlar size özel bir şey söylüyor. Hemen analizinizi başlatın.' },
     update: { title: '🚀 ORBIS Güncellendi!',             body: 'Yeni özellikler ve iyileştirmeler sizi bekliyor. Uygulamayı açın ve keşfedin.' }
   };
 

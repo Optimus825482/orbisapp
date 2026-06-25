@@ -38,17 +38,17 @@
 
   <div class="metric">
     <div class="metric-head">
-      <span class="metric-label">Premium</span>
-      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">workspace_premium</span></span>
+      <span class="metric-label">İzlenen Reklam</span>
+      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">play_circle</span></span>
     </div>
-    <div class="metric-value" data-key="premiumUsers">—</div>
+    <div class="metric-value" data-key="totalAdsWatched">—</div>
     <div class="metric-foot">
-      <span class="trend trend--up" data-trend="premiumUsers">
+      <span class="trend trend--up" data-trend="totalAdsWatched">
         <span class="material-symbols-outlined">trending_up</span>—
       </span>
       <span class="metric-compare">vs önceki dönem</span>
     </div>
-    <div class="metric-spark" id="spark-premiumUsers" data-chart='{"type":"sparkline","values":[2,4,6,8,5,9,12,15]}'></div>
+    <div class="metric-spark" id="spark-totalAdsWatched" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}'></div>
   </div>
 
   <div class="metric">
@@ -75,7 +75,13 @@
         <h2 class="card-title">AdMob performansı</h2>
         <p class="card-subtitle">Gelir, impression ve eCPM trendi</p>
       </div>
-      <span class="badge badge--dot badge--success"><span class="pulse-dot"></span>Canlı</span>
+      <div class="row" style="gap: var(--space-2);">
+        <a href="{{ url_for('admin.admob_page') }}" class="btn btn--ghost btn--sm" title="Detaylı AdMob raporu">
+          <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+          Detay
+        </a>
+        <span class="badge badge--dot badge--success"><span class="pulse-dot"></span>Canlı</span>
+      </div>
     </header>
     <div class="card-body">
       <div class="grid grid--3" style="margin-bottom: var(--space-5);">
@@ -144,31 +150,31 @@
   </section>
 </div>
 
-<!-- ═══ Premium + Revenue ═══ -->
+<!-- ═══ Reklam + AdMob Gelir ═══ -->
 <div class="grid grid--2 stagger" style="margin-top: var(--space-6);">
   <section class="card">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Premium dönüşüm</h2>
-        <p class="card-subtitle">Premium'a geçen kullanıcılar</p>
+        <h2 class="card-title">Rewarded reklam trendi</h2>
+        <p class="card-subtitle">Analiz için izlenen ödüllü reklamlar</p>
       </div>
-      <span class="badge badge--warning">%</span>
+      <span class="badge badge--warning">🎬</span>
     </header>
     <div class="card-body">
-      <div class="chart" id="chart-premium" data-chart='{"type":"line","label":"Premium","series":[{"name":"Premium","values":[2,4,6,8,5,9,12,15],"color":"warning"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
+      <div class="chart" id="chart-rewarded" data-chart='{"type":"line","label":"Rewarded","series":[{"name":"Rewarded","values":[12,18,25,32,28,40,55,68],"color":"warning"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
     </div>
   </section>
 
   <section class="card">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Gelir (IAP + Premium)</h2>
-        <p class="card-subtitle">TRY cinsinden günlük gelir</p>
+        <h2 class="card-title">AdMob Geliri</h2>
+        <p class="card-subtitle">USD cinsinden günlük reklam geliri</p>
       </div>
-      <span class="badge badge--success">₺</span>
+      <span class="badge badge--success">$</span>
     </header>
     <div class="card-body">
-      <div class="chart" id="chart-revenue" data-chart='{"type":"line","label":"Gelir","series":[{"name":"TRY","values":[450,820,1200,1850,2400,3100,4200,5800],"color":"success"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
+      <div class="chart" id="chart-revenue" data-chart='{"type":"line","label":"Gelir","series":[{"name":"USD","values":[1.2,1.8,2.5,3.2,2.8,4.0,5.5,6.8],"color":"success"}],"xLabels":["Pzt","Sal","Çar","Per","Cum","Cmt","Paz","Pzt"]}'></div>
     </div>
   </section>
 </div>
@@ -235,7 +241,8 @@
       if (val !== undefined) activeEl.textContent = fmt(val);
     }
 
-    // AdMob values — API ne döndürüyorsa onu göster (0 dahil)
+    // AdMob values — yoksa "—"
+    // AdMob values — API ne döndürüyorsa onu göster (0 dahil, gerçek veri).
     document.querySelectorAll('[data-admob]').forEach((el) => {
       const k = el.getAttribute('data-admob');
       const v = s.admob && s.admob[k];
@@ -250,12 +257,12 @@
       }
     });
 
-    // Activity feed
+    // Activity feed (premium kaldirildi)
     const list = document.getElementById('activity-list');
     if (Array.isArray(s.activity) && s.activity.length) {
       list.innerHTML = s.activity.slice(0, 8).map((a) => {
-        var dir = a.type === 'premium' || a.type === 'signup' ? 'up' : a.type === 'error' ? 'down' : 'info';
-        var icon = a.type === 'premium' ? 'workspace_premium' : a.type === 'signup' ? 'person_add' : a.type === 'error' ? 'error' : 'info';
+        var dir = a.type === 'signup' ? 'up' : a.type === 'error' ? 'down' : 'info';
+        var icon = a.type === 'signup' ? 'person_add' : a.type === 'error' ? 'error' : 'info';
         return '<li class="activity-item">' +
           '<div class="activity-icon activity-icon--' + dir + '"><span class="material-symbols-outlined">' + icon + '</span></div>' +
           '<div class="activity-body">' +
@@ -266,10 +273,11 @@
         '</li>';
       }).join('');
     } else {
+      // Veri yoksa loading yerine empty state göster
       list.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);">' +
         '<div class="empty-icon"><span class="material-symbols-outlined">inbox</span></div>' +
         '<div class="empty-title">Henüz aktivite yok</div>' +
-        '<div class="empty-meta" style="font-size: 12px; color: var(--ink-faint); margin-top: 4px;">Yeni signup/premium/satış olayları buraya düşer</div>' +
+        '<div class="empty-meta" style="font-size: 12px; color: var(--ink-faint); margin-top: 4px;">Yeni signup ve etkilesim olaylari buraya duser</div>' +
       '</li>';
     }
 

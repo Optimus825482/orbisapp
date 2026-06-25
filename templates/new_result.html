@@ -2500,11 +2500,11 @@ super() }}
                 </div>
                 <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
                 <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                    AI yorum almak için reklam izlemeniz veya 
-                    Premium'a geçmeniz gerekiyor!
+                    AI yorum almak icin lutfen kisa bir reklam izleyin.
+                    Uygulamamiz tamamen ucretsizdir.
                 </p>
-                <button onclick="showPremiumModal()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-all">
-                    💎 Premium'a Geç - 30 TL/gün
+                <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
+                    Tamam
                 </button>
             </div>
           `);
@@ -2632,11 +2632,11 @@ super() }}
                     </div>
                     <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
                     <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                        AI yorum almak için reklam izleyin veya 
-                        Premium'a geçerek reklamsız sınırsız yorum alın!
+                        AI yorum almak icin lutfen kisa bir reklam izleyin.
+                        Uygulamamiz tamamen ucretsizdir.
                     </p>
-                    <button onclick="showPremiumModal()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-all">
-                        💎 Premium'a Geç
+                    <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
+                        Tamam
                     </button>
                 </div>
             `);
@@ -2811,10 +2811,10 @@ super() }}
                         </div>
                         <h3 class="text-white font-bold text-sm mb-2">Reklam İzleme Gerekli</h3>
                         <p class="text-slate-400 text-[11px] mb-4 max-w-xs">
-                            AI yorum için reklam izleyin veya Premium'a geçin.
+                            AI yorum almak icin lutfen kisa bir reklam izleyin.
                         </p>
-                        <button onclick="showPremiumModal()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-lg">
-                            💎 Premium'a Geç
+                        <button onclick="closeAIModal()" class="px-4 py-2 bg-slate-700 text-white text-xs font-bold rounded-lg">
+                            Tamam
                         </button>
                     </div>
                 `);
@@ -3569,118 +3569,33 @@ super() }}
         // Voice gender toggle removed - fixed to female voice
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PREMIUM MODAL - Satın Alma Ekranı
+  // PREMIUM MODAL - KALDIRILDI
+  // Uygulama artik tamamen ucretsiz. Bu fonksiyonlar geriye uyumluluk icin no-op.
   // ═══════════════════════════════════════════════════════════════════════════
 
   function showPremiumModal() {
-    // Fiyatları Firestore'dan çekip güncelle
-    fetch('/api/config/pricing').then(r => r.json()).then(json => {
-      if (json.success && json.data) {
-        const p = json.data;
-        document.querySelectorAll('[data-price-daily]').forEach(el => el.textContent = p.daily || 30);
-        document.querySelectorAll('[data-price-monthly]').forEach(el => el.textContent = p.monthly || 300);
-        document.querySelectorAll('[data-price-yearly]').forEach(el => el.textContent = (p.yearly || 3000).toLocaleString('tr-TR'));
-        const daily = p.daily || 30;
-        const monthly = p.monthly || 300;
-        const normalMonthly = daily * 30;
-        document.querySelectorAll('[data-price-normal-monthly]').forEach(el => el.textContent = normalMonthly);
-        const yearly = p.yearly || 3000;
-        document.querySelectorAll('[data-price-normal-yearly]').forEach(el => el.textContent = (monthly * 12).toLocaleString('tr-TR'));
-        document.querySelectorAll('[data-price-yearly-per-month]').forEach(el => el.textContent = Math.round(yearly / 12));
-      }
-    }).catch(() => {});
-
-    const modal = document.getElementById( 'premium-purchase-modal' );
-    if ( modal ) {
-      modal.classList.remove( 'hidden' );
-      modal.classList.add( 'flex' );
-      document.body.style.overflow = 'hidden';
-    }
+    // DEPRECATED: Premium kaldirildi. Uygulama ucretsiz.
+    console.info('[ORBIS] showPremiumModal called but premium is removed.');
+    if (typeof closeAIModal === 'function') closeAIModal();
   }
 
   function closePremiumModal() {
-    const modal = document.getElementById( 'premium-purchase-modal' );
-    if ( modal ) {
-      modal.classList.add( 'hidden' );
-      modal.classList.remove( 'flex' );
-      document.body.style.overflow = '';
-    }
+    // DEPRECATED: no-op
   }
 
   async function purchasePremium( planType ) {
-    const btn = event.target.closest( 'button' );
-    const originalText = btn.innerHTML;
-
-    // Loading state
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons-round animate-spin text-sm">sync</span> İşleniyor...';
-
-    try {
-      // IAP modülü kontrolü
-      if ( window.OrbisIAP ) {
-        const productMap = {
-          daily: window.OrbisIAP.PRODUCTS.PREMIUM_DAILY,
-          monthly: window.OrbisIAP.PRODUCTS.PREMIUM_MONTHLY,
-          yearly: window.OrbisIAP.PRODUCTS.PREMIUM_YEARLY,
-        };
-        const productId = productMap[planType] || window.OrbisIAP.PRODUCTS.PREMIUM_MONTHLY;
-
-        const result = await window.OrbisIAP.purchase( productId );
-
-        if ( result.success ) {
-          // Başarılı satın alma
-          showPurchaseSuccess( result.message );
-          closePremiumModal();
-
-          // Sayfayı yenile (premium durumu güncellensin)
-          setTimeout( () => location.reload(), 2000 );
-        } else {
-          // Hata veya iptal
-          showPurchaseError( result.message );
-        }
-      } else {
-        // Web'de çalışıyorsa bilgi ver
-        showPurchaseError( 'Satın alma işlemi sadece mobil uygulamada yapılabilir. Lütfen Google Play Store\'dan ORBIS uygulamasını indirin.' );
-      }
-    } catch ( error ) {
-      console.error( '[Premium] Purchase error:', error );
-      showPurchaseError( 'Bir hata oluştu. Lütfen tekrar deneyin.' );
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalText;
-    }
+    // DEPRECATED: Premium satin alma kaldirildi. Uygulama ucretsiz.
+    console.info('[ORBIS] purchasePremium called but premium is removed:', planType);
+    if (typeof closePremiumModal === 'function') closePremiumModal();
   }
 
   async function restorePurchases() {
-    const btn = event.target.closest( 'button' );
-    const originalText = btn.innerHTML;
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons-round animate-spin text-sm">sync</span>';
-
-    try {
-      if ( window.OrbisIAP ) {
-        const result = await window.OrbisIAP.restorePurchases();
-
-        if ( result.success ) {
-          showPurchaseSuccess( result.message );
-          closePremiumModal();
-          setTimeout( () => location.reload(), 2000 );
-        } else {
-          showPurchaseError( result.message );
-        }
-      } else {
-        showPurchaseError( 'Bu özellik sadece mobil uygulamada kullanılabilir.' );
-      }
-    } catch ( error ) {
-      showPurchaseError( 'Geri yükleme sırasında bir hata oluştu.' );
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalText;
-    }
+    // DEPRECATED: Premium satin alma kaldirildi. Uygulama ucretsiz.
+    console.info('[ORBIS] restorePurchases called but premium is removed.');
   }
 
   function showPurchaseSuccess( message ) {
+    // DEPRECATED: geriye uyumluluk icin korunuyor
     const toast = document.createElement( 'div' );
     toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in';
     toast.innerHTML = `<span class="material-icons-round">check_circle</span><span class="text-sm font-medium">${message}</span>`;
@@ -3689,6 +3604,7 @@ super() }}
   }
 
   function showPurchaseError( message ) {
+    // Geriye uyumluluk icin korunuyor
     const toast = document.createElement( 'div' );
     toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fade-in max-w-sm text-center';
     toast.innerHTML = `<span class="material-icons-round">error</span><span class="text-sm font-medium">${message}</span>`;
@@ -3698,37 +3614,14 @@ super() }}
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     PREMIUM PURCHASE MODAL - Satın Alma Ekranı
+     PREMIUM PURCHASE MODAL - KALDIRILDI
+     Uygulama artik tamamen ucretsiz. Bu modal HTML geriye uyumluluk icin korunuyor
+     ama showPremiumModal() no-op (gostermez).
      ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="premium-purchase-modal"
-  class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[250] hidden items-center justify-center p-4">
-  <div
-    class="relative w-full max-w-md bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-    <!-- Close Button -->
-    <button onclick="closePremiumModal()"
-      class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all z-10">
-      <span class="material-icons-round">close</span>
-    </button>
-
-    <!-- Header -->
-    <div class="relative pt-8 pb-6 px-6 text-center overflow-hidden">
-      <!-- Background Glow -->
-      <div
-        class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-gradient-to-b from-amber-500/20 to-transparent blur-[80px] rounded-full">
-      </div>
-
-      <div class="relative z-10">
-        <!-- Premium Badge -->
-        <div
-          class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-full border border-amber-500/30 mb-4">
-          <span class="text-amber-400 text-lg">💎</span>
-          <span class="text-amber-300 text-xs font-bold uppercase tracking-widest">Premium</span>
-        </div>
-
-        <h2 class="text-2xl font-bold text-white mb-2">Sınırsız Kozmik Rehberlik</h2>
-        <p class="text-slate-400 text-sm">Tüm AI yorumlarına sınırsız erişim kazanın</p>
-      </div>
-    </div>
+<div id="premium-purchase-modal" class="hidden" style="display: none;" aria-hidden="true">
+  <!-- DEPRECATED: Premium kaldirildi. Bu modal artik gosterilmiyor. -->
+  <div style="display: none;">
+    <p>Premium satin alma kaldirildi. Uygulama tamamen ucretsizdir.</p>
 
     <!-- Features -->
     <div class="px-6 pb-6">
@@ -3795,6 +3688,8 @@ super() }}
         <button onclick="purchasePremium('yearly')"
           class="w-full p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border-2 border-amber-500/50 hover:border-amber-400 rounded-2xl transition-all group text-left relative overflow-hidden">
           <!-- Best Value Badge -->
+          <!-- DEPRECATED: Premium kaldirildi -->
+          <!--
           <div
             class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase tracking-wider">
             2 Ay Hediye
@@ -3810,21 +3705,24 @@ super() }}
               <p class="text-slate-500 text-[10px]">/yıl <span class="line-through text-slate-600">₺<span data-price-normal-yearly>10800</span></span></p>
             </div>
           </div>
+          -->
         </button>
       </div>
 
       <!-- Restore Purchases -->
+      <!-- DEPRECATED: Premium kaldirildi -->
+      <!--
       <button onclick="restorePurchases()"
         class="w-full py-3 text-slate-500 hover:text-slate-300 text-xs font-medium transition-colors flex items-center justify-center gap-2">
         <span class="material-icons-round text-sm">restore</span>
         Satın Alımları Geri Yükle
       </button>
 
-      <!-- Terms -->
       <p class="text-[9px] text-slate-600 text-center mt-4 leading-relaxed">
         Satın alma işlemi Google Play hesabınız üzerinden gerçekleştirilir.
         Abonelik dönem sonunda otomatik yenilenir. İstediğiniz zaman iptal edebilirsiniz.
       </p>
+      -->
     </div>
   </div>
 </div>

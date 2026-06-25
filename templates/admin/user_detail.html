@@ -1,7 +1,7 @@
 {% extends "admin/layout.html" %}
 {% block title %}ORBIS Admin · Kullanıcı Detay{% endblock %}
 {% block page_title %}Kullanıcı Detayı{% endblock %}
-{% block page_subtitle %}Kullanıcı bilgileri ve işlem geçmişi{% endblock %}
+{% block page_subtitle %}Kullanıcı bilgileri ve işlem geçmişi (uygulama ucretsiz, reklam destekli){% endblock %}
 
 {% block page_actions %}
 <a href="{{ url_for('admin.users') }}" class="btn btn--ghost btn--sm">
@@ -30,23 +30,19 @@
 
         <div class="grid grid--2 stagger" style="margin-bottom: var(--space-5);">
           <div style="padding: var(--space-4); background: var(--glass-bg-2); border-radius: var(--radius-md); text-align: center;">
-            <div id="user-credits" class="metric-value metric-value--sm text-gradient" style="font-size: 24px;">0</div>
-            <div class="eyebrow" style="margin-top: 4px;">Kredi</div>
-          </div>
-          <div style="padding: var(--space-4); background: var(--glass-bg-2); border-radius: var(--radius-md); text-align: center;">
             <div id="user-analyses" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
             <div class="eyebrow" style="margin-top: 4px;">Analiz</div>
+          </div>
+          <div style="padding: var(--space-4); background: var(--glass-bg-2); border-radius: var(--radius-md); text-align: center;">
+            <div id="user-ads" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
+            <div class="eyebrow" style="margin-top: 4px;">Reklam</div>
           </div>
         </div>
 
         <div class="stack-3" style="font-size: 13px;">
           <div class="info-row">
-            <span class="info-label">Paket</span>
-            <span id="user-package" class="info-value">—</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Premium Bitiş</span>
-            <span id="user-expiry" class="info-value">—</span>
+            <span class="info-label">İzlenen Rewarded</span>
+            <span id="user-rewarded" class="info-value">0</span>
           </div>
           <div class="info-row">
             <span class="info-label">Kayıt Tarihi</span>
@@ -59,14 +55,9 @@
         </div>
 
         <div class="stack-3" style="margin-top: var(--space-5);">
-          <button class="action-btn action-btn--warning" type="button" onclick="openPremiumModal()">
-            <span class="material-symbols-outlined">diamond</span>
-            Premium Yönet
-          </button>
-          <button class="action-btn action-btn--primary" type="button" onclick="openCreditModal()">
-            <span class="material-symbols-outlined">toll</span>
-            Kredi Ekle/Çıkar
-          </button>
+          <p style="font-size: 12px; color: var(--ink-faint); margin: 0;">
+            Uygulama ucretsiz oldugu icin premium/credit islemi yapilamiyor.
+          </p>
           <button class="action-btn action-btn--info" type="button" onclick="sendPushToUser()">
             <span class="material-symbols-outlined">notifications</span>
             Push Gönder
@@ -121,90 +112,20 @@
     <section class="card stagger">
       <header class="card-head">
         <div>
-          <h2 class="card-title">Satın Alma Geçmişi</h2>
-          <p class="card-subtitle">Premium ve kredi satışları</p>
+          <h2 class="card-title">Etkinlik Geçmişi</h2>
+          <p class="card-subtitle">Son etkilesimler</p>
         </div>
-        <span class="badge" id="purchase-count">—</span>
+        <span class="badge" id="event-count">—</span>
       </header>
       <div class="card-body" style="padding: 0;">
-        <ul id="purchase-history" class="activity">
+        <ul id="event-history" class="activity">
           <li class="empty" style="padding: var(--space-8) var(--space-6);">
-            <div class="empty-icon"><span class="material-symbols-outlined">receipt_long</span></div>
+            <div class="empty-icon"><span class="material-symbols-outlined">history</span></div>
             <div class="empty-title">Yükleniyor…</div>
           </li>
         </ul>
       </div>
     </section>
-  </div>
-</div>
-
-<div id="premium-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Premium yönetimi" hidden>
-  <div class="modal">
-    <header class="modal-head">
-      <h3 class="modal-title">Premium Yönetimi</h3>
-      <button class="icon-btn icon-btn--ghost" type="button" onclick="closeModal('premium-modal')" aria-label="Kapat"><span class="material-symbols-outlined">close</span></button>
-    </header>
-    <div class="modal-body stack-4">
-      <label class="row" style="gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--primary-soft); border-radius: var(--radius-md); cursor: pointer;">
-        <input type="checkbox" id="modal-premium-active" />
-        <span style="font-size: 14px; font-weight: 500; color: var(--ink);">Premium Aktif</span>
-      </label>
-      <div>
-        <label for="modal-package">Paket</label>
-        <select id="modal-package" class="select">
-          <option value="admin_grant">Admin Grant</option>
-          <option value="monthly">Aylık</option>
-          <option value="yearly">Yıllık</option>
-          <option value="lifetime">Ömür Boyu</option>
-        </select>
-      </div>
-      <div>
-        <label for="modal-months">Süre (Ay)</label>
-        <input type="number" id="modal-months" value="1" min="1" class="input" />
-      </div>
-      <div>
-        <label for="modal-bonus-credits">Bonus Kredi</label>
-        <input type="number" id="modal-bonus-credits" value="0" min="0" class="input" />
-      </div>
-    </div>
-    <footer class="modal-foot">
-      <button class="btn btn--ghost" type="button" onclick="closeModal('premium-modal')">İptal</button>
-      <button class="btn btn--danger" type="button" onclick="removePremium()">Kaldır</button>
-      <button class="btn btn--primary" type="button" onclick="savePremium()">
-        <span class="material-symbols-outlined">save</span>
-        Kaydet
-      </button>
-    </footer>
-  </div>
-</div>
-
-<div id="credit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kredi işlemi" hidden>
-  <div class="modal">
-    <header class="modal-head">
-      <h3 class="modal-title">Kredi İşlemi</h3>
-      <button class="icon-btn icon-btn--ghost" type="button" onclick="closeModal('credit-modal')" aria-label="Kapat"><span class="material-symbols-outlined">close</span></button>
-    </header>
-    <div class="modal-body stack-4">
-      <div>
-        <label for="modal-credit-action">İşlem Tipi</label>
-        <select id="modal-credit-action" class="select">
-          <option value="add">Kredi Ekle</option>
-          <option value="subtract">Kredi Çıkar</option>
-          <option value="set">Kredi Ayarla</option>
-        </select>
-      </div>
-      <div>
-        <label for="modal-credit-amount">Miktar</label>
-        <input type="number" id="modal-credit-amount" value="10" min="0" class="input" />
-      </div>
-    </div>
-    <footer class="modal-foot">
-      <button class="btn btn--ghost" type="button" onclick="closeModal('credit-modal')">İptal</button>
-      <button class="btn btn--primary" type="button" onclick="saveCredits()">
-        <span class="material-symbols-outlined">check</span>
-        Uygula
-      </button>
-    </footer>
   </div>
 </div>
 {% endblock %}
@@ -225,7 +146,7 @@
       const j = await r.json();
       if (!j.success) { showToast('Kullanıcı yüklenemedi', 'error'); return; }
       USER_DATA = j.data;
-      renderUser(); renderPurchases(); renderTokens();
+      renderUser(); renderEvents(); renderTokens();
     } catch (e) { showToast('Bağlantı hatası', 'error'); }
   }
 
@@ -237,14 +158,14 @@
     document.getElementById('user-avatar-letter').textContent = (d.displayName || d.email || 'U').charAt(0).toUpperCase();
     document.getElementById('user-name').textContent = d.displayName || 'İsimsiz';
     document.getElementById('user-email').textContent = d.email || '—';
-    document.getElementById('user-credits').textContent = d.credits != null ? formatNumber(d.credits) : '—';
     document.getElementById('user-analyses').textContent = d.totalAnalyses != null ? formatNumber(d.totalAnalyses) : '—';
-    document.getElementById('user-package').textContent = d.premiumPackageId || 'Ücretsiz';
-    document.getElementById('user-expiry').textContent = d.premiumExpiry ? formatDate(d.premiumExpiry) : '—';
+    document.getElementById('user-ads').textContent = d.adsWatched != null ? formatNumber(d.adsWatched) : '—';
+    document.getElementById('user-rewarded').textContent = d.rewardedAdsWatched != null ? formatNumber(d.rewardedAdsWatched) : '—';
     document.getElementById('user-created').textContent = d.createdAt ? formatDate(d.createdAt) : '—';
     document.getElementById('user-last-active').textContent = d.dailyUsage?.date || '—';
-    document.getElementById('status-badge').innerHTML = d.isPremium
-      ? '<span class="badge badge--dot badge--success"><span class="material-symbols-outlined" style="font-size: 14px;">diamond</span>Premium Üye</span>'
+    // Premium kaldirildi: sadece ucretsiz rozeti goster
+    document.getElementById('status-badge').innerHTML = d.isAdmin
+      ? '<span class="badge badge--dot badge--primary">Admin</span>'
       : '<span class="badge badge--neutral"><span class="material-symbols-outlined" style="font-size: 14px;">person</span>Ücretsiz Üye</span>';
 
     if (d.dailyUsage) {
@@ -254,23 +175,22 @@
     }
   }
 
-  function renderPurchases() {
+  function renderEvents() {
     const list = USER_DATA.purchases || [];
-    const c = document.getElementById('purchase-history');
-    document.getElementById('purchase-count').textContent = list.length + ' kayıt';
+    const c = document.getElementById('event-history');
+    document.getElementById('event-count').textContent = list.length + ' kayıt';
     if (!list.length) {
-      c.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);"><div class="empty-icon"><span class="material-symbols-outlined">receipt_long</span></div><div class="empty-title">İşlem geçmişi yok</div></li>';
+      c.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);"><div class="empty-icon"><span class="material-symbols-outlined">history</span></div><div class="empty-title">Etkinlik geçmişi yok</div></li>';
       return;
     }
     c.innerHTML = list.map(p => {
-      const isPremium = p.type === 'premium';
       return '<li class="activity-item">' +
-        '<div class="activity-icon activity-icon--' + (isPremium ? 'info' : 'up') + '"><span class="material-symbols-outlined">' + (isPremium ? 'diamond' : 'toll') + '</span></div>' +
+        '<div class="activity-icon activity-icon--info"><span class="material-symbols-outlined">notifications_active</span></div>' +
         '<div class="activity-body">' +
-          '<div class="activity-title">' + escapeHtml(p.type === 'premium' ? p.packageId || p.item : ((p.credits || p.amount) + ' kredi')) + '</div>' +
+          '<div class="activity-title">' + escapeHtml(p.item || p.packageId || p.type || 'Etkinlik') + '</div>' +
           '<div class="activity-meta">' + (p.timestamp ? formatDate(p.timestamp) : '') + '</div>' +
         '</div>' +
-        '<span class="badge ' + (isPremium ? 'badge--warning' : 'badge--primary') + '">' + (isPremium ? 'Premium' : 'Kredi') + '</span>' +
+        '<span class="badge">Etkinlik</span>' +
       '</li>';
     }).join('');
   }
@@ -293,57 +213,6 @@
         '</div>' +
       '</div>';
     }).join('');
-  }
-
-  function openModal(id) { document.getElementById(id).hidden = false; }
-  function closeModal(id) { document.getElementById(id).hidden = true; }
-  function openPremiumModal() {
-    document.getElementById('modal-premium-active').checked = !!USER_DATA.isPremium;
-    openModal('premium-modal');
-  }
-  function openCreditModal() { openModal('credit-modal'); }
-
-  async function savePremium() {
-    const isPremium = document.getElementById('modal-premium-active').checked;
-    const pkg = document.getElementById('modal-package').value;
-    const months = parseInt(document.getElementById('modal-months').value) || 1;
-    const credits = parseInt(document.getElementById('modal-bonus-credits').value) || 0;
-    try {
-      const r = await fetch(`/admin/api/users/${USER_ID}/premium`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPremium, packageId: pkg, months, credits })
-      });
-      const j = await r.json();
-      if (j.success) { showToast(isPremium ? 'Premium aktif edildi' : 'Premium kaldırıldı', 'success'); closeModal('premium-modal'); setTimeout(loadUser, 600); }
-      else showToast(j.message || j.error || 'Hata', 'error');
-    } catch (e) { showToast(e.message, 'error'); }
-  }
-
-  async function removePremium() {
-    if (!confirm('Premium kaldırılsın mı?')) return;
-    try {
-      const r = await fetch(`/admin/api/users/${USER_ID}/premium`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPremium: false })
-      });
-      const j = await r.json();
-      if (j.success) { showToast('Premium kaldırıldı', 'success'); closeModal('premium-modal'); setTimeout(loadUser, 600); }
-      else showToast(j.message || 'Hata', 'error');
-    } catch (e) { showToast(e.message, 'error'); }
-  }
-
-  async function saveCredits() {
-    const action = document.getElementById('modal-credit-action').value;
-    const amount = parseInt(document.getElementById('modal-credit-amount').value) || 0;
-    try {
-      const r = await fetch(`/admin/api/users/${USER_ID}/credits`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, amount })
-      });
-      const j = await r.json();
-      if (j.success) { showToast('Kredi güncellendi', 'success'); closeModal('credit-modal'); setTimeout(loadUser, 600); }
-      else showToast(j.message || 'Hata', 'error');
-    } catch (e) { showToast(e.message, 'error'); }
   }
 
   async function sendPushToUser() {

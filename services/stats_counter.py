@@ -3,22 +3,23 @@ ORBIS Stats Counter Service
 - Firestore stats/dashboard dokumanini yonetir
 - Her kullanici isleminde counter'lari gunceller
 - Admin dashboard sayfalama icin optimize edilmistir
+- PREMIUM YOK: Uygulama tamamen ucretsiz, sadece reklam destekli
 """
 import logging
 from datetime import datetime
 from typing import Optional
 
+from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 logger = logging.getLogger(__name__)
 
-# Field yollari
+# Field yollari (premium kaldirildi)
 FIELD_TOTAL_USERS = "total_users"
-FIELD_PREMIUM_USERS = "premium_users"
-FIELD_FREE_USERS = "free_users"
-FIELD_TOTAL_CREDITS = "total_credits"
 FIELD_TOTAL_ANALYSES = "total_analyses"
 FIELD_ACTIVE_TODAY = "active_today"
+FIELD_TOTAL_ADS_WATCHED = "total_ads_watched"
+FIELD_TOTAL_REWARDED_ADS = "total_rewarded_ads"
 
 
 class StatsCounter:
@@ -62,7 +63,11 @@ class StatsCounter:
             logger.error(f"[Stats] set_active_today error: {e}")
 
     def _increment_today_counter(self, field: str):
-        """Bugünlük counter: gün değiştiyse sıfırla, sonra Increment."""
+        """Bugünlük counter: gün değiştiyse sıfırla, sonra Increment.
+
+        Her çağrıda doc'tan _today_date kontrol edilir, farklıysa 0'a set edilir.
+        Aynı gün içinde Increment yapılır.
+        """
         if not self.db:
             return
         try:
@@ -74,6 +79,7 @@ class StatsCounter:
             cur_date = data.get(f'{field}_date')
             doc_ref = self._doc
             if cur_date != today:
+                # Gün değişti — sıfırla ve yeni tarihi yaz
                 doc_ref.update({field: 0, f'{field}_date': today, field: firestore.Increment(1)})
             else:
                 doc_ref.update({field: firestore.Increment(1)})
@@ -81,47 +87,40 @@ class StatsCounter:
             logger.error(f"[Stats] today counter error ({field}): {e}")
 
     # ═══════════════════════════════════════════════════════════════
-    # PUBLIC API - Kullanici islemleri
+    # PUBLIC API - Kullanici islemleri (Premium'suz)
     # ═══════════════════════════════════════════════════════════════
 
     def on_user_created(self, is_premium: bool = False):
-        """Yeni kullanici olustu"""
+        """Yeni kullanici olustu (premium arg ignored, geriye uyumluluk)"""
+        # is_premium arg no-op: artik herkes ucretsiz kullanici
         self._increment(FIELD_TOTAL_USERS, 1)
-        if is_premium:
-            self._increment(FIELD_PREMIUM_USERS, 1)
-        else:
-            self._increment(FIELD_FREE_USERS, 1)
 
     def on_user_deleted(self, was_premium: bool = False, credits: int = 0, analyses: int = 0):
-        """Kullanici silindi"""
+        """Kullanici silindi (premium arg ignored)"""
         self._increment(FIELD_TOTAL_USERS, -1)
-        if was_premium:
-            self._increment(FIELD_PREMIUM_USERS, -1)
-        else:
-            self._increment(FIELD_FREE_USERS, -1)
-        if credits:
-            self._increment(FIELD_TOTAL_CREDITS, -credits)
         if analyses:
             self._increment(FIELD_TOTAL_ANALYSES, -analyses)
 
     def on_premium_changed(self, became_premium: bool):
-        """Premium durumu degisti"""
-        if became_premium:
-            self._increment(FIELD_PREMIUM_USERS, 1)
-            self._increment(FIELD_FREE_USERS, -1)
-        else:
-            self._increment(FIELD_PREMIUM_USERS, -1)
-            self._increment(FIELD_FREE_USERS, 1)
+        """DEPRECATED: Premium kaldirildi, no-op"""
+        # Geriye uyumluluk icin bos metod
+        logger.debug("[Stats] on_premium_changed called but premium is removed (no-op)")
 
     def on_credits_changed(self, delta: int):
-        """Kredi degisti (+/-)"""
-        if delta != 0:
-            self._increment(FIELD_TOTAL_CREDITS, delta)
+        """DEPRECATED: Krediler kaldirildi, no-op"""
+        logger.debug("[Stats] on_credits_changed called but credits are removed (no-op)")
 
     def on_analysis_completed(self):
         """Analiz yapildi"""
         self._increment(FIELD_TOTAL_ANALYSES, 1)
         self._increment_today_counter('analyses_today')
+
+    def on_ad_watched(self, rewarded: bool = False):
+        """Reklam izlendi (banner/interstitial/rewarded)"""
+        self._increment(FIELD_TOTAL_ADS_WATCHED, 1)
+        if rewarded:
+            self._increment(FIELD_TOTAL_REWARDED_ADS, 1)
+            self._increment_today_counter('rewarded_ads_today')
 
     def on_daily_activity(self, today: str):
         """Gunluk aktif kullanici sayisini guncelle"""
@@ -135,6 +134,7 @@ class StatsCounter:
             count = result[0][0].value
             self._set_active_today(count)
         except Exception:
+            # Detaylı stack: hangi sorgu patladığını günlüğe yaz
             import traceback
             logger.error("[Stats] daily_activity failed: %s", traceback.format_exc())
 
@@ -218,31 +218,29 @@ class StatsCounter:
         try:
             logger.info("[Stats] Counter dokumani bulunamadi, fallback select() ile okunuyor...")
             docs = list(self.db.collection("users").select([
-                "isPremium", "credits", "totalAnalyses", "dailyUsage.date"
+                "totalAnalyses", "adsWatched", "rewardedAdsWatched", "dailyUsage.date"
             ]).stream())
 
             total = len(docs)
-            premium = 0
-            credits = 0
             analyses = 0
+            ads = 0
+            rewarded_ads = 0
             today = datetime.now().strftime("%Y-%m-%d")
             active = 0
 
             for d in docs:
                 data = d.to_dict()
-                if data.get("isPremium"):
-                    premium += 1
-                credits += data.get("credits", 0) or 0
                 analyses += data.get("totalAnalyses", 0) or 0
+                ads += data.get("adsWatched", 0) or 0
+                rewarded_ads += data.get("rewardedAdsWatched", 0) or 0
                 if data.get("dailyUsage", {}).get("date") == today:
                     active += 1
 
             return {
                 "total_users": total,
-                "premium_users": premium,
-                "free_users": total - premium,
-                "total_credits": credits,
                 "total_analyses": analyses,
+                "total_ads_watched": ads,
+                "total_rewarded_ads": rewarded_ads,
                 "active_today": active,
             }
         except Exception as e:

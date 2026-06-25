@@ -370,10 +370,10 @@ def api_get_ai_interpretation():
         if not can_use.get("allowed"):
             return jsonify({
                 "success": False,
-                "error": "daily_limit_reached",
-                "message": can_use.get("message", "Günlük ücretsiz yorum limitiniz doldu!"),
+                "error": "requires_ad",
+                "message": can_use.get("message", "Devam etmek için reklam izlemeniz gerekiyor."),
                 "remaining": 0,
-                "show_premium_modal": True
+                "requires_ad": True
             }), 429
     
     # Ek parametreler (tarih, dönem vb.) - hem Türkçe hem İngilizce destekle
@@ -401,7 +401,7 @@ def api_get_ai_interpretation():
             usage_info = usage_tracker.record_usage(device_id, "ai_interpretation", email)
             result["usage"] = {
                 "remaining": usage_info.get("remaining", 0),
-                "is_premium": usage_info.get("is_premium", False)
+                "requires_ad": usage_info.get("requires_ad", True)
             }
         
         # Stats counter: analiz sayısını artır
@@ -589,12 +589,11 @@ def api_record_ad_watch():
 
 
 @bp.route("/api/stats/user-created", methods=["POST"])
-@handle_errors("İstatistik güncellenemedi")
+    @handle_errors("İstatistik güncellenemedi")
 def api_user_created():
     """Yeni kullanıcı oluşturulduğunda stats counter'ı güncelle"""
     from services.stats_counter import stats_counter
-    data = request.get_json()
-    stats_counter.on_user_created(is_premium=data.get('is_premium', False))
+    stats_counter.on_user_created()
     return jsonify({"success": True})
 
 
