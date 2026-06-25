@@ -2418,7 +2418,7 @@ super() }}
    * @param {string} tabId - tetiklenen analiz sekmesi (log için)
    * @returns {Promise<boolean>} - true: analiz devam eder, false: iptal
    */
-  function showBonusModalForAnalysis(tabId) {
+  async function showBonusModalForAnalysis(tabId) {
     return new Promise(async (resolve) => {
       // Modal zaten açık mı?
       if (document.getElementById("bonus-ai-modal")) {
