@@ -2873,7 +2873,6 @@ super() }}
       }
     }
 
-    try {
       // Device ID ve email al (kullanım takibi için)
       const deviceId = localStorage.getItem( 'orbis_device_id' ) || 'web_' + Date.now();
       const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
