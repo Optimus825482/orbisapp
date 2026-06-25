@@ -2418,8 +2418,13 @@ super() }}
    * @param {string} tabId - tetiklenen analiz sekmesi (log için)
    * @returns {Promise<boolean>} - true: analiz devam eder, false: iptal
    */
-  async function showBonusModalForAnalysis(tabId) {
-    return new Promise(async (resolve) => {
+  // Promise tabanlı: await kullanmadan zincirleme akış
+  // Eğer bu fonksiyon async olursa, eski cache'li browser'larda
+  // SyntaxError: await is only valid in async functions hatası
+  // verir. Bu yüzden async yapmadık — Promise constructor'ı
+  // içindeki callback async olabilir.
+  function showBonusModalForAnalysis(tabId) {
+    return new Promise(function (resolve) {
       // Modal zaten açık mı?
       if (document.getElementById("bonus-ai-modal")) {
         resolve(false);
@@ -2597,17 +2602,29 @@ super() }}
       const remaining = 5 - used;
 
       if (remaining > 0) {
-        // Önce bonus modal'ı göster
-        const bonusResult = await showBonusModalForAnalysis(tabId);
-        if (!bonusResult) {
-          // Kullanıcı iptal etti veya hata — analiz yapma
-          console.log("[ORBIS] Analiz iptal edildi:", tabId);
-          return;
-        }
-        // Bonus başarılı — devam et, analizi yap
+        // Önce bonus modal'ı göster (await yerine .then() — eski
+        // browser cache'lerinde syntax hatası vermemesi için)
+        showBonusModalForAnalysis(tabId).then(function (bonusResult) {
+          if (!bonusResult) {
+            // Kullanıcı iptal etti veya hata — analiz yapma
+            console.log("[ORBIS] Analiz iptal edildi:", tabId);
+            return;
+          }
+          // Bonus başarılı — Promise dönen fonksiyonu tetikle
+          runInterpretAnalysis(tabId);
+        });
+        // Promise dönene kadar fonksiyondan çık
+        return;
       }
       // remaining <= 0: günlük limit doldu, doğrudan analiz yap
     }
+
+    // Bonus yoksa direkt çalıştır
+    runInterpretAnalysis(tabId);
+  }
+
+  // Asıl analiz fonksiyonu (bonus sonrası veya direkt)
+  function runInterpretAnalysis(tabId) {
 
     const topicNames = {
       birth_chart: "Doğum Haritası Analizi",
