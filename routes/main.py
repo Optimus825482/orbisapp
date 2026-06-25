@@ -352,7 +352,7 @@ def show_results():
 def api_get_ai_interpretation():
     """AI Yorum API - Sadece native (Android) icin reklam zorunlulugu var.
     PWA istemcilerde limitsiz erisim saglanir (AdMob PWA'da calismaz)."""
-    data = request.get_json()
+    data = request.get_json() or {}
     interpretation_type = data.get("interpretation_type", "daily")
     astro_data = data.get("astro_data", {})
     user_name = data.get("user_name", "Değerli Danışanım")
@@ -470,7 +470,7 @@ def delete_account():
     Firebase Authentication ve Firestore'dan veri siler.
     GDPR/KVKK uyumluluğu için gerekli.
     """
-    data = request.get_json()
+    data = request.get_json() or {}
     user_id = data.get("user_id")
     
     if not user_id:
@@ -536,7 +536,7 @@ def api_check_usage():
     """
     from monetization.usage_tracker import UsageTracker
 
-    data = request.get_json()
+    data = request.get_json() or {}
     device_id = data.get('device_id')
     email = data.get('email')
 
@@ -626,7 +626,7 @@ def api_record_ad_watch():
 
     from monetization.usage_tracker import UsageTracker
 
-    data = request.get_json()
+    data = request.get_json() or {}
     device_id = data.get('device_id')
     email = data.get('email')
 
@@ -672,10 +672,13 @@ def api_user_created():
 def api_heartbeat():
     """Kullanici kalp atisi - her 60 saniyede bir cagrilir"""
     from services.stats_counter import stats_counter
-    data = request.get_json()
-    email = data.get("email", "anonymous")
-    name = data.get("display_name", email)
-    stats_counter.on_heartbeat(email, name)
+    data = request.get_json() or {}
+    email = data.get("email", "anonymous") or "anonymous"
+    name = data.get("display_name", email) or email
+    try:
+        stats_counter.on_heartbeat(email, name)
+    except Exception as e:
+        logger.warning(f"[API] heartbeat stats error (non-fatal): {e}")
     return jsonify({"success": True})
 
 
