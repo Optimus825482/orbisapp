@@ -205,6 +205,13 @@ const OrbisBridge = {
     if (this.state.isNative) {
       this.initAdMob();
       this.requestNotificationPermission();
+
+      // ═══════════════════════════════════════════════════════════════
+      // CAPACITOR BROWSER OAUTH CALLBACK LISTENER
+      // Native Google Sign-In başarısız olduğunda Browser OAuth flow
+      // kullanılır. Browser plugin'den dönen callback'i handle et.
+      // ═══════════════════════════════════════════════════════════════
+      this.initBrowserOAuthCallback();
     } else {
       // Web'de de AdMob'u dene (bazı WebView'lar Capacitor olmadan da AdMob çalıştırabilir)
       try { this.initAdMob(); } catch(e) { /* sessiz */ }
@@ -844,6 +851,55 @@ const OrbisBridge = {
       } else {
         console.error("[ORBIS] onSuccess is not defined!");
       }
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // CAPACITOR BROWSER OAUTH CALLBACK
+  // ═══════════════════════════════════════════════════════════════
+  //
+  // Native Google Sign-In başarısız olduğunda (Play Services yok,
+  // SHA-1 uyumsuz vs.) Firebase _signInWithBrowserOAuth fallback'i
+  // Capacitor Browser ile OAuth akışı başlatır. Browser OAuth
+  // tamamlanıp uygulamaya geri döndüğünde bu listener yakalar.
+  //
+  initBrowserOAuthCallback() {
+    try {
+      const isNative =
+        typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
+      if (!isNative) return;
+
+      const Browser =
+        (Capacitor.Plugins && Capacitor.Plugins.Browser) ||
+        (window.Plugins && window.Plugins.Browser);
+      if (!Browser) {
+        console.warn("[ORBIS] Browser plugin yok, OAuth callback listener kurulamiyor");
+        return;
+      }
+
+      // 'browserFinished' veya 'appUrlOpen' event'i ile OAuth
+      // callback'i handle et. Capacitor 6+'da App.addListener
+      // 'appUrlOpen' önerilir.
+      if (typeof Capacitor.Plugins.App !== "undefined") {
+        const App = Capacitor.Plugins.App;
+        App.addListener("appUrlOpen", (event) => {
+          console.log("[ORBIS] App URL açıldı (OAuth callback?):", event.url);
+          // Firebase signInWithRedirect kendi getRedirectResult()'ı
+          // init() zaten handle ediyor (OrbisFirebase.init içinde)
+          // Burada ek bir şey yapmamıza gerek yok, sadece log.
+        });
+        console.log("[ORBIS] App.appUrlOpen listener kuruldu (OAuth callback için)");
+      }
+
+      // Browser plugin finished event'i
+      Browser.addListener("browserFinished", () => {
+        console.log("[ORBIS] Browser kapandı (OAuth tamamlandı veya iptal)");
+      });
+      Browser.addListener("urlChangeEvent", (event) => {
+        console.log("[ORBIS] Browser URL değişti:", event.url);
+      });
+    } catch (e) {
+      console.warn("[ORBIS] initBrowserOAuthCallback hatası:", e);
     }
   },
 
