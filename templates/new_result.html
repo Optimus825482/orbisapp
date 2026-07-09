@@ -153,7 +153,7 @@ super() }}
 </div>{% else %}
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     ORBIS COSMIC MODAL LOADER - Sayfanın Ortasında Modal Dialog
+     ORBIS COSMIC MODAL LOADER — Dinamik Geri Sayım + Gizemli Mesajlar
      ═══════════════════════════════════════════════════════════════════════════ -->
 <div id="cosmic-loader-overlay">
   <div class="cosmic-modal">
@@ -176,14 +176,32 @@ super() }}
     <!-- Kullanıcı Karşılama -->
     <div class="cosmic-greeting">
       <h2>Sevgili {{ astro_data.user_name }}</h2>
-      <p>Orbis verdiğin bilgiler doğrultusunda hesaplamalarını yaptı, senin için aşağıdaki analizleri oluşturuyor. Bu
-        analizlere ORBIS sekmesinde birazdan ulaşabileceksin.</p>
+      <p id="cosmic-greeting-text">Hesaplamaların tamamlandı, şimdi yapay zeka yorumlarını hazırlıyorum...</p>
+    </div>
+
+    <!-- SVG Progress Ring + Sayaç -->
+    <div class="flex flex-col items-center justify-center py-2 gap-3">
+      <div class="relative w-16 h-16">
+        <svg class="w-16 h-16 -rotate-90" viewBox="0 0 80 80">
+          <circle class="text-white/5" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"/>
+          <circle id="cosmic-progress-ring" class="text-primary" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"
+            stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round"/>
+        </svg>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span id="cosmic-elapsed-sec" class="text-sm font-bold text-white">0sn</span>
+        </div>
+      </div>
+      <!-- Dinamik mesaj -->
+      <p id="cosmic-status-msg" class="text-[11px] text-slate-400 text-center max-w-[260px] leading-relaxed">Doğum haritanız hazırlanıyor...</p>
+      <!-- Disclaimer (12sn sonra görünür) -->
+      <p id="cosmic-disclaimer" class="text-[9px] text-slate-600 text-center max-w-[260px] mt-1 hidden">
+        ⚠️ Yapay zeka tarafından, matematiksel astroloji hesaplamalarına dayanarak oluşturulmuştur. Eğlence amaçlıdır.
+      </p>
     </div>
 
     <!-- Scrolling Messages - Analiz Türleri -->
     <div class="cosmic-messages">
       <div class="cosmic-messages-inner" id="cosmic-messages-scroll">
-        <!-- İlk set -->
         <div class="cosmic-message">
           <div class="cosmic-message-icon"><span class="material-icons-round">auto_awesome</span></div>
           <div class="cosmic-message-text">
@@ -194,8 +212,8 @@ super() }}
         <div class="cosmic-message">
           <div class="cosmic-message-icon"><span class="material-icons-round">psychology</span></div>
           <div class="cosmic-message-text">
-            <strong>Karakter Analizi</strong>
-            <small>Doğum haritası yorumu</small>
+            <strong>Psikolojik & Karmik</strong>
+            <small>Derin ruhsal analiz</small>
           </div>
         </div>
         <div class="cosmic-message">
@@ -216,29 +234,14 @@ super() }}
           <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
           <div class="cosmic-message-text">
             <strong>Dönemsel Öngörüler</strong>
-            <small>Günlük, haftalık, yıllık</small>
+            <small>Transit ve zamanlama</small>
           </div>
         </div>
         <div class="cosmic-message">
           <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
           <div class="cosmic-message-text">
-            <strong>Vedik Dönem Analizi</strong>
-            <small>Vimshottari Dasa</small>
-          </div>
-        </div>
-        <!-- Tekrar (sonsuz scroll için) -->
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">auto_awesome</span></div>
-          <div class="cosmic-message-text">
-            <strong>Karakter & Doğum Haritası</strong>
-            <small>Kişilik ve yaşam analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">psychology</span></div>
-          <div class="cosmic-message-text">
-            <strong>Karakter Analizi</strong>
-            <small>Doğum haritası yorumu</small>
+            <strong>Transit & Vedik</strong>
+            <small>Dasha, Firdaria, Return</small>
           </div>
         </div>
         <div class="cosmic-message">
@@ -259,27 +262,16 @@ super() }}
           <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
           <div class="cosmic-message-text">
             <strong>Dönemsel Öngörüler</strong>
-            <small>Günlük, haftalık, yıllık</small>
+            <small>Transit ve zamanlama</small>
           </div>
         </div>
         <div class="cosmic-message">
           <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
           <div class="cosmic-message-text">
-            <strong>Vedik Dönem Analizi</strong>
-            <small>Vimshottari Dasa</small>
+            <strong>Transit & Vedik</strong>
+            <small>Dasha, Firdaria, Return</small>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="cosmic-progress">
-      <div class="cosmic-progress-label">
-        <span>Yükleniyor</span>
-        <strong id="cosmic-progress-percent">0%</strong>
-      </div>
-      <div class="cosmic-progress-bar">
-        <div class="cosmic-progress-fill" id="cosmic-progress-fill"></div>
       </div>
     </div>
   </div>
@@ -1780,6 +1772,7 @@ super() }}
 </footer>
 
 {% endif %} {% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/results/cosmic-loader.js') }}"></script>
 <script>
   const astroData = {{ astro_data| tojson | safe if astro_data else 'null' }};
   const orbVideoUrl = "{{ url_for('static', filename='orb.mp4') }}";
@@ -2952,199 +2945,6 @@ super() }}
   // COSMIC LOADER SYSTEM
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COSMIC MODAL LOADER - Progress Bar ile Modal Dialog
-  // ═══════════════════════════════════════════════════════════════════════════
-  const CosmicLoader = {
-    overlay: null,
-    progressFill: null,
-    progressPercent: null,
-    currentProgress: 0,
-    targetProgress: 0,
-    animationFrame: null,
-    isComplete: false,
-
-    init() {
-      this.overlay = document.getElementById( 'cosmic-loader-overlay' );
-      this.progressFill = document.getElementById( 'cosmic-progress-fill' );
-      this.progressPercent = document.getElementById( 'cosmic-progress-percent' );
-
-      if ( this.overlay ) {
-        // Loader'ı göster (başlangıçta görünür olmalı)
-        this.overlay.classList.remove( 'hidden' );
-        // Progress animasyonunu başlat
-        this.animateProgress();
-        // İlk progress'i ayarla
-        this.setProgress( 10 );
-      }
-    },
-
-    setProgress( percent ) {
-      this.targetProgress = Math.min( 100, Math.max( 0, percent ) );
-    },
-
-    animateProgress() {
-      const animate = () => {
-        if ( this.currentProgress < this.targetProgress ) {
-          const diff = this.targetProgress - this.currentProgress;
-          const increment = Math.max( 0.3, diff * 0.08 );
-          this.currentProgress = Math.min( this.targetProgress, this.currentProgress + increment );
-
-          if ( this.progressFill ) {
-            this.progressFill.style.width = `${this.currentProgress}%`;
-          }
-          if ( this.progressPercent ) {
-            this.progressPercent.textContent = `${Math.round( this.currentProgress )}%`;
-          }
-        }
-
-        if ( !this.isComplete ) {
-          this.animationFrame = requestAnimationFrame( animate );
-        }
-      };
-      animate();
-    },
-
-    completeStep( stepNumber ) {
-      // Her adım %20 progress
-      const newProgress = stepNumber * 20;
-      this.setProgress( newProgress );
-
-      if ( stepNumber >= 5 ) {
-        this.setProgress( 100 );
-        setTimeout( () => this.hideLoader(), 600 );
-      }
-    },
-
-    hideLoader() {
-      if ( this.overlay && !this.isComplete ) {
-        this.isComplete = true;
-        if ( this.animationFrame ) {
-          cancelAnimationFrame( this.animationFrame );
-        }
-        this.overlay.classList.add( 'hidden' );
-      }
-    },
-
-    forceHide() {
-      if ( this.overlay ) {
-        this.isComplete = true;
-        if ( this.animationFrame ) {
-          cancelAnimationFrame( this.animationFrame );
-        }
-        this.overlay.classList.add( 'hidden' );
-      }
-    }
-  };
-
-  // AI Özet yükleme fonksiyonu - Kozmik Özet hazır olunca loader kapanır
-  async function loadAISummary() {
-    const $content = $( '#ai-summary-content' );
-    const $btn = $( '#refresh-summary-btn' );
-
-    // Progress'i %30'a çıkar (yükleme başladı)
-    CosmicLoader.setProgress( 30 );
-
-    $btn.prop( 'disabled', true ).addClass( 'opacity-50' );
-
-    try {
-      // Progress'i %50'ye çıkar (API çağrısı yapılıyor)
-      CosmicLoader.setProgress( 50 );
-
-      // Device ID ve email al (kullanım takibi için)
-      const deviceId = localStorage.getItem( 'orbis_device_id' ) || 'web_' + Date.now();
-      const userEmail = window.OrbisFirebase?.getCurrentUser()?.email || null;
-
-      const response = await fetch( "/api/get_ai_interpretation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify( {
-          interpretation_type: "summary",
-          astro_data: astroData,
-          user_name: astroData.user_name || "Kullanıcı",
-          device_id: deviceId,
-          email: userEmail
-        } )
-      } );
-
-      // Progress'i %80'e çıkar (yanıt alındı)
-      CosmicLoader.setProgress( 80 );
-
-      const result = await response.json();
-
-      // Reklam izleme gerekli kontrolü
-      if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
-        $content.html( `
-                    <div class="flex flex-col items-center justify-center py-6 text-center">
-                        <div class="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
-                            <span class="material-icons-round text-3xl text-amber-400">videocam</span>
-                        </div>
-                        <h3 class="text-white font-bold text-sm mb-2">Reklam İzleme Gerekli</h3>
-                        <p class="text-slate-400 text-[11px] mb-4 max-w-xs">
-                            AI yorum almak icin lutfen kisa bir reklam izleyin.
-                        </p>
-                        <button onclick="closeAIModal()" class="px-4 py-2 bg-slate-700 text-white text-xs font-bold rounded-lg">
-                            Tamam
-                        </button>
-                    </div>
-                `);
-        CosmicLoader.forceHide();
-        return;
-      }
-
-      if ( result.success ) {
-        // Progress'i %100'e çıkar
-        CosmicLoader.setProgress( 100 );
-
-        // Ham metni sakla (modal ve TTS için)
-        kozmikOzetText = result.interpretation;
-
-        // Markdown'ı parse et ve göster - sonuna yönlendirme notu ekle
-        const disclaimerNote = `
-          <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
-            <div class="flex items-start gap-3">
-              <span class="material-icons-round text-primary text-lg mt-0.5 shrink-0">info</span>
-              <div>
-                <p class="text-[11px] text-slate-300 leading-relaxed">
-                  Bu, tüm hesaplamalarınızın sonucunda ortaya çıkan <strong class="text-white">kozmik bir özettir</strong>. 
-                  Kişiliğinize özel detaylı analizler için 
-                  <button onclick="event.stopPropagation(); switchResultTab('ai')" class="text-accent font-bold hover:underline">ORBIS AI</button> 
-                  sekmesine göz atın.
-                </p>
-              </div>
-            </div>
-          </div>`;
-        $content.html( marked.parse( result.interpretation ) + disclaimerNote );
-
-        // Preview mode: fade overlay ve expand butonlarını göster
-        $( '#summary-fade-overlay' ).removeClass( 'hidden' );
-        $( '#summary-read-more' ).removeClass( 'hidden' ).addClass( 'flex' );
-        $( '#summary-expand-icon' ).removeClass( 'hidden' ).addClass( 'flex' );
-        $( '#refresh-summary-btn-loading' ).addClass( 'hidden' );
-
-        // Burç kartlarına tıklanabilir işareti göster
-        showZodiacClickIndicators();
-
-        // Loader'ı kapat (500ms sonra, animasyon için)
-        setTimeout( () => {
-          CosmicLoader.hideLoader();
-        }, 500 );
-      } else {
-        $content.html( `<p class="text-red-400 text-[11px]">Özet yüklenemedi: ${result.error}</p>` );
-        CosmicLoader.forceHide();
-      }
-    } catch ( error ) {
-      $content.html( `<p class="text-red-400 text-[11px]">Bağlantı hatası. Lütfen tekrar deneyin.</p>` );
-      CosmicLoader.forceHide();
-    } finally {
-      $btn.prop( 'disabled', false ).removeClass( 'opacity-50' );
-    }
-  }
-
-  // Simüle edilmiş adım tamamlama - artık kullanılmıyor, progress bar ile değiştirildi
-  function simulateLoaderSteps() {
-    // Progress bar kullanıldığı için bu fonksiyon artık gerekli değil
-  }
 
   // Sayfa yüklendiğinde
   $( document ).ready( function () {
