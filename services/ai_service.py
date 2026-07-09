@@ -134,10 +134,8 @@ class AIService:
         ],
         "summary": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
-            "natal_aspects", "natal_summary_interpretation",
-            "natal_additional_points", "natal_dignity_scores",
-            "transit_positions", "transit_to_natal_aspects",
-            "natal_lunation_cycle",
+            "natal_summary_interpretation",
+            "transit_positions",
         ],
     }
 
@@ -266,12 +264,13 @@ Yukarıdaki verileri kullanarak spiritüel potansiyeli ve ruhsal yolculuğu anal
 8. Antiscia noktaları — gölge ve denge dinamikleri
 """,
         "summary": """
-## KOZMİK ÖZET
-Yukarıdaki verileri kullanarak tüm yaşam alanlarını kapsayan kısa ve öz bir özet hazırla:
+## KOZMİK ÖZET (KISA)
+Yukarıdaki verileri kullanarak 300-500 kelimelik kısa ve öz bir kozmik özet hazırla:
 1. En güçlü 3 gezegen ve hayata etkisi
 2. Yaşam amacı ve potansiyel
 3. Şu anki transit dönemin ana mesajı
-4. Önümüzdeki dönem için en önemli tavsiye
+4. Önümüzdeki dönem için en önemli tek tavsiye
+KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
 """,
     }
 
@@ -387,7 +386,7 @@ Yukarıdaki verileri kullanarak tüm yaşam alanlarını kapsayan kısa ve öz b
         cleaned = re.sub(r" +", " ", cleaned)
         return "\n".join(line.strip() for line in cleaned.split("\n")).strip()
 
-    async def call_provider(self, session: aiohttp.ClientSession, provider: dict, prompt: str) -> dict:
+    async def call_provider(self, session: aiohttp.ClientSession, provider: dict, prompt: str, interpretation_type: str = "") -> dict:
         """Tek bir provider'a API çağrısı yap"""
         base_url = provider['base_url'].rstrip('/')
         api_key = provider['api_key']
@@ -408,8 +407,12 @@ Yukarıdaki verileri kullanarak tüm yaşam alanlarını kapsayan kısa ve öz b
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "max_tokens": 8192,  # Uzun analizler yarim kesilmesin
+            "max_tokens": 8192,
         }
+
+        # Kısa analiz türleri için max_tokens düşür (daha hızlı yanıt)
+        if interpretation_type in ("summary", "daily"):
+            payload["max_tokens"] = 2048
 
         try:
             async with session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=90)) as resp:
@@ -487,7 +490,7 @@ Yukarıdaki verileri kullanarak tüm yaşam alanlarını kapsayan kısa ve öz b
             for i, provider in enumerate(fallback_chain):
                 tag = "AKTİF" if i == 0 else f"YEDEK-{i}"
                 logger.info(f"[AI] Deneniyor: {tag} -> {provider['name']}")
-                result = await self.call_provider(session, provider, prompt)
+                result = await self.call_provider(session, provider, prompt, interpretation_type)
                 if result["success"]:
                     return result
                 errors.append(result.get("error", "Bilinmeyen hata"))
