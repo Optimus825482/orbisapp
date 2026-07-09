@@ -457,10 +457,46 @@ KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
             logger.info(f"[AI] Filtre '{analysis_type}': Tüm {len(filtered)} key gönderildi.")
         return filtered
 
+    # Sadece major açılar: Conjunction, Opposition, Square, Trine, Sextile
+    MAJOR_ASPECTS = {"Conjunction", "Opposition", "Square", "Trine", "Sextile"}
+
+    @staticmethod
+    def _deep_trim(data: dict) -> dict:
+        """Büyük dizileri derinlemesine kırp: sadece major açılar, top N."""
+        trimmed = {}
+        for key, value in data.items():
+            if isinstance(value, list) and len(value) > 15:
+                # Açı listeleri: sadece major aspect
+                if all(isinstance(item, dict) and "aspect_type" in item for item in value[:3]):
+                    filtered = [item for item in value if item.get("aspect_type", "") in AIService.MAJOR_ASPECTS]
+                    filtered.sort(key=lambda x: abs(float(x.get("orb", 99))))
+                    trimmed[key] = filtered
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(filtered)} (sadece major)")
+
+                # Sabit yıldızlar: top 10
+                elif all(isinstance(item, dict) and ("star" in str(item).lower() or "name" in item) for item in value[:3]):
+                    trimmed[key] = value[:10]
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(value[:10])} (top 10)")
+
+                # Midpoint / genel dizi: top 10
+                elif all(isinstance(item, dict) for item in value[:3]):
+                    trimmed[key] = value[:10]
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(value[:10])} (top 10)")
+
+                else:
+                    trimmed[key] = value
+            elif isinstance(value, dict):
+                trimmed[key] = AIService._deep_trim(value)
+            else:
+                trimmed[key] = value
+        return trimmed
+
     async def get_ai_interpretation_async(self, astro_data: dict, interpretation_type: str, user_name: str, **kwargs) -> dict:
         """Sıralı yedekleme ile AI yorumu al — analiz türüne özel veri + prompt"""
         # Veriyi filtrele
         filtered_data = self._filter_astro_data(astro_data, interpretation_type)
+        # Derinlemesine kırp: major açılar, top N
+        filtered_data = self._deep_trim(filtered_data)
         data_json = json.dumps(filtered_data, default=str)
         data_size = len(data_json)
         logger.info(f"[AI] Prompt data boyutu: {data_size:,} bytes (~{data_size//4:,} token)")
