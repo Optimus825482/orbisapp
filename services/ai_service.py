@@ -407,12 +407,8 @@ KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "max_tokens": 8192,
+            "max_tokens": 32768,  # DeepSeek-V4-Pro 384K destekler, yanıt kesilmesin
         }
-
-        # Kısa analiz türleri için max_tokens düşür (daha hızlı yanıt)
-        if interpretation_type in ("summary", "daily"):
-            payload["max_tokens"] = 2048
 
         try:
             async with session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=90)) as resp:
