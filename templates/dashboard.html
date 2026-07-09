@@ -1011,5 +1011,72 @@ endblock %} {% block head %} {{ super() }}
       );
     };
   } );
+
+  // ════════════════════════════════════════════════════════════════════
+  // Otomatik tarih/saat formatı + focus akışı
+  // GG→GG/, GG/AA→GG/AA/, GG/AA/YYYY→saate geç
+  // SS→SS:, SS:DD→doğum yerine geç
+  // ════════════════════════════════════════════════════════════════════
+  (function() {
+    const dateEl = document.getElementById("birth_date");
+    const timeEl = document.getElementById("birth_time");
+    const placeEl = document.getElementById("suggestionInput");
+
+    // Tarih: otomatik / ekle
+    dateEl.addEventListener("input", function(e) {
+      let v = this.value.replace(/[^0-9]/g, "");
+      if (v.length > 8) v = v.slice(0, 8);
+      let formatted = "";
+      if (v.length >= 2) { formatted += v.slice(0,2); }
+      else { formatted = v; this.value = formatted; return; }
+      if (v.length >= 4) { formatted += "/" + v.slice(2,4); }
+      else { formatted += "/" + v.slice(2); this.value = formatted; return; }
+      if (v.length >= 8) { formatted += "/" + v.slice(4,8); }
+      else { formatted += "/" + v.slice(4); }
+      this.value = formatted;
+      // Tarih tamamlanınca saate geç
+      if (v.length === 8) {
+        setTimeout(() => timeEl.focus(), 80);
+      }
+    });
+
+    // Saat: otomatik : ekle
+    timeEl.addEventListener("input", function(e) {
+      let v = this.value.replace(/[^0-9]/g, "");
+      if (v.length > 4) v = v.slice(0, 4);
+      let formatted = "";
+      if (v.length >= 2) { formatted += v.slice(0,2); }
+      else { formatted = v; this.value = formatted; return; }
+      if (v.length >= 4) { formatted += ":" + v.slice(2,4); }
+      else { formatted += ":" + v.slice(2); }
+      this.value = formatted;
+      // Saat tamamlanınca doğum yerine geç
+      if (v.length === 4) {
+        setTimeout(() => placeEl.focus(), 80);
+      }
+    });
+
+    // Backspace ile geri gitme: tarih boş → isim, saat boş → tarih
+    dateEl.addEventListener("keydown", function(e) {
+      if (e.key === "Backspace" && this.value === "" && this.selectionStart === 0) {
+        document.getElementById("name").focus();
+      }
+    });
+    timeEl.addEventListener("keydown", function(e) {
+      if (e.key === "Backspace" && this.value === "" && this.selectionStart === 0) {
+        dateEl.focus();
+        // Tarihin sonuna git
+        const len = dateEl.value.length;
+        dateEl.setSelectionRange(len, len);
+      }
+    });
+    placeEl.addEventListener("keydown", function(e) {
+      if (e.key === "Backspace" && this.value === "" && this.selectionStart === 0) {
+        timeEl.focus();
+        const len = timeEl.value.length;
+        timeEl.setSelectionRange(len, len);
+      }
+    });
+  })();
 </script>
 {% endblock %}
