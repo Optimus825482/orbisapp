@@ -334,12 +334,19 @@ super() }}
         <!-- Preview with max-height and fade -->
         <div id="ai-summary-preview" class="relative max-h-36 overflow-hidden">
           <div id="ai-summary-content" class="text-sm text-slate-300 leading-relaxed font-light">
-            <div class="flex flex-col items-center gap-3 py-4 text-center">
-              <div class="w-8 h-8 rounded-full border-2 border-accent/30 border-t-accent animate-spin"></div>
-              <div>
-                <p class="text-[11px] text-slate-400 font-medium">Lütfen bekleyin...</p>
-                <p class="text-[10px] text-slate-500">Doğum haritası analizi hazırlanıyor</p>
+            <div class="flex flex-col items-center gap-4 py-6 text-center">
+              <div class="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <span class="material-icons-round text-primary text-2xl">auto_awesome</span>
               </div>
+              <div class="flex flex-col gap-1">
+                <p class="text-[12px] text-white font-semibold">AI Yorumlarına Hazır!</p>
+                <p class="text-[10px] text-slate-400">Analizler sekmesinden istediğin yorumu seç</p>
+              </div>
+              <button onclick="event.stopPropagation(); switchResultTab('analyses')"
+                class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/80 active:scale-95 rounded-2xl text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(91,43,238,0.3)]">
+                <span class="material-icons-round text-base">psychology</span>
+                Analiz Merkezine Git
+              </button>
             </div>
           </div>
           <!-- Gradient fade-out overlay -->
@@ -370,12 +377,6 @@ super() }}
           </button>
         </div>
         
-        <!-- Loading state refresh (hidden when loaded) -->
-        <button onclick="event.stopPropagation(); loadAISummary()" id="refresh-summary-btn-loading"
-          class="mt-4 text-[10px] text-accent hover:text-accent/80 flex items-center gap-1 transition-colors">
-          <span class="material-icons-round text-sm">refresh</span>
-          Yenile
-        </button>
       </div>
     </div>
 

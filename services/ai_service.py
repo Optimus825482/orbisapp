@@ -49,6 +49,11 @@ class AIService:
         "birth_chart": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
             "natal_aspects", "natal_additional_points",
+            "natal_dignity_scores", "natal_declinations",
+            "natal_midpoint_analysis", "navamsa_chart",
+            "vimshottari_dasa", "firdaria_periods",
+            "eclipses_nearby_birth", "natal_lunation_cycle",
+            "natal_fixed_stars",
         ],
         "relationship": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
