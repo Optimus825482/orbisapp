@@ -6,8 +6,10 @@ ORBIS Stats Counter Service
 - PREMIUM YOK: Uygulama tamamen ucretsiz, sadece reklam destekli
 """
 import logging
+import time
 from datetime import datetime
 from typing import Optional
+from functools import wraps
 
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
@@ -20,6 +22,33 @@ FIELD_TOTAL_ANALYSES = "total_analyses"
 FIELD_ACTIVE_TODAY = "active_today"
 FIELD_TOTAL_ADS_WATCHED = "total_ads_watched"
 FIELD_TOTAL_REWARDED_ADS = "total_rewarded_ads"
+
+# Heartbeat throttling: aynı kullanıcı için 30 saniyede 1 yazma
+HEARTBEAT_THROTTLE_SECONDS = 30
+_last_heartbeat_times = {}
+
+
+def retry_on_deadline(max_retries=3, timeout_seconds=5):
+    """Firestore 504 Deadline Exceeded hatalarını retry eden decorator"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    error_msg = str(e)
+                    if "504" in error_msg or "Deadline Exceeded" in error_msg or "DEADLINE_EXCEEDED" in error_msg:
+                        if attempt < max_retries - 1:
+                            wait_time = 0.5 * (2 ** attempt)  # Exponential backoff: 0.5s, 1s, 2s
+                            logger.warning(f"[Stats] Deadline exceeded, retry {attempt + 1}/{max_retries} after {wait_time}s")
+                            time.sleep(wait_time)
+                            continue
+                    # Başka hata veya max retry aşıldı
+                    raise
+            return None
+        return wrapper
+    return decorator
 
 
 class StatsCounter:
@@ -43,6 +72,7 @@ class StatsCounter:
             return None
         return self.db.collection("stats").document("dashboard")
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def _increment(self, field: str, amount: int = 1):
         """Bir counter field'ini Increment ile guncelle"""
         if not self.db:
@@ -53,6 +83,7 @@ class StatsCounter:
         except Exception as e:
             logger.error(f"[Stats] Increment error ({field}): {e}")
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def _set_active_today(self, count: int):
         """active_today degerini dogrudan set et (gu sonu sifirlanir)"""
         if not self.db:
@@ -62,6 +93,7 @@ class StatsCounter:
         except Exception as e:
             logger.error(f"[Stats] set_active_today error: {e}")
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def _increment_today_counter(self, field: str):
         """Bugünlük counter: gün değiştiyse sıfırla, sonra Increment.
 
@@ -122,6 +154,7 @@ class StatsCounter:
             self._increment(FIELD_TOTAL_REWARDED_ADS, 1)
             self._increment_today_counter('rewarded_ads_today')
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def on_daily_activity(self, today: str):
         """Gunluk aktif kullanici sayisini guncelle"""
         if not self.db:
@@ -138,6 +171,7 @@ class StatsCounter:
             import traceback
             logger.error("[Stats] daily_activity failed: %s", traceback.format_exc())
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def on_user_login(self, email: str, display_name: str):
         """Kullanici giris yapti - son login kaydi"""
         if not self.db:
@@ -152,25 +186,40 @@ class StatsCounter:
         except Exception as e:
             logger.error(f"[Stats] login tracking error: {e}")
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def on_heartbeat(self, email: str, display_name: str):
-        """Aktif kullanici kalp atisi - heartbeat dokumanina yaz"""
+        """Aktif kullanici kalp atisi - heartbeat dokumanina yaz
+
+        Throttling: Aynı kullanıcı için 30 saniyede 1 yazma yapılır.
+        """
         if not self.db:
             return
+
+        # Throttling kontrolü
+        now = time.time()
+        last_time = _last_heartbeat_times.get(email, 0)
+        if now - last_time < HEARTBEAT_THROTTLE_SECONDS:
+            # Son heartbeat'ten beri 30 saniye geçmemiş, skip et
+            return
+
         try:
             from firebase_admin import firestore
             from datetime import datetime, timezone
             # ⚠️ SERVER_TIMESTAMP kullanma - filtrelemede sorun cikarir
             # Gercek timestamp ile yaz, boylece sorgu calisir
-            now = datetime.now(timezone.utc).isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
             key = email.replace("@", "_at_").replace(".", "_dot_")
             self.db.collection("stats_heartbeats").document(key).set({
                 "email": email,
                 "display_name": display_name or email,
-                "last_seen": now,
+                "last_seen": timestamp,
             })
+            # Başarılı yazma sonrası throttle cache'ini güncelle
+            _last_heartbeat_times[email] = now
         except Exception as e:
             logger.error(f"[Stats] heartbeat error: {e}")
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def get_online_users(self, within_minutes: int = 5) -> list:
         """Son N dakikada heartbeat atan kullanicilar"""
         if not self.db:
@@ -198,6 +247,7 @@ class StatsCounter:
     # ADMIN DASHBOARD - Hizli okuma (tek dokuman, 1 read)
     # ═══════════════════════════════════════════════════════════════
 
+    @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def get_overview(self) -> Optional[dict]:
         """Dashboard icin tum istatistikleri tek dokumandan oku (SADECE 1 READ)"""
         if not self.db:
