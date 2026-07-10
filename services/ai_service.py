@@ -38,11 +38,17 @@ class AIService:
 ### 3. UZUNLUK (ÖNEMLİ)
 - Yanitin 500-800 kelime arasi olsun; daha uzun yazma, daha kisa da yazma.
 - Tum onemli basliklari isle ama her birini 1-2 paragrafta ozetle.
-- Gereksiz detay ve tekrardan kacin, somut tavsiyeler odakli ol.
+- Gereksiz detay ve tekrardan kacin, yorum odakli ol.
+### 4. TAVSİYE YASAĞI (KESİN KURAL — İSTİSNASIZ)
+- TAVSİYE VERME. Asla "yapmalısın", "kaçınmalısın", "dene", "önerim şu", "dikkat et" gibi yönlendirici ifadeler kullanma.
+- Yorumun görevi sadece astrolojik tabloyu ve olası enerjiyi TANIMLAMAK, AÇIKLAMAK ve YORUMLAMAKTIR.
+- Kullanıcıya ne yapacağını söyleme. Ne olduğunu veya ne olabileceğini söyle.
+- Doğru format: "Bu dönemde iş alanında yoğun bir enerji aktif." (tasvir)
+- Yanlış format: "Bu dönemde iş konularına odaklanmalısın." (tavsiye — YASAK)
 """
 
     # ════════════════════════════════════════════════════════════════════
-    # VERİ FİLTRELEME — 25 hesaplama → 13 analiz türü
+    # VERİ FİLTRELEME — hesaplamalar → 18 analiz türü
     # Her hesaplama en az 1 analiz türünde kullanılır, hiçbiri boşa gitmez.
     # ════════════════════════════════════════════════════════════════════
     DATA_FILTER = {
@@ -62,6 +68,7 @@ class AIService:
             "natal_arabic_parts", "natal_declinations",
             "natal_midpoint_analysis", "navamsa_chart",
             "natal_lunation_cycle", "natal_fixed_stars",
+            "natal_part_of_fortune",
         ],
         "psychological_karmic": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
@@ -77,7 +84,7 @@ class AIService:
             "transit_positions", "transit_to_natal_aspects",
             "natal_aspects", "natal_additional_points",
             "solar_return_chart", "lunar_return_chart",
-            "natal_lunation_cycle",
+            "natal_lunation_cycle", "eclipses_nearby_current",
         ],
         "transits": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
@@ -91,8 +98,9 @@ class AIService:
             "natal_planet_positions", "natal_houses", "natal_ascendant",
             "transit_positions", "transit_to_natal_aspects",
             "solar_return_chart", "lunar_return_chart",
-            "natal_aspects", "eclipses_nearby_current",
-            "natal_lunation_cycle",
+            "natal_aspects", "natal_additional_points",
+            "eclipses_nearby_current", "natal_lunation_cycle",
+            "firdaria_periods",
         ],
         "long_term": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
@@ -112,9 +120,10 @@ class AIService:
         ],
         "health": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
-            "natal_aspects", "natal_fixed_stars",
-            "natal_declinations", "solar_return_chart",
-            "transit_positions", "transit_to_natal_aspects",
+            "natal_aspects", "natal_additional_points",
+            "natal_fixed_stars", "natal_declinations",
+            "solar_return_chart", "transit_positions",
+            "transit_to_natal_aspects", "natal_lunation_cycle",
         ],
         "finance": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
@@ -133,8 +142,55 @@ class AIService:
         ],
         "summary": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
-            "natal_summary_interpretation",
-            "transit_positions",
+            "natal_summary_interpretation", "transit_positions",
+            "transit_to_natal_aspects",
+        ],
+        # ── YENİ TÜRLER ──────────────────────────────────────────────
+        "vedic": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "vimshottari_dasa", "firdaria_periods",
+            "navamsa_chart", "deep_harmonic_analysis",
+            "natal_dignity_scores", "natal_lunation_cycle",
+            "natal_fixed_stars",
+        ],
+        "eclipses": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "eclipses_nearby_birth", "eclipses_nearby_current",
+            "transit_positions", "transit_to_natal_aspects",
+            "natal_lunation_cycle",
+        ],
+        "harmonic": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "deep_harmonic_analysis",
+            "navamsa_chart", "natal_midpoint_analysis",
+            "natal_antiscia", "natal_declinations",
+            "natal_dignity_scores",
+        ],
+        "esoteric": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "natal_antiscia", "natal_arabic_parts",
+            "natal_declinations", "natal_part_of_fortune",
+            "natal_midpoint_analysis", "natal_fixed_stars",
+            "deep_harmonic_analysis", "natal_lunation_cycle",
+        ],
+        "timing": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "vimshottari_dasa", "firdaria_periods",
+            "solar_return_chart", "lunar_return_chart",
+            "transit_positions", "transit_to_natal_aspects",
+            "eclipses_nearby_current", "eclipses_nearby_birth",
+            "natal_lunation_cycle",
+        ],
+        "health_energy": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "natal_fixed_stars", "natal_declinations",
+            "natal_dignity_scores", "natal_lunation_cycle",
+            "solar_return_chart", "transit_positions",
+            "transit_to_natal_aspects", "natal_midpoint_analysis",
         ],
     }
 
@@ -178,13 +234,29 @@ Yukarıdaki verileri kullanarak derinlemesine psikolojik ve karmik analiz yap:
 8. Doğum tutulmaları — ruhsal sözleşme ve misyon
 """,
         "daily": """
-## GÜNLÜK YORUM
-Yukarıdaki verileri kullanarak bugünün enerjilerini yorumla:
-1. Günün transit açıları ve etkileri
-2. Ay'ın bugünkü konumu — duygusal ton
-3. Solar ve Lunar Return'den bugünün teması
-4. Günlük pratik tavsiyeler (iletişim, kararlar, enerji yönetimi)
-5. Olumlu ve zorlayıcı saat dilimleri
+## GÜNLÜK YORUM — BUGÜN HANGİ ENERJİ AKTİF?
+Yukarıdaki transit ve natal verileri kullanarak BUGÜN hangi astrolojik enerjilerin aktif olduğunu yorumla.
+Odak: O GÜN aktif olan enerji tablosu ve bunun hangi yaşam alanlarında hissedileceği.
+
+1. BUGÜNÜN ANA ENERJİSİ
+   - Günün dominant transit etkisi ve kişiyle olan ilişkisi
+   - Ay'ın konumu — bugünkü duygusal ton ve iç dünya
+
+2. GÜNLÜK ENERJİ TABLOLARI (alan bazlı tespit)
+   - İş/kariyer alanında bugün hangi enerji aktif
+   - İletişim ve sosyal alanda öne çıkan tema
+   - Maddi/finansal konularda bugünkü enerji
+   - İlişki alanında bugün hangi dinamik ön planda
+
+3. EN YOĞUN VE EN GERGİN ZAMAN DİLİMLERİ
+   - Enerjinin en güçlü hissedildiği saatler
+   - Gerilim veya yavaşlama hissinin öne çıktığı saatler
+
+4. TUTULMA VEYA ÖZEL KONJONKTÜR ETKİSİ
+   - Yakın dönem tutulma aktifse bugünkü yansıması
+
+UYARI: Genel yorumlardan kaçın. "Bu dönemde" değil, "BUGÜN" hangi enerjinin aktif olduğunu tespit et.
+Çıktı 400-600 kelime olsun.
 """,
         "transits": """
 ## TRANSİT ANALİZİ
@@ -199,12 +271,13 @@ Yukarıdaki verileri kullanarak transit etkilerini detaylı analiz et:
 """,
         "short_term": """
 ## KISA VADELİ ÖNGÖRÜ (1-3 AY)
-Yukarıdaki verileri kullanarak önümüzdeki 1-3 aylık dönemi analiz et:
-1. Hızlı gezegen transitleri ve tetikleyeceği olaylar
-2. Ay düğümleri ve tutulmalar — kadersel dönemeçler
-3. Solar/Lunar Return dönemsel mesajları
-4. Fırsat pencereleri ve dikkat edilmesi gereken tarihler
-5. Kariyer, ilişki, sağlık ve finans başlıklarında kısa vadeli tavsiyeler
+Yukarıdaki verileri kullanarak önümüzdeki 1-3 aylık dönemin enerji tablosunu yorumla:
+1. Hızlı gezegen transitleri — hangi yaşam alanlarında ne tür bir enerji aktif olacak
+2. Ay düğümleri ve yakın tutulmalar — kadersel dönemeç ve kırılma noktaları
+3. Solar/Lunar Return dönemsel mesajları — bu ay/yılın ana teması
+4. Firdaria periyodu — şu an hangi enerji döneminde olduğu ve bu dönemin genel tonu
+5. Enerji pencereleri: hangi zaman aralıklarında hangi alan yoğun aktif
+6. Kariyer, ilişki, sağlık ve finans alanlarında 1-3 aylık enerji tablosu
 """,
         "long_term": """
 ## UZUN VADELİ ÖNGÖRÜ (1-5 YIL)
@@ -231,13 +304,15 @@ Yukarıdaki verileri kullanarak kariyer ve mesleki potansiyeli analiz et:
         "health": """
 ## SAĞLIK ANALİZİ
 Yukarıdaki verileri kullanarak sağlık ve bedensel potansiyeli analiz et:
-1. 6. ev (sağlık) ve 1. ev (beden) yerleşimleri
-2. Mars enerjisi ve fiziksel dayanıklılık
-3. Satürn kronik eğilimleri ve zayıf bölgeler
-4. Sabit yıldızların sağlık etkileri (Algol, Caput Algol vb.)
-5. Deklinasyon paralellerinde sağlık göstergeleri
-6. Solar Return sağlık ev vurguları
-7. Transit etkilerle sağlık uyarıları ve olumlu dönemler
+1. 6. ev (sağlık) ve 1. ev (beden) yerleşimleri — doğuştan gelen beden yapısı
+2. Chiron konumu — en derin fiziksel/psikolojik yara ve iyileşme kapısı
+3. Mars enerjisi ve fiziksel dayanıklılık — enerji yönetimi
+4. Satürn kronik eğilimleri ve dikkat edilmesi gereken zayıf bölgeler
+5. Sabit yıldızların sağlık etkileri (Algol, Caput Algol vb.)
+6. Deklinasyon paralellerinde sağlık göstergeleri
+7. Solar Return sağlık ev vurguları — bu yıl öne çıkan sağlık temaları
+8. Transit etkilerle sağlık uyarıları ve yenileme dönemleri
+9. Ay fazı — beden döngüsü ve enerji ritmi
 """,
         "finance": """
 ## FİNANSAL ANALİZ
@@ -265,11 +340,85 @@ Yukarıdaki verileri kullanarak spiritüel potansiyeli ve ruhsal yolculuğu anal
         "summary": """
 ## KOZMİK ÖZET (KISA)
 Yukarıdaki verileri kullanarak 300-500 kelimelik kısa ve öz bir kozmik özet hazırla:
-1. En güçlü 3 gezegen ve hayata etkisi
-2. Yaşam amacı ve potansiyel
-3. Şu anki transit dönemin ana mesajı
-4. Önümüzdeki dönem için en önemli tek tavsiye
+1. En güçlü 3 gezegen ve hayata somut etkisi
+2. Yaşam amacı ve kullanılmayan en büyük potansiyel
+3. Şu anki transit dönemin ana mesajı — aktif transit açıları ne söylüyor
+4. Önümüzdeki dönem için en önemli tek somut tavsiye
 KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
+""",
+        # ── YENİ TÜRLER ──────────────────────────────────────────────
+        "vedic": """
+## VEDİK ASTROLOJİ ANALİZİ (Dasha & Nakshatra)
+Yukarıdaki verileri kullanarak Vedik astroloji perspektifinden derinlemesine analiz yap:
+1. Vimshottari Dasha — şu anki Ana Dönem (Mahadasha) ve Alt Dönem (Antardasha): hangi gezegenin enerjisi hâkim, ne anlama geliyor
+2. Dasha döneminin pratik yansımaları — bu dönemde hangi yaşam alanları öne çıkıyor
+3. Nakshatra analizi — Ay'ın Nakshatra'sı ve kişilik, kader üzerindeki etkisi
+4. Navamsa (D9) haritası — ruhsal amaç, partnerlik ve derinlik katmanı
+5. Firdaria periyodu ile Vedik dönem karşılaştırması — çakışan temalar
+6. Gezegen dignity skorları (Vedik perspektif) — hangi gezegenler güçlü veya zayıf
+7. Önümüzdeki Dasha değişimi — ne zaman olacak ve yaşamda nasıl bir kırılma getirecek
+8. Vedik harmonik (H9 Navamsa) üzerinden ruhsal misyon özeti
+""",
+        "eclipses": """
+## TUTULMA ETKİLERİ ANALİZİ
+Yukarıdaki verileri kullanarak tutulmaların yaşam üzerindeki etkilerini analiz et:
+1. Doğum tutulmaları — doğuma yakın güneş/ay tutulmaları ve yaşam temasına kalıcı etkisi
+2. Kadersel aktivasyon noktaları — natal haritadaki hangi noktalar tutulma ekseninde
+3. Şu anki/yakın dönem tutulmaları — aktif tutulma hangi natal noktayı tetikliyor
+4. Tutulma ekseninin yaşam alanlarına etkisi — hangi ev ve konu bu aktivasyondan etkileniyor
+5. Tutulma sonrası 6 aylık açılım penceresi — bu dönemde hangi yaşam alanı yoğun aktif
+6. Ay düğümleri (Kuzey/Güney) — karmik yön ve tutulma ekseninin mesajı
+7. Bu tutulma döneminin genel enerjisi ve yaşam üzerindeki olası temaları
+""",
+        "harmonic": """
+## HARMONİK REZONANS ANALİZİ
+Yukarıdaki derin harmonik verileri kullanarak gizli potansiyelleri ve örüntüleri analiz et:
+1. H5 (5. Harmonik) — yaratıcı ifade, sanat ve ilham kapasitesi
+2. H7 (7. Harmonik) — manevi yetenek, ilham ve spiritüel bağlantı
+3. H9 Navamsa — ruhsal amaç ve evlilik/partnerlik derinliği
+4. H12 (12. Harmonik) — bilinçaltı örüntüler ve gizli güçler
+5. Midpoint analizi — gezegen orta noktalarındaki gizli yapılandırıcı güçler
+6. Antiscia noktaları — gölge yansımalar ve dengelenmesi gereken enerjiler
+7. Deklinasyon paralelleri — gizli konjonksiyonlar ve fark edilmemiş bağlantılar
+8. Bu harmonik haritanın yaşama pratik yansıması — ne tür alanlarda güçlü rezonans var
+""",
+        "esoteric": """
+## EZOTERİK ETKİLER ANALİZİ
+Yukarıdaki verileri kullanarak gizli, ezoterik ve kadim astroloji tekniklerini analiz et:
+1. Arap noktaları — Şans Noktası, Ruh Noktası, Aşk Noktası ve diğer kritik Arap noktaları
+2. Part of Fortune — maddi şans ve bereket akışının haritadaki yeri
+3. Antiscia ve Contra-antiscia — gölge eksen ve bastırılmış enerji odakları
+4. Sabit yıldızlar — natalde güçlü sabit yıldızların ezoterik mesajı (Spica, Algol, Regulus vb.)
+5. Deklinasyon paralelleri — görünmez konjonksiyonlar ve gizli müttefikler
+6. Midpoint yapıları — karmaşık gezegen birleşimlerindeki saklı mesajlar
+7. Ay fazı (lunation cycle) — doğumdaki Ay fazının yaşam ritmi ve spiritüel misyona etkisi
+8. Bu ezoterik haritanın bütünsel yorumu — tüm gizli göstergeler ne söylüyor
+""",
+        "timing": """
+## ZAMANLAMA TEKNİKLERİ — DÖNEM ANALİZİ
+Yukarıdaki verileri kullanarak birden fazla zamanlama tekniğini sentezleyerek dönem analizi yap:
+1. Firdaria Kronokrator — şu anki dönemin yöneticisi ve alt dönem: bu kombinasyonun tonu ve odağı
+2. Vimshottari Dasha ana + alt dönem — Vedik zamanlama katmanı
+3. Solar Return — bu yılın başlangıcı ve yıl boyunca aktif olacak ana tema
+4. Lunar Return — bu aydaki odak ve duygusal iklim
+5. Tutulmalar — yakın dönem tutulmalarının zamanlama üzerindeki aktivasyon etkisi
+6. Transit tetikleyiciler — büyük gezegenlerin natal noktalara kritik geçiş tarihleri
+7. Tüm tekniklerin sentezi — hangi dönemler birden fazla teknik tarafından öne çıkarılıyor
+8. Önümüzdeki 3-6 ay için en kritik tarih aralıkları ve o dönemlerde aktif enerji temaları
+""",
+        "health_energy": """
+## SAĞLIK & ENERJİ — VİTALİTE PROFİLİ
+Yukarıdaki verileri kullanarak sağlık ve enerji potansiyelini çok katmanlı yorumla:
+1. Beden vitalitenin temel haritası — Yükselen ve 1. ev beden yapısını nasıl şekillendiriyor
+2. Chiron — ruhsal yara ve bedensel zayıflık noktası; haritada nerede konumlanıyor ve ne anlam taşıyor
+3. Mars enerjisi — fiziksel güç kaynağı, enerji boşalma biçimi, yorgunluk kalıpları
+4. Satürn — kronik zayıflıklar ve hangi beden alanlarında dikkat gerektiren yapısal eğilimler
+5. Sabit yıldızların sağlık bağlantıları — kritik yıldız bağlantıları varsa yorumla
+6. Deklinasyon paralelleri — gizli sağlık bağlantıları ve enerji ittifakları
+7. Gezegen dignity skorları — zayıf gezegenlerin ilişkili olduğu organ/sistem eğilimleri
+8. Solar Return sağlık ev vurguları — bu yıl öne çıkan sağlık temaları
+9. Transit tetikleyiciler — yakın dönemde aktif olan sağlık enerji penceresi
+10. Ay fazı ve beden ritmi — enerji dalgalanmalarının döngüsel yapısı
 """,
     }
 
