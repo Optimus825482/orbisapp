@@ -114,14 +114,41 @@ async function interpretTab(type) {
     }
   }, 1000);
 
+  // Analiz türüne göre sadece gerekli verileri gönder (backend DATA_FILTER ile aynı)
+  const DATA_FILTER = {
+    birth_chart: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points"],
+    relationship: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points", "natal_antiscia", "natal_dignity_scores", "natal_arabic_parts", "natal_declinations", "natal_midpoint_analysis", "navamsa_chart", "natal_lunation_cycle", "natal_fixed_stars"],
+    psychological_karmic: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points", "natal_dignity_scores", "natal_declinations", "natal_midpoint_analysis", "deep_harmonic_analysis", "natal_lunation_cycle", "natal_fixed_stars", "vimshottari_dasa", "firdaria_periods", "eclipses_nearby_birth", "natal_antiscia"],
+    daily: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "natal_aspects", "natal_additional_points", "solar_return_chart", "lunar_return_chart", "natal_lunation_cycle"],
+    transits: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "solar_return_chart", "lunar_return_chart", "natal_aspects", "natal_declinations", "eclipses_nearby_current", "natal_lunation_cycle", "firdaria_periods", "natal_fixed_stars"],
+    short_term: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "solar_return_chart", "lunar_return_chart", "natal_aspects", "eclipses_nearby_current", "natal_lunation_cycle"],
+    long_term: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "vimshottari_dasa", "firdaria_periods", "solar_return_chart", "deep_harmonic_analysis", "eclipses_nearby_current", "natal_lunation_cycle", "natal_aspects"],
+    career: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_dignity_scores", "natal_midpoint_analysis", "natal_fixed_stars", "solar_return_chart", "firdaria_periods", "transit_positions", "transit_to_natal_aspects", "natal_arabic_parts"],
+    health: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_fixed_stars", "natal_declinations", "solar_return_chart", "transit_positions", "transit_to_natal_aspects"],
+    finance: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_arabic_parts", "natal_part_of_fortune", "natal_dignity_scores", "solar_return_chart", "transit_positions", "transit_to_natal_aspects"],
+    spiritual: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "deep_harmonic_analysis", "navamsa_chart", "vimshottari_dasa", "natal_lunation_cycle", "natal_fixed_stars", "natal_antiscia", "natal_declinations", "natal_midpoint_analysis"],
+    summary: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_summary_interpretation", "transit_positions"],
+  };
+
   try {
     const astroData = window.astroData || {};
+    const allowedKeys = DATA_FILTER[type];
+    let sendData;
+    if (allowedKeys) {
+      sendData = {};
+      for (const key of allowedKeys) {
+        if (astroData[key] !== undefined) sendData[key] = astroData[key];
+      }
+      console.log(`[AI] ${type}: ${Object.keys(sendData).length}/${Object.keys(astroData).length} key gönderildi`);
+    } else {
+      sendData = astroData;
+    }
     const response = await fetch("/api/get_ai_interpretation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         interpretation_type: type,
-        astro_data: astroData,
+        astro_data: sendData,
         user_name: astroData.user_name || astroData.birth_info?.user_name || "Kullanıcı",
       }),
     });
