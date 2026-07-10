@@ -153,131 +153,6 @@ super() }}
     Hesapla</a>
 </div>{% else %}
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     ORBIS COSMIC MODAL LOADER — Dinamik Geri Sayım + Gizemli Mesajlar
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="cosmic-loader-overlay">
-  <div class="cosmic-modal">
-    <!-- Floating Stars -->
-    <div class="cosmic-stars">
-      <div class="cosmic-star"></div>
-      <div class="cosmic-star"></div>
-      <div class="cosmic-star"></div>
-      <div class="cosmic-star"></div>
-      <div class="cosmic-star"></div>
-    </div>
-
-    <!-- Orbis Avatar - Üstte -->
-    <div class="cosmic-avatar">
-      <div class="cosmic-avatar-ring">
-        <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" alt="ORBIS AI" class="cosmic-avatar-img">
-      </div>
-    </div>
-
-    <!-- Kullanıcı Karşılama -->
-    <div class="cosmic-greeting">
-      <h2>Sevgili {{ astro_data.user_name }}</h2>
-      <p id="cosmic-greeting-text">Hesaplamaların tamamlandı, şimdi yapay zeka yorumlarını hazırlıyorum...</p>
-    </div>
-
-    <!-- SVG Progress Ring + Sayaç -->
-    <div class="flex flex-col items-center justify-center py-2 gap-3">
-      <div class="relative w-16 h-16">
-        <svg class="w-16 h-16 -rotate-90" viewBox="0 0 80 80">
-          <circle class="text-white/5" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"/>
-          <circle id="cosmic-progress-ring" class="text-primary" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"
-            stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round"/>
-        </svg>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <span id="cosmic-elapsed-sec" class="text-sm font-bold text-white">0sn</span>
-        </div>
-      </div>
-      <!-- Dinamik mesaj -->
-      <p id="cosmic-status-msg" class="text-[11px] text-slate-400 text-center max-w-[260px] leading-relaxed">Doğum haritanız hazırlanıyor...</p>
-      <!-- Disclaimer (12sn sonra görünür) -->
-      <p id="cosmic-disclaimer" class="text-[9px] text-slate-600 text-center max-w-[260px] mt-1 hidden">
-        ⚠️ Yapay zeka tarafından, matematiksel astroloji hesaplamalarına dayanarak oluşturulmuştur. Eğlence amaçlıdır.
-      </p>
-    </div>
-
-    <!-- Scrolling Messages - Analiz Türleri -->
-    <div class="cosmic-messages">
-      <div class="cosmic-messages-inner" id="cosmic-messages-scroll">
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">auto_awesome</span></div>
-          <div class="cosmic-message-text">
-            <strong>Karakter & Doğum Haritası</strong>
-            <small>Kişilik ve yaşam analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">psychology</span></div>
-          <div class="cosmic-message-text">
-            <strong>Psikolojik & Karmik</strong>
-            <small>Derin ruhsal analiz</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">favorite</span></div>
-          <div class="cosmic-message-text">
-            <strong>İlişki Potansiyeli</strong>
-            <small>Aşk ve uyum analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">work</span></div>
-          <div class="cosmic-message-text">
-            <strong>Kariyer Yönelimi</strong>
-            <small>Meslek ve başarı analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
-          <div class="cosmic-message-text">
-            <strong>Dönemsel Öngörüler</strong>
-            <small>Transit ve zamanlama</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
-          <div class="cosmic-message-text">
-            <strong>Transit & Vedik</strong>
-            <small>Dasha, Firdaria, Return</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">favorite</span></div>
-          <div class="cosmic-message-text">
-            <strong>İlişki Potansiyeli</strong>
-            <small>Aşk ve uyum analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">work</span></div>
-          <div class="cosmic-message-text">
-            <strong>Kariyer Yönelimi</strong>
-            <small>Meslek ve başarı analizi</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">calendar_month</span></div>
-          <div class="cosmic-message-text">
-            <strong>Dönemsel Öngörüler</strong>
-            <small>Transit ve zamanlama</small>
-          </div>
-        </div>
-        <div class="cosmic-message">
-          <div class="cosmic-message-icon"><span class="material-icons-round">self_improvement</span></div>
-          <div class="cosmic-message-text">
-            <strong>Transit & Vedik</strong>
-            <small>Dasha, Firdaria, Return</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="relative flex-1 flex flex-col pb-24 md:pb-12">
   <!-- Results Header -->
   <header
@@ -1812,7 +1687,6 @@ super() }}
 </footer>
 
 {% endif %} {% endblock %} {% block scripts %}
-<script src="{{ url_for('static', filename='js/results/cosmic-loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/results/ai-summary.js') }}"></script>
 <script>
   // window.astroData head'de set edildi, burada da referans oluştur
@@ -2961,10 +2835,6 @@ super() }}
                     firstChunkTime = Date.now() - startTime;
                     console.log( '[ORBIS] Ilk chunk ' + firstChunkTime + 'ms de geldi' );
                     $body.find( '.animate-spin' ).parent().remove();
-
-                    if ( typeof CosmicLoader !== 'undefined' && CosmicLoader.hideLoader ) {
-                      CosmicLoader.hideLoader();
-                    }
                   }
 
                   streamingContent += data.content;
@@ -3015,19 +2885,8 @@ super() }}
     return `<p class="mb-4">${formatted}</p>`;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COSMIC LOADER SYSTEM
-  // ═══════════════════════════════════════════════════════════════════════════
-
-
   // Sayfa yüklendiğinde
   $( document ).ready( function () {
-    // Cosmic Loader'ı başlat (hemen görünür olacak)
-    CosmicLoader.init();
-
-    // Özeti yükle (300ms sonra - loader görünsün diye kısa gecikme)
-    setTimeout( loadAISummary, 300 );
-
     // Harita sekmesi aktifse hemen çiz
     if ( $( "#tab-chart" ).hasClass( "active" ) ) {
       setTimeout( renderAstroChart, 200 );
