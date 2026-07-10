@@ -1744,6 +1744,45 @@ super() }}
   </div>
 </div>
 
+<!-- Intro Modal (Sayfa açıldığında gösterilir) -->
+<div id="intro-modal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+  <div class="bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 max-w-md w-full transform scale-95 transition-all duration-300">
+    <!-- Modal Header -->
+    <div class="p-6 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+          <span class="text-2xl">✨</span>
+        </div>
+        <h3 class="text-lg font-bold text-white">Hesaplamalarınız Hazır!</h3>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6">
+      <p class="text-sm text-slate-300 leading-relaxed mb-4">
+        Güneş, Ay ve Yükselen burcunuz ile tüm astrolojik verileriniz aşağıda hazır.
+      </p>
+      <div class="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+        <span class="text-xl mt-0.5">🔮</span>
+        <div>
+          <p class="text-sm font-semibold text-white mb-1">AI Yorumları için:</p>
+          <p class="text-xs text-slate-300">
+            <span class="font-semibold text-purple-400">Analizler</span> sekmesine gidin ve istediğiniz yorumu seçin.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-4 border-t border-white/5 flex justify-end">
+      <button onclick="closeIntroModal()"
+        class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 rounded-xl transition-all duration-200 shadow-lg">
+        Anlaşıldı
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Copyright Footer -->
 <footer class="mt-8 pb-6 text-center px-4">
   <!-- Sorumluluk Reddi -->
@@ -3716,6 +3755,41 @@ super() }}
     document.body.appendChild( toast );
     setTimeout( () => toast.remove(), 5000 );
   }
+
+  // ========================================
+  // INTRO MODAL FONKSİYONLARI
+  // ========================================
+
+  // Intro modal'ı kapat
+  function closeIntroModal() {
+    const modal = document.getElementById('intro-modal');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+
+    const modalContent = modal.querySelector('.bg-slate-900\\/95');
+    if (modalContent) {
+      modalContent.classList.remove('scale-100');
+      modalContent.classList.add('scale-95');
+    }
+  }
+
+  // Sayfa yüklendiğinde intro modal'ı göster
+  document.addEventListener('DOMContentLoaded', function() {
+    // 500ms sonra modal'ı göster (sayfa render sonrası)
+    setTimeout(function() {
+      const modal = document.getElementById('intro-modal');
+      if (!modal) return;
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100', 'pointer-events-auto');
+
+      const modalContent = modal.querySelector('.bg-slate-900\\/95');
+      if (modalContent) {
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+      }
+    }, 500);
+  });
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
