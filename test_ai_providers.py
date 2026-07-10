@@ -47,10 +47,15 @@ async def test_one(session, p, prompt, max_tokens=256, timeout=30):
             if resp.status == 200:
                 try:
                     data = json.loads(raw)
-                    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")[:200]
-                    return (True, elapsed, content, None)
+                    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                    finish = data.get("choices", [{}])[0].get("finish_reason", "?")
+                    # Bos yanit debug
+                    if not content:
+                        alt_content = data.get("choices", [{}])[0].get("text", "")
+                        return (True, elapsed, alt_content[:500] if alt_content else "BOS_YANIT finish=%s raw=%s" % (finish, raw[:200]), None)
+                    return (True, elapsed, content[:500], None)
                 except:
-                    return (True, elapsed, raw[:200], "JSON parse error")
+                    return (True, elapsed, raw[:500], "JSON parse error")
             else:
                 return (False, elapsed, "", "HTTP %d: %s" % (resp.status, raw[:200]))
     except asyncio.TimeoutError:
