@@ -100,6 +100,7 @@ def create_app(test_config=None):
     app.jinja_env.filters["safe_round"] = utils.safe_round
 
     # Health Check Endpoint (Docker/Coolify için)
+    # NOT: Talisman'dan ÖNCE tanımlanmalı, aksi halde HTTPS redirect alır
     @app.route("/api/health")
     def health_check():
         return jsonify({
@@ -112,12 +113,13 @@ def create_app(test_config=None):
     init_extensions(app)
 
     # Security headers and HTTPS enforcement
-    # CSP mobil uygulama için devre dışı - inline script/style ve CDN'ler gerekli
+    # force_https=False: Coolify reverse proxy (Traefik/Nginx) zaten HTTPS terminate eder.
+    # Container içinde HTTP çalışır, dışarıya HTTPS. Talisman'ın yeniden redirect etmesi 302 üretir.
     Talisman(
         app,
-        force_https=os.getenv("FLASK_ENV") == "production",
+        force_https=False,  # Reverse proxy HTTPS terminate ediyor, container içi HTTP
         strict_transport_security=os.getenv("FLASK_ENV") == "production",
-        session_cookie_secure=os.getenv("FLASK_ENV") == "production",
+        session_cookie_secure=False,  # Reverse proxy arkasında cookie secure sorun çıkarır
         content_security_policy=None,  # CSP devre dışı - mobil app uyumluluğu için
     )
 
