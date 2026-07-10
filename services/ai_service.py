@@ -440,6 +440,9 @@ KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
     def _filter_astro_data(self, astro_data: dict, analysis_type: str) -> dict:
         """Her analiz türü için sadece gerekli hesaplama sonuçlarını filtrele.
         Eşleşme yoksa tüm veriyi döndür (geriye dönük uyumlu)."""
+        if not astro_data or not isinstance(astro_data, dict):
+            logger.warning(f"[AI] astro_data None veya geçersiz, boş dict dönülüyor.")
+            return {}
         allowed_keys = self.DATA_FILTER.get(analysis_type)
         if not allowed_keys:
             logger.warning(f"[AI] {analysis_type} için filtre tanımı yok, tüm veri gönderiliyor.")
