@@ -6,7 +6,7 @@ import os
 
 # ── Worker tipi ──────────────────────────────────────────────────────────────
 # gevent: AI streaming (SSE) için I/O bloğu olmadan çalışır
-worker_class = "gevent"
+worker_class = "sync"
 
 # ── Worker sayısı — sabit ve düşük ──────────────────────────────────────────
 # Paylaşımlı sunucuda diğer uygulamaları yormamak için 2 worker sabit.
@@ -15,14 +15,14 @@ worker_class = "gevent"
 workers = 4
 
 # ── Her worker'ın eşzamanlı bağlantı kapasitesi ─────────────────────────────
-worker_connections = 500
+# worker_connections: sadece async worker'lar (gevent/eventlet) için, sync worker'da kullanılmaz
 
 # ── Thread — gevent'te kullanılmaz ───────────────────────────────────────────
-threads = 1
+threads = 2
 
 # ── Bağlantı ve timeout ──────────────────────────────────────────────────────
 bind             = f"0.0.0.0:{os.environ.get('PORT', 8005)}"
-timeout          = 180    # Streaming yanıtlar için (AI 120sn + buffer)
+timeout          = 120    # Timeout süre
 keepalive        = 5
 graceful_timeout = 30
 
