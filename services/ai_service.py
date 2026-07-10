@@ -83,7 +83,6 @@ class AIService:
             "natal_planet_positions", "natal_houses", "natal_ascendant",
             "transit_positions", "transit_to_natal_aspects",
             "natal_aspects", "natal_additional_points",
-            "solar_return_chart", "lunar_return_chart",
             "natal_lunation_cycle", "eclipses_nearby_current",
         ],
         "transits": [
@@ -234,29 +233,33 @@ Yukarıdaki verileri kullanarak derinlemesine psikolojik ve karmik analiz yap:
 8. Doğum tutulmaları — ruhsal sözleşme ve misyon
 """,
         "daily": """
-## GÜNLÜK YORUM — BUGÜN HANGİ ENERJİ AKTİF?
-Yukarıdaki transit ve natal verileri kullanarak BUGÜN hangi astrolojik enerjilerin aktif olduğunu yorumla.
-Odak: O GÜN aktif olan enerji tablosu ve bunun hangi yaşam alanlarında hissedileceği.
+## GÜNLÜK ENERJİ YORUMU — SADECE BUGÜN
 
-1. BUGÜNÜN ANA ENERJİSİ
-   - Günün dominant transit etkisi ve kişiyle olan ilişkisi
-   - Ay'ın konumu — bugünkü duygusal ton ve iç dünya
+### KESİN KISITLAMA
+Bu yorum YALNIZCA bugünkü transit_positions ve transit_to_natal_aspects verisine dayanmalıdır.
+- Dasha, Firdaria, Solar Return, karakter analizi KULLANMA
+- "Bu dönemde", "Bu yıl", "Uzun vadede" gibi ifadeler YASAK
+- Sadece BUGÜN aktif olan transit açıları yorumlanacak
 
-2. GÜNLÜK ENERJİ TABLOLARI (alan bazlı tespit)
-   - İş/kariyer alanında bugün hangi enerji aktif
-   - İletişim ve sosyal alanda öne çıkan tema
-   - Maddi/finansal konularda bugünkü enerji
-   - İlişki alanında bugün hangi dinamik ön planda
+### YORUM FORMATI
 
-3. EN YOĞUN VE EN GERGİN ZAMAN DİLİMLERİ
-   - Enerjinin en güçlü hissedildiği saatler
-   - Gerilim veya yavaşlama hissinin öne çıktığı saatler
+**BUGÜNÜN GENEL TON**
+transit_to_natal_aspects listesindeki aktif açılar neler? Bu açıların birleşik etkisi bugüne nasıl bir ton katıyor? (2-3 cümle)
 
-4. TUTULMA VEYA ÖZEL KONJONKTÜR ETKİSİ
-   - Yakın dönem tutulma aktifse bugünkü yansıması
+**AY'IN BUGÜNKÜ POZİSYONU**
+transit_positions'daki Ay'ın bulunduğu konum bugünün duygusal ve iç dünya atmosferini nasıl renklendiriyor? (2-3 cümle)
 
-UYARI: Genel yorumlardan kaçın. "Bu dönemde" değil, "BUGÜN" hangi enerjinin aktif olduğunu tespit et.
-Çıktı 400-600 kelime olsun.
+**ALAN BAZLI ENERJİ (sadece aktif transit açılardan türet)**
+- İş/kariyer: Bugün bu alanda hangi transit etkisi aktif?
+- İletişim: Bugün bu alanda hangi transit etkisi aktif?
+- İlişkiler: Bugün bu alanda hangi transit etkisi aktif?
+- Enerji/beden: Bugün bu alanda hangi transit etkisi aktif?
+(Bir alanda bugün aktif transit açısı yoksa o başlığı yazma)
+
+**BUGÜNÜN RİTMİ**
+Enerjinin gün boyunca nasıl dağıldığı — sabah/öğleden sonra/akşam farkı varsa belirt.
+
+Çıktı 350-500 kelime olsun. Natal harita karakterini arka plan bağlamı olarak kullanabilirsin ama odak daima bugünkü transitler.
 """,
         "transits": """
 ## TRANSİT ANALİZİ
@@ -548,10 +551,25 @@ Yukarıdaki verileri kullanarak sağlık ve enerji potansiyelini çok katmanlı 
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
+        # Yorum türüne göre system prompt belirle
+        if interpretation_type == "daily":
+            system_content = (
+                "Sen bir astroloji yorumlama motorusun. "
+                "Görevin SADECE bugünkü transit pozisyonlarını ve transit-natal açılarını yorumlamaktır. "
+                "Dasha, Firdaria, Solar Return, karakter analizi veya uzun vadeli dönemlerden KESİNLİKLE bahsetme. "
+                "Tavsiye vermezsin. Sadece bugünkü aktif transit enerjisini ve bunun yaşam alanlarına yansımasını betimlersin."
+            )
+        else:
+            system_content = (
+                "Sen bir astroloji yorumlama motorusun. "
+                "Görevin yalnızca sana verilen hesaplama verisini yorumlamaktır. "
+                "Tavsiye vermezsin. Yönlendirmezsin. Sadece astrolojik tabloyu ve enerjiyi tanımlarsın."
+            )
+
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": "Sen dünyanın en iyi astroloğusun."},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
