@@ -188,7 +188,7 @@ window.astro = {
       chatInterface.classList.add("hidden");
       interpretationText.classList.remove("hidden");
 
-      const response = await fetch("/get_ai_interpretation", {
+      const response = await fetch("/api/get_ai_interpretation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
