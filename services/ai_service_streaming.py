@@ -13,13 +13,30 @@ class AIServiceStreaming:
     """AI Service with streaming support for faster responses"""
 
     @staticmethod
+    def _build_system_prompt(interpretation_type: str) -> str:
+        """Yorum türüne göre system prompt döndür"""
+        if interpretation_type == "daily":
+            return (
+                "Sen bir astroloji yorumlama motorusun. "
+                "Görevin SADECE bugünkü transit pozisyonlarını ve transit-natal açılarını yorumlamaktır. "
+                "Dasha, Firdaria, Solar Return, karakter analizi veya uzun vadeli dönemlerden KESİNLİKLE bahsetme. "
+                "Tavsiye vermezsin. Sadece bugünkü aktif transit enerjisini ve bunun yaşam alanlarına yansımasını betimlersin."
+            )
+        return (
+            "Sen bir astroloji yorumlama motorusun. "
+            "Görevin yalnızca sana verilen hesaplama verisini yorumlamaktır. "
+            "Tavsiye vermezsin. Yönlendirmezsin. Sadece astrolojik tabloyu ve enerjiyi tanımlarsın."
+        )
+
+    @staticmethod
     async def call_provider_streaming(
         session: aiohttp.ClientSession,
         provider: dict,
         prompt: str,
-        max_tokens: int = 2048,  # 4096'dan düşürüldü
-        timeout: int = 60,        # 120'den düşürüldü
-        temperature: float = 0.3
+        max_tokens: int = 2048,
+        timeout: int = 60,
+        temperature: float = 0.3,
+        interpretation_type: str = ""
     ) -> AsyncGenerator[str, None]:
         """
         Streaming ile provider'a çağrı yap - chunk chunk yanıt al
@@ -42,12 +59,12 @@ class AIServiceStreaming:
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": "Sen dünyanın en iyi astroloğusun."},
+                {"role": "system", "content": AIServiceStreaming._build_system_prompt(interpretation_type)},
                 {"role": "user", "content": prompt},
             ],
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "stream": True,  # ⭐ STREAMING ENABLE
+            "stream": True,
         }
 
         try:

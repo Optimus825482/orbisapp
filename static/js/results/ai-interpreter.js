@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * ORBIS AI INTERPRETER
- * Handles AI interpretation requests and modal display
+ * ORBIS AI INTERPRETER — Streaming Edition
+ * SSE (Server-Sent Events) ile chunk chunk typewriter render
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -9,181 +9,322 @@
 window.currentInterpretationText = "";
 
 const interpretationTitles = {
-  birth_chart: "Doğum Haritası Analizi",
-  relationship: "İlişki Analizi",
-  psychological_karmic: "Psikolojik & Karmik Analiz",
-  daily: "Günlük Yorum",
-  transits: "Transit Analizi",
-  short_term: "Kısa Vadeli Öngörü",
-  long_term: "Uzun Vadeli Öngörü",
-  career: "Kariyer Analizi",
-  health: "Sağlık Analizi",
-  finance: "Finansal Analiz",
-  spiritual: "Ruhsal Gelişim",
-  summary: "Kozmik Özet",
+  birth_chart:          "Doğum Haritası & Karakter",
+  relationship:         "İlişki Analizi",
+  psychological_karmic: "Psikolojik & Karmik",
+  daily:                "Günlük Enerji",
+  transits:             "Aktif Gezegenler",
+  short_term:           "Kısa Vadeli (1-3 Ay)",
+  long_term:            "Uzun Vadeli (Yıllık)",
+  career:               "Kariyer & Meslek",
+  finance:              "Finansal",
+  health:               "Sağlık",
+  spiritual:            "Ruhsal Gelişim",
+  summary:              "Kozmik Özet",
+  vedic:                "Vedik Astroloji",
+  eclipses:             "Tutulma Etkileri",
+  harmonic:             "Harmonik Rezonans",
+  esoteric:             "Ezoterik Etkiler",
+  timing:               "Zamanlama Teknikleri",
+  health_energy:        "Sağlık & Enerji",
 };
 
+// ─── Frontend DATA_FILTER — backend ai_service.py ile senkron ───────────────
+const DATA_FILTER = {
+  birth_chart: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_dignity_scores","natal_declinations",
+    "natal_midpoint_analysis","navamsa_chart",
+    "vimshottari_dasa","firdaria_periods",
+    "eclipses_nearby_birth","natal_lunation_cycle","natal_fixed_stars",
+  ],
+  relationship: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_antiscia","natal_dignity_scores",
+    "natal_arabic_parts","natal_declinations",
+    "natal_midpoint_analysis","navamsa_chart",
+    "natal_lunation_cycle","natal_fixed_stars","natal_part_of_fortune",
+  ],
+  psychological_karmic: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_dignity_scores","natal_declinations",
+    "natal_midpoint_analysis","deep_harmonic_analysis",
+    "natal_lunation_cycle","natal_fixed_stars",
+    "vimshottari_dasa","firdaria_periods",
+    "eclipses_nearby_birth","natal_antiscia",
+  ],
+  // daily: solar_return ve lunar_return YOK (sadece bugünkü transitler)
+  daily: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "transit_positions","transit_to_natal_aspects",
+    "natal_aspects","natal_additional_points",
+    "natal_lunation_cycle","eclipses_nearby_current",
+  ],
+  transits: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "transit_positions","transit_to_natal_aspects",
+    "solar_return_chart","lunar_return_chart",
+    "natal_aspects","natal_declinations",
+    "eclipses_nearby_current","natal_lunation_cycle",
+    "firdaria_periods","natal_fixed_stars",
+  ],
+  short_term: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "transit_positions","transit_to_natal_aspects",
+    "solar_return_chart","lunar_return_chart",
+    "natal_aspects","natal_additional_points",
+    "eclipses_nearby_current","natal_lunation_cycle","firdaria_periods",
+  ],
+  long_term: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "transit_positions","transit_to_natal_aspects",
+    "vimshottari_dasa","firdaria_periods",
+    "solar_return_chart","deep_harmonic_analysis",
+    "eclipses_nearby_current","natal_lunation_cycle","natal_aspects",
+  ],
+  career: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_dignity_scores",
+    "natal_midpoint_analysis","natal_fixed_stars",
+    "solar_return_chart","firdaria_periods",
+    "transit_positions","transit_to_natal_aspects","natal_arabic_parts",
+  ],
+  health: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_fixed_stars","natal_declinations",
+    "solar_return_chart","transit_positions",
+    "transit_to_natal_aspects","natal_lunation_cycle",
+  ],
+  finance: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_arabic_parts",
+    "natal_part_of_fortune","natal_dignity_scores",
+    "solar_return_chart","transit_positions","transit_to_natal_aspects",
+  ],
+  spiritual: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","deep_harmonic_analysis",
+    "navamsa_chart","vimshottari_dasa",
+    "natal_lunation_cycle","natal_fixed_stars",
+    "natal_antiscia","natal_declinations","natal_midpoint_analysis",
+  ],
+  summary: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_summary_interpretation","transit_positions","transit_to_natal_aspects",
+  ],
+  vedic: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "vimshottari_dasa","firdaria_periods",
+    "navamsa_chart","deep_harmonic_analysis",
+    "natal_dignity_scores","natal_lunation_cycle","natal_fixed_stars",
+  ],
+  eclipses: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "eclipses_nearby_birth","eclipses_nearby_current",
+    "transit_positions","transit_to_natal_aspects","natal_lunation_cycle",
+  ],
+  harmonic: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","deep_harmonic_analysis",
+    "navamsa_chart","natal_midpoint_analysis",
+    "natal_antiscia","natal_declinations","natal_dignity_scores",
+  ],
+  esoteric: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_antiscia","natal_arabic_parts",
+    "natal_declinations","natal_part_of_fortune",
+    "natal_midpoint_analysis","natal_fixed_stars",
+    "deep_harmonic_analysis","natal_lunation_cycle",
+  ],
+  timing: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","vimshottari_dasa","firdaria_periods",
+    "solar_return_chart","lunar_return_chart",
+    "transit_positions","transit_to_natal_aspects",
+    "eclipses_nearby_current","eclipses_nearby_birth","natal_lunation_cycle",
+  ],
+  health_energy: [
+    "natal_planet_positions","natal_houses","natal_ascendant",
+    "natal_aspects","natal_additional_points",
+    "natal_fixed_stars","natal_declinations",
+    "natal_dignity_scores","natal_lunation_cycle",
+    "solar_return_chart","transit_positions",
+    "transit_to_natal_aspects","natal_midpoint_analysis",
+  ],
+};
+
+// ─── Yardımcı: astroData'yı türe göre filtrele ──────────────────────────────
+function filterAstroData(type) {
+  const astroData = window.astroData || {};
+  const allowedKeys = DATA_FILTER[type];
+  if (!allowedKeys) return astroData;
+  const filtered = {};
+  for (const key of allowedKeys) {
+    if (astroData[key] !== undefined) filtered[key] = astroData[key];
+  }
+  console.log(`[AI] ${type}: ${Object.keys(filtered).length}/${Object.keys(astroData).length} key gönderildi`);
+  return filtered;
+}
+
+// ─── Markdown → HTML (hafif, kütüphane bağımlılığı yok) ─────────────────────
+function renderMarkdown(text) {
+  if (!text) return "";
+  return text
+    .replace(/^#### (.+)$/gm, '<h4 class="text-base font-bold text-white mt-5 mb-2">$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-white mt-6 mb-3">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-primary mt-7 mb-4">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-white mt-8 mb-4">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em class="text-slate-300 italic">$1</em>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 mb-1.5 flex items-start gap-2"><span class="text-primary mt-0.5 shrink-0">•</span><span>$1</span></li>')
+    .replace(/\n\n/g, '</p><p class="mb-3 text-slate-300 leading-relaxed text-sm">')
+    .replace(/\n/g, '<br>');
+}
+
+// ─── Loading UI ──────────────────────────────────────────────────────────────
+function showLoadingUI($body, type) {
+  $body.html(`
+    <div class="flex flex-col items-center justify-center py-10 gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:0ms"></div>
+        <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:150ms"></div>
+        <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:300ms"></div>
+      </div>
+      <p class="text-sm text-slate-400 text-center">Yorum hazırlanıyor...</p>
+      <p class="text-[10px] text-slate-600 text-center max-w-[260px] mt-2">
+        ⚠️ Bu yorumlar yapay zeka tarafından matematiksel astroloji hesaplamalarına dayanarak oluşturulmuştur. Eğlence amaçlıdır.
+      </p>
+    </div>
+  `);
+}
+
+// ─── Streaming container hazırla ────────────────────────────────────────────
+function prepareStreamingContainer($body) {
+  $body.html(`
+    <div id="ai-stream-content" class="text-sm text-slate-300 leading-relaxed ai-interpretation px-1"></div>
+    <div id="ai-stream-cursor" class="inline-block w-0.5 h-4 bg-primary animate-pulse ml-0.5 align-middle"></div>
+  `);
+}
+
+// ─── ANA FONKSİYON — streaming ile yorum al ─────────────────────────────────
 async function interpretTab(type) {
   openAIModal();
   const $body = $("#ai-modal-body");
   const $title = $("#ai-modal-title");
 
   $title.text(interpretationTitles[type] || "AI Analizi");
+  showLoadingUI($body, type);
 
-  // Dinamik geri sayım sayacı
+  const astroData = window.astroData || {};
+  const sendData  = filterAstroData(type);
+  const userName  = astroData.user_name || astroData.birth_info?.user_name || "Kullanıcı";
+
   const startTime = Date.now();
-  $body.html(`
-        <div class="flex flex-col items-center justify-center py-10 gap-4">
-            <div class="relative w-20 h-20">
-                <svg class="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                    <circle class="text-slate-700/40" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"/>
-                    <circle id="ai-progress-ring" class="text-primary" stroke="currentColor" stroke-width="4" fill="none" cx="40" cy="40" r="34"
-                        stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round"/>
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <span id="ai-elapsed" class="text-lg font-bold text-slate-300">0sn</span>
-                </div>
-            </div>
-            <p id="ai-status-text" class="text-sm text-slate-400 text-center max-w-xs leading-relaxed">Doğum haritanız hazırlanıyor...</p>
-            <p id="ai-disclaimer" class="text-[10px] text-slate-600 text-center max-w-xs mt-2 hidden">
-                ⚠️ Bu yorumlar yapay zeka tarafından, ileri seviye matematiksel astroloji hesaplamalarına dayanarak oluşturulmuştur. Eğlence amaçlıdır, yatırım veya yaşamsal karar tavsiyesi niteliği taşımaz. Nihai karar her zaman size aittir.
-            </p>
-        </div>
-    `);
-
-  // Dinamik dönen mesajlar - gizemli, bilgilendirici, eğlenceli
-  const cycleMessages = [
-    // 0-5sn: Hesaplama aşaması
-    "🪐 Doğum haritanızın matematiksel hesaplamaları yapılıyor...",
-    "⭐ Gezegenlerin konumları Swiss Ephemeris ile hesaplanıyor...",
-    "🌙 Ay düğümleri ve tutulma verileri çözümleniyor...",
-    "🔄 139 farklı gezegen açısı değerlendiriliyor...",
-    "📐 Ev girişleri ve ascendant hesaplanıyor...",
-    // 5-10sn: Vedic + derin analiz
-    "🕉️ Vedik astroloji hesaplamaları (Navamsa) yapılıyor...",
-    "📿 Vimshottari Dasha dönemleri sıralanıyor...",
-    "✨ Sabit yıldızların (44 adet) etkileri ölçülüyor...",
-    "🔮 Arap noktaları ve Şans Noktası konumlandırılıyor...",
-    "🌌 Derin harmonik analiz (H5-H12) işleniyor...",
-    // 10-18sn: AI yorumlama
-    "🧠 İleri seviye yapay zeka modelleri verileri yorumluyor...",
-    "🤖 AI astrolojik pattern'leri tanımlıyor...",
-    "📊 Gezegen yerleşimleri yaşam alanlarına göre sınıflandırılıyor...",
-    "💫 Transit etkileri natal haritanızla karşılaştırılıyor...",
-    "🎯 Kişisel yaşam temalarınız belirleniyor...",
-    // 18-28sn: Sentez
-    "🧩 Tüm astrolojik göstergeler birleştiriliyor...",
-    "📝 Kapsamlı yorum metni oluşturuluyor...",
-    "🔍 Kariyer, ilişki, sağlık ve finans başlıkları hazırlanıyor...",
-    "💎 Spiritüel ve karmik içgörüler ekleniyor...",
-    "🌟 Size özel tavsiyeler formüle ediliyor...",
-    // 28+sn: Son rötuş
-    "⚡ Son rötuşlar yapılıyor, az kaldı...",
-    "🌠 Kozmik mesajınız neredeyse hazır...",
-    "🎭 Astroloji bir rehberdir, nihai karar her zaman size aittir...",
-    "📖 Yıldızlar eğilimleri gösterir, kaderi değil...",
-    "✨ Bu yorumlar eğlence amaçlıdır, sezgilerinize güvenin...",
-  ];
-
-  const disclaimerEl = document.getElementById("ai-disclaimer");
-  const elapsedEl = document.getElementById("ai-elapsed");
-  const statusEl = document.getElementById("ai-status-text");
-  const ringEl = document.getElementById("ai-progress-ring");
-  let lastIdx = -1;
-
-  const tick = setInterval(() => {
-    const sec = Math.round((Date.now() - startTime) / 1000);
-    if (elapsedEl) elapsedEl.textContent = sec + "sn";
-
-    // Progress ring: 60sn'de tamamlansın
-    if (ringEl) {
-      const progress = Math.min(sec / 60, 1);
-      ringEl.style.strokeDashoffset = 213.6 * (1 - progress);
-    }
-
-    // Mesaj döngüsü: her 2-3 saniyede bir değiş
-    const msgIdx = Math.floor(sec / 2.5) % cycleMessages.length;
-    if (msgIdx !== lastIdx && statusEl) {
-      statusEl.textContent = cycleMessages[msgIdx];
-      lastIdx = msgIdx;
-    }
-
-    // 12sn sonra disclaimer göster
-    if (sec >= 12 && disclaimerEl && disclaimerEl.classList.contains("hidden")) {
-      disclaimerEl.classList.remove("hidden");
-    }
-  }, 1000);
-
-  // Analiz türüne göre sadece gerekli verileri gönder (backend DATA_FILTER ile aynı)
-  const DATA_FILTER = {
-    birth_chart: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points"],
-    relationship: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points", "natal_antiscia", "natal_dignity_scores", "natal_arabic_parts", "natal_declinations", "natal_midpoint_analysis", "navamsa_chart", "natal_lunation_cycle", "natal_fixed_stars"],
-    psychological_karmic: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_additional_points", "natal_dignity_scores", "natal_declinations", "natal_midpoint_analysis", "deep_harmonic_analysis", "natal_lunation_cycle", "natal_fixed_stars", "vimshottari_dasa", "firdaria_periods", "eclipses_nearby_birth", "natal_antiscia"],
-    daily: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "natal_aspects", "natal_additional_points", "solar_return_chart", "lunar_return_chart", "natal_lunation_cycle"],
-    transits: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "solar_return_chart", "lunar_return_chart", "natal_aspects", "natal_declinations", "eclipses_nearby_current", "natal_lunation_cycle", "firdaria_periods", "natal_fixed_stars"],
-    short_term: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "solar_return_chart", "lunar_return_chart", "natal_aspects", "eclipses_nearby_current", "natal_lunation_cycle"],
-    long_term: ["natal_planet_positions", "natal_houses", "natal_ascendant", "transit_positions", "transit_to_natal_aspects", "vimshottari_dasa", "firdaria_periods", "solar_return_chart", "deep_harmonic_analysis", "eclipses_nearby_current", "natal_lunation_cycle", "natal_aspects"],
-    career: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_dignity_scores", "natal_midpoint_analysis", "natal_fixed_stars", "solar_return_chart", "firdaria_periods", "transit_positions", "transit_to_natal_aspects", "natal_arabic_parts"],
-    health: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_fixed_stars", "natal_declinations", "solar_return_chart", "transit_positions", "transit_to_natal_aspects"],
-    finance: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "natal_arabic_parts", "natal_part_of_fortune", "natal_dignity_scores", "solar_return_chart", "transit_positions", "transit_to_natal_aspects"],
-    spiritual: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_aspects", "deep_harmonic_analysis", "navamsa_chart", "vimshottari_dasa", "natal_lunation_cycle", "natal_fixed_stars", "natal_antiscia", "natal_declinations", "natal_midpoint_analysis"],
-    summary: ["natal_planet_positions", "natal_houses", "natal_ascendant", "natal_summary_interpretation", "transit_positions"],
-  };
+  let   fullText  = "";
+  let   started   = false;
 
   try {
-    const astroData = window.astroData || {};
-    const allowedKeys = DATA_FILTER[type];
-    let sendData;
-    if (allowedKeys) {
-      sendData = {};
-      for (const key of allowedKeys) {
-        if (astroData[key] !== undefined) sendData[key] = astroData[key];
-      }
-      console.log(`[AI] ${type}: ${Object.keys(sendData).length}/${Object.keys(astroData).length} key gönderildi`);
-    } else {
-      sendData = astroData;
-    }
     const response = await fetch("/api/get_ai_interpretation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         interpretation_type: type,
-        astro_data: sendData,
-        user_name: astroData.user_name || astroData.birth_info?.user_name || "Kullanıcı",
+        astro_data:          sendData,
+        user_name:           userName,
+        stream:              true,
       }),
     });
 
-    clearInterval(tick);
-    const elapsed = Math.round((Date.now() - startTime) / 1000);
-    const result = await response.json();
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    if (result.success) {
-      window.currentInterpretationText = result.interpretation;
-      $body.html(`
-                <div class="text-[10px] text-slate-500 mb-2">✨ ${elapsed} saniyede hazırlandı</div>
-                ${marked.parse(result.interpretation)}
-            `);
-    } else {
-      $body.html(`
-                <div class="text-center py-8">
-                    <span class="material-icons-round text-4xl text-red-400 mb-4">error_outline</span>
-                    <p class="text-red-400">${result.error || "Bir hata oluştu"}</p>
-                    <p class="text-xs text-slate-500 mt-2">${elapsed} saniye sonra başarısız</p>
-                </div>
-            `);
+    const reader      = response.body.getReader();
+    const decoder     = new TextDecoder("utf-8");
+    let   sseBuffer   = "";
+
+    // ── SSE okuma döngüsü ────────────────────────────────────────
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      sseBuffer += decoder.decode(value, { stream: true });
+      const lines = sseBuffer.split("\n");
+      sseBuffer = lines.pop(); // Tamamlanmamış satırı buffer'da tut
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const raw = line.slice(6).trim();
+        if (!raw) continue;
+
+        let msg;
+        try { msg = JSON.parse(raw); } catch { continue; }
+
+        if (msg.type === "chunk" && msg.content) {
+          // İlk chunk geldiğinde loading UI → streaming container
+          if (!started) {
+            started = true;
+            prepareStreamingContainer($body);
+          }
+          fullText += msg.content;
+
+          // Render: ham metni markdown'a çevir, canlı güncelle
+          const html = renderMarkdown(fullText);
+          const el = document.getElementById("ai-stream-content");
+          if (el) el.innerHTML = `<p class="mb-3 text-slate-300 leading-relaxed text-sm">${html}</p>`;
+
+          // Modal'ı otomatik scroll ettir
+          const modalBody = document.getElementById("ai-modal-body");
+          if (modalBody) modalBody.scrollTop = modalBody.scrollHeight;
+        }
+
+        if (msg.type === "done") {
+          // Cursor'ı kaldır, süre bilgisini göster
+          const cursor = document.getElementById("ai-stream-cursor");
+          if (cursor) cursor.remove();
+
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          const infoEl  = document.createElement("div");
+          infoEl.className = "text-[10px] text-slate-600 mt-4 pt-3 border-t border-white/5";
+          infoEl.textContent = `✨ ${elapsed} saniyede tamamlandı`;
+          document.getElementById("ai-stream-content")?.appendChild(infoEl);
+
+          window.currentInterpretationText = fullText;
+          // TTS butonu aktif et
+          if (typeof updateTTSButton === "function") updateTTSButton(true);
+          break;
+        }
+
+        if (msg.type === "error") {
+          throw new Error(msg.message || "Bilinmeyen hata");
+        }
+      }
     }
+
+    // Eğer hiç chunk gelmediyse (boş yanıt)
+    if (!started) throw new Error("Yanıt alınamadı");
+
   } catch (error) {
-    clearInterval(tick);
-    console.error("Interpretation error:", error);
+    console.error("[AI] Streaming hatası:", error);
     $body.html(`
-            <div class="text-center py-8">
-                <span class="material-icons-round text-4xl text-red-400 mb-4">wifi_off</span>
-                <p class="text-red-400">Bağlantı hatası. Lütfen tekrar deneyin.</p>
-            </div>
-        `);
+      <div class="flex flex-col items-center gap-3 py-8 text-center">
+        <span class="material-icons-round text-4xl text-red-400">error_outline</span>
+        <p class="text-red-400 text-sm">${error.message || "Bağlantı hatası"}</p>
+        <button onclick="interpretTab('${type}')"
+          class="mt-2 px-4 py-2 bg-primary/20 border border-primary/30 rounded-xl text-xs text-primary">
+          Tekrar Dene
+        </button>
+      </div>
+    `);
   }
 }
 
+// ─── Modal aç/kapat ─────────────────────────────────────────────────────────
 function openAIModal() {
   const modal = document.getElementById("ai-modal");
   if (modal) {
@@ -198,41 +339,10 @@ function closeAIModal() {
     modal.classList.add("hidden");
     document.body.style.overflow = "";
   }
-  // TTS'i durdur
-  if (typeof TTS !== "undefined" && TTS.status !== "idle") {
-    TTS.stop();
-  }
+  if (typeof TTS !== "undefined" && TTS.status !== "idle") TTS.stop();
 }
 
-function formatInterpretation(text) {
-  if (!text) return "";
-  let formatted = text
-    .replace(
-      /\*\*(.*?)\*\*/g,
-      '<strong class="text-white font-semibold">$1</strong>'
-    )
-    .replace(/\n\n/g, '</p><p class="mb-4">')
-    .replace(
-      /### (.*)/g,
-      '<h3 class="text-lg font-bold text-white mt-6 mb-3">$1</h3>'
-    )
-    .replace(
-      /## (.*)/g,
-      '<h2 class="text-xl font-bold text-white mt-8 mb-4">$1</h2>'
-    )
-    .replace(
-      /- (.*)/g,
-      '<li class="ml-4 mb-2 flex items-start gap-2"><span class="text-primary mt-1">•</span> $1</li>'
-    );
-  return `<p class="mb-4">${formatted}</p>`;
-}
-
-// Export
+// ─── Export (test ortamları için) ────────────────────────────────────────────
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    interpretTab,
-    openAIModal,
-    closeAIModal,
-    formatInterpretation,
-  };
+  module.exports = { interpretTab, openAIModal, closeAIModal, filterAstroData, renderMarkdown };
 }

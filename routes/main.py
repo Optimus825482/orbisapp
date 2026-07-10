@@ -8,11 +8,17 @@ from flask import (
     url_for,
     current_app,
     send_from_directory,
+    Response,
+    stream_with_context,
 )
 import os
+import asyncio
 from services.ai_service import (
     get_ai_interpretation_engine as get_ai_interpretation_engine_service,
+    AIService,
 )
+from services.ai_service_streaming import AIServiceStreaming
+import aiohttp
 from services.astro_service import calculate_astro_data
 from services.chart_db_service import smart_calculate
 from datetime import datetime
@@ -350,20 +356,20 @@ def show_results():
 @bp.route("/api/get_ai_interpretation", methods=["POST"])
 @handle_errors("AI yorum alınamadı")
 def api_get_ai_interpretation():
-    """AI Yorum API - Sadece native (Android) icin reklam zorunlulugu var.
-    PWA istemcilerde limitsiz erisim saglanir (AdMob PWA'da calismaz)."""
+    """AI Yorum API — stream=true ile SSE, aksi halde JSON döner.
+    Sadece native (Android) için reklam zorunluluğu var.
+    PWA istemcilerde limitsiz erişim sağlanır."""
     data = request.get_json() or {}
     interpretation_type = data.get("interpretation_type", "daily")
     astro_data = data.get("astro_data", {})
     user_name = data.get("user_name", "Değerli Danışanım")
+    use_stream = data.get("stream", False)
 
     # Kullanım kontrolü için device_id ve email
     device_id = data.get("device_id")
     email = data.get("email")
 
-    # ═══════════════════════════════════════════════════════════════
-    # PWA tespiti: Web istemcilerde reklam zorunlulugu yok
-    # ═══════════════════════════════════════════════════════════════
+    # PWA tespiti
     user_agent = request.headers.get('User-Agent', '')
     client_platform = request.headers.get('X-Client-Platform', '').lower()
     is_pwa = (
@@ -377,9 +383,7 @@ def api_get_ai_interpretation():
     if device_id and not is_pwa:
         from monetization.usage_tracker import UsageTracker
         usage_tracker = UsageTracker()
-
         can_use = usage_tracker.can_use_feature(device_id, "ai_interpretation", email)
-
         if not can_use.get("allowed"):
             return jsonify({
                 "success": False,
@@ -389,7 +393,7 @@ def api_get_ai_interpretation():
                 "requires_ad": True
             }), 429
 
-    # Ek parametreler (tarih, dönem vb.) - hem Türkçe hem İngilizce destekle
+    # Ek parametreler
     extra_params = {
         "date": data.get("date") or data.get("tarih"),
         "start_date": data.get("start_date") or data.get("baslangic_tarihi"),
@@ -397,17 +401,123 @@ def api_get_ai_interpretation():
         "period": data.get("period") or data.get("donem"),
         "duration": data.get("duration") or data.get("sure"),
     }
-    # None değerleri temizle
     extra_params = {k: v for k, v in extra_params.items() if v is not None}
 
-    # API'den yorum al
+    # ── STREAMING MODU ────────────────────────────────────────────
+    if use_stream:
+        def generate_sse():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                async def _stream():
+                    # Veriyi filtrele + kırp (ai_service ile aynı mantık)
+                    ai_svc = AIService()
+                    filtered = ai_svc._filter_astro_data(astro_data, interpretation_type)
+                    filtered = ai_svc._deep_trim(filtered)
+                    data_json = json.dumps(filtered, default=str)
+
+                    # Prompt oluştur
+                    type_prompt = ai_svc.TYPE_PROMPTS.get(interpretation_type)
+                    if type_prompt:
+                        prompt = f"User: {user_name}\n{type_prompt}\nData: {data_json}\n{ai_svc.BASE_RULES}"
+                    else:
+                        prompt = f"User: {user_name}\nType: {interpretation_type}\nData: {data_json}\n{ai_svc.BASE_RULES}"
+                    if extra_params:
+                        prompt += f"\nExtra: {json.dumps(extra_params, default=str)}"
+
+                    # Provider zinciri al
+                    fallback_chain = ai_svc._get_fallback_chain()
+                    if not fallback_chain:
+                        yield f'data: {json.dumps({"type": "error", "message": "Hiçbir AI provider yapılandırılmamış"})}\n\n'
+                        return
+
+                    async with aiohttp.ClientSession() as session:
+                        for i, provider in enumerate(fallback_chain):
+                            try:
+                                chunk_count = 0
+                                async for chunk in AIServiceStreaming.call_provider_streaming(
+                                    session=session,
+                                    provider=provider,
+                                    prompt=prompt,
+                                    max_tokens=4096,
+                                    timeout=120,
+                                    interpretation_type=interpretation_type,
+                                ):
+                                    chunk_count += 1
+                                    yield f'data: {json.dumps({"type": "chunk", "content": chunk})}\n\n'
+
+                                if chunk_count > 0:
+                                    # Kullanımı kaydet
+                                    if device_id and not is_pwa:
+                                        from monetization.usage_tracker import UsageTracker
+                                        UsageTracker().record_usage(device_id, "ai_interpretation", email)
+                                    try:
+                                        from services.stats_counter import stats_counter
+                                        stats_counter.on_analysis_completed()
+                                    except Exception:
+                                        pass
+                                    yield f'data: {json.dumps({"type": "done", "chunks": chunk_count})}\n\n'
+                                    return
+
+                            except Exception as e:
+                                logger.warning(f"[AI Stream] Provider {provider.get('name')} hata: {e}")
+                                if i == len(fallback_chain) - 1:
+                                    yield f'data: {json.dumps({"type": "error", "message": str(e)[:200]})}\n\n'
+
+                # Async generator → sync generator
+                async def collect(agen):
+                    results = []
+                    async for item in agen:
+                        results.append(item)
+                    return results
+
+                # Event loop ile chunk'ları topla ve yield et
+                # Not: Flask'ta true async streaming için Gunicorn gevent/eventlet worker gerekir.
+                # Bu implementasyon sync wrapper ile çalışır, her chunk batch halinde iletilir.
+                import queue
+                import threading
+
+                q = queue.Queue()
+                SENTINEL = object()
+
+                def run_async():
+                    async def _run():
+                        async for item in _stream():
+                            q.put(item)
+                        q.put(SENTINEL)
+                    loop.run_until_complete(_run())
+
+                t = threading.Thread(target=run_async, daemon=True)
+                t.start()
+
+                while True:
+                    item = q.get()
+                    if item is SENTINEL:
+                        break
+                    yield item
+
+            except Exception as e:
+                logger.error(f"[AI Stream] Kritik hata: {e}")
+                yield f'data: {json.dumps({"type": "error", "message": str(e)[:200]})}\n\n'
+            finally:
+                loop.close()
+
+        return Response(
+            stream_with_context(generate_sse()),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+                'Connection': 'keep-alive',
+            }
+        )
+
+    # ── NORMAL JSON MODU (geriye dönük uyumlu) ───────────────────
     result = get_ai_interpretation_engine_service(
         astro_data, interpretation_type, user_name, **extra_params
     )
 
-    # Başarılı yorum sonrası → kullanımı say + stats counter güncelle
     if result.get("success"):
-        # Kullanımı kaydet — sadece native için
         if device_id and not is_pwa:
             from monetization.usage_tracker import UsageTracker
             usage_tracker = UsageTracker()
@@ -417,13 +527,8 @@ def api_get_ai_interpretation():
                 "requires_ad": usage_info.get("requires_ad", True)
             }
         else:
-            # PWA: reklam kontrolü yok
-            result["usage"] = {
-                "remaining": 999,
-                "requires_ad": False
-            }
+            result["usage"] = {"remaining": 999, "requires_ad": False}
 
-        # Stats counter: analiz sayısını artır
         try:
             from services.stats_counter import stats_counter
             stats_counter.on_analysis_completed()
