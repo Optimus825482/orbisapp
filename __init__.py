@@ -31,6 +31,14 @@ def create_app(test_config=None):
     app.register_blueprint(bp)
     app.register_blueprint(legal_bp)
 
+    # AI Streaming routes (SSE destekli gerçek zamanlı yorumlar)
+    try:
+        from routes.ai_streaming_routes import ai_streaming_bp
+        app.register_blueprint(ai_streaming_bp)
+        logging.info("✅ AI Streaming routes yüklendi")
+    except ImportError as e:
+        logging.warning(f"AI Streaming routes yüklenemedi: {e}")
+
     # Push Notification routes
     try:
         from routes.push_routes import push_bp

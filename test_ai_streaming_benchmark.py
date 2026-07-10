@@ -169,8 +169,27 @@ async def test_streaming(
 
                 try:
                     chunk_data = json.loads(line)
-                    delta = chunk_data.get("choices", [{}])[0].get("delta", {})
+
+                    # Farklı API format'larını destekle
+                    choices = chunk_data.get("choices", [])
+                    if not choices:
+                        # Alternatif format: data, content vs.
+                        content = chunk_data.get("content", "") or chunk_data.get("text", "")
+                        if content:
+                            if first_chunk_time is None:
+                                first_chunk_time = time.time() - start
+                            chunks.append(content)
+                        continue
+
+                    # Standard OpenAI format
+                    choice = choices[0]
+                    delta = choice.get("delta", {})
                     content = delta.get("content", "")
+
+                    # Fallback: message.content varsa
+                    if not content:
+                        message = choice.get("message", {})
+                        content = message.get("content", "")
 
                     if content:
                         if first_chunk_time is None:
@@ -178,6 +197,9 @@ async def test_streaming(
                         chunks.append(content)
 
                 except json.JSONDecodeError:
+                    continue
+                except (IndexError, KeyError) as e:
+                    # Format hatası - debug için logla
                     continue
 
             elapsed = time.time() - start

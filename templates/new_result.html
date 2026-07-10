@@ -2868,108 +2868,127 @@ super() }}
         console.warn("[ORBIS] ⚠️ Monetization record error (non-fatal):", recordError);
       }
     
-      fetch( "/api/get_ai_interpretation", {
+      // ⚡ STREAMING DESTEĞI - SSE ile gerçek zamanlı AI yorumu
+      console.log( "[ORBIS] 🚀 Streaming AI yorumu başlatılıyor..." );
+
+      // Streaming indicator ekle
+      $body.html( `
+        <div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg">
+          <div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div>
+          <span class="text-[11px] text-slate-300">AI yanıt yazıyor...</span>
+        </div>
+        <div id="streaming-content" class="text-[11px] leading-relaxed"></div>
+      `);
+
+      var streamingContent = '';
+      var startTime = Date.now();
+
+      fetch( "/api/ai/interpret-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {
+          natal_data: astroData,
           interpretation_type: tabId,
-          astro_data: astroData,
           user_name: astroData.user_name || "Kullanıcı",
           device_id: deviceId,
           email: userEmail
         } )
       } )
-        .then( function ( response ) {
-          return response.json().then( function ( result ) {
-            return { response: response, result: result };
-          } );
-        } )
-        .then( function ( data ) {
-          var response = data.response;
-          var result = data.result;
-
+        .then( async function ( response ) {
           // Günlük limit kontrolü
-          if ( response.status === 429 || result.error === 'daily_limit_reached' ) {
+          if ( response.status === 429 ) {
             $body.html( `
-                <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
-                    <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
-                        <span class="material-icons-round text-4xl text-amber-400">videocam</span>
-                    </div>
-                    <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
-                    <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                        AI yorum almak icin lutfen kisa bir reklam izleyin.
-                        Uygulamamiz tamamen ucretsizdir.
-                    </p>
-                    <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
-                        Tamam
-                    </button>
+              <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
+                <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
+                  <span class="material-icons-round text-4xl text-amber-400">videocam</span>
                 </div>
+                <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
+                <p class="text-slate-400 text-sm mb-6 max-w-xs">
+                  AI yorum almak icin lutfen kisa bir reklam izleyin.
+                  Uygulamamiz tamamen ucretsizdir.
+                </p>
+                <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
+                  Tamam
+                </button>
+              </div>
             `);
             return;
           }
 
-          if ( result.success ) {
-            currentInterpretationText = result.interpretation;
-            $body.html( marked.parse( result.interpretation ) );
-            // Yorum yüklenince footer'ı göster
-            $( '#ai-modal-footer' ).removeClass( 'hidden' );
+          if ( !response.ok ) {
+            throw new Error( `HTTP ${response.status}` );
+          }
 
-            console.log( "[ORBIS] 📊 Result usage:", result.usage );
+          // SSE Stream'i oku
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let chunkCount = 0;
+          let firstChunkTime = null;
 
-            // Kalan yorum durumunu göster
-            if ( result.usage && !result.usage.is_premium ) {
-              console.log( "[ORBIS] 📊 Ücretsiz kullanıcı - reklam izleyerek devam" );
-              $body.prepend( `<div class="text-[10px] text-center mb-4 py-2 px-3 bg-white/5 rounded-lg text-amber-400">📺 Reklam izleyerek sınırsız AI yorum</div>` );
-            } else if ( result.usage && result.usage.is_premium ) {
-              console.log( "[ORBIS] 💎 Premium user - unlimited access" );
+          while ( true ) {
+            const { done, value } = await reader.read();
+            if ( done ) break;
+
+            buffer += decoder.decode( value, { stream: true } );
+            const lines = buffer.split( '\n' );
+            buffer = lines.pop();
+
+            for ( const line of lines ) {
+              if ( !line.startsWith( 'data: ' ) ) continue;
+
+              try {
+                const data = JSON.parse( line.slice( 6 ) );
+
+                if ( data.type === 'chunk' ) {
+                  chunkCount++;
+                  if ( firstChunkTime === null ) {
+                    firstChunkTime = Date.now() - startTime;
+                    console.log( `[ORBIS] ⚡ İlk chunk ${firstChunkTime}ms'de geldi` );
+                    $body.find( '.animate-spin' ).parent().remove();
+                  }
+
+                  streamingContent += data.content;
+                  $( '#streaming-content' ).html( marked.parse( streamingContent ) );
+
+                  const $modalBody = $( '.ai-modal-body' );
+                  if ( $modalBody.length ) {
+                    $modalBody.scrollTop( $modalBody[0].scrollHeight );
+                  }
+
+                } else if ( data.type === 'done' ) {
+                  const totalTime = Date.now() - startTime;
+                  console.log( `[ORBIS] ✅ Streaming tamamlandı (${chunkCount} chunks, ${totalTime}ms)` );
+                  console.log( `[ORBIS] ⚡ İlk chunk: ${firstChunkTime}ms | Toplam: ${totalTime}ms` );
+
+                  currentInterpretationText = streamingContent;
+                  $( '#ai-modal-footer' ).removeClass( 'hidden' );
+
+                } else if ( data.type === 'error' ) {
+                  throw new Error( data.message );
+                }
+
+              } catch ( parseError ) {
+                console.warn( "[ORBIS] ⚠️ SSE parse error:", parseError );
+              }
             }
-          } else {
-            console.error( "[ORBIS] ❌ AI interpretation error:", result.error );
-            $body.html( `<p class="text-red-400 text-xs">Error: ${result.error}</p>` );
+          }
+
+          if ( streamingContent ) {
+            currentInterpretationText = streamingContent;
+            $( '#streaming-content' ).html( marked.parse( streamingContent ) );
+            $( '#ai-modal-footer' ).removeClass( 'hidden' );
           }
         } )
         .catch( function ( error ) {
-          $body.html( `<p class="text-red-400 text-xs">Bağlantı Hatası.</p>` );
+          console.error( "[ORBIS] ❌ Streaming error:", error );
+          $body.html( `
+            <div class="text-center py-8">
+              <p class="text-red-400 text-xs mb-2">⚠️ Bağlantı Hatası</p>
+              <p class="text-slate-400 text-[10px]">${error.message || 'Bilinmeyen hata'}</p>
+            </div>
+          `);
         } );
-  }
-
-  function formatAIResponse( text ) {
-    if ( !text ) return "";
-    let formatted = text
-      .replace( /### (.*)/g, '<h4 class="text-white font-bold text-sm mt-6 mb-2 tracking-wide uppercase font-display">$1</h4>' )
-      .replace( /\*\*(.*?)\*\*/g, '<strong class="text-primary font-bold">$1</strong>' )
-      .replace( /\n\n/g, '</p><p class="mb-4">' )
-      .replace( /- (.*)/g, '<li class="ml-4 mb-2 flex items-start gap-2"><span class="text-primary mt-1">•</span> $1</li>' );
-
-    return `<p class="mb-4">${formatted}</p>`;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COSMIC LOADER SYSTEM
-  // ═══════════════════════════════════════════════════════════════════════════
-
-
-  // Sayfa yüklendiğinde
-  $( document ).ready( function () {
-    // Cosmic Loader'ı başlat (hemen görünür olacak)
-    CosmicLoader.init();
-
-    // Özeti yükle (300ms sonra - loader görünsün diye kısa gecikme)
-    setTimeout( loadAISummary, 300 );
-
-    // Harita sekmesi aktifse hemen çiz
-    if ( $( "#tab-chart" ).hasClass( "active" ) ) {
-      setTimeout( renderAstroChart, 200 );
-    }
-  } );
-
-  function shareResults() {
-    if ( navigator.share ) {
-      navigator.share( {
-        title: 'ORBIS Kozmik Raporum',
-        text: 'Kaderin Geometrisi raporumu Keşfedin!',
-        url: window.location.href
-      } ).catch( console.error );
     } else {
       alert( 'Link kopyalandı: ' + window.location.href );
     }
