@@ -48,13 +48,7 @@ class AIService:
     DATA_FILTER = {
         "birth_chart": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
-            "natal_aspects", "natal_additional_points", "natal_fixed_stars",
-            "natal_antiscia", "natal_dignity_scores", "natal_part_of_fortune",
-            "natal_arabic_parts", "natal_lunation_cycle", "natal_declinations",
-            "natal_midpoint_analysis", "natal_azimuth_altitude",
-            "deep_harmonic_analysis", "navamsa_chart",
-            "natal_summary_interpretation", "vimshottari_dasa",
-            "firdaria_periods", "eclipses_nearby_birth",
+            "natal_aspects", "natal_additional_points",
         ],
         "relationship": [
             "natal_planet_positions", "natal_houses", "natal_ascendant",
@@ -464,32 +458,32 @@ KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
     MAJOR_ASPECTS = {"Conjunction", "Opposition", "Square", "Trine", "Sextile"}
 
     @staticmethod
-    def _deep_trim(data: dict) -> dict:
-        """Büyük dizileri derinlemesine kırp: sadece major açılar, top N."""
+    def _deep_trim(data: dict, max_items: int = 25) -> dict:
+        """Büyük dizileri derinlemesine kırp: sadece major açılar, en dar orb'lular, top N."""
         trimmed = {}
         for key, value in data.items():
-            if isinstance(value, list) and len(value) > 15:
-                # Açı listeleri: sadece major aspect
+            if isinstance(value, list) and len(value) > 10:
+                # Açı listeleri: sadece major aspect → orb sıralı → top N
                 if all(isinstance(item, dict) and "aspect_type" in item for item in value[:3]):
                     filtered = [item for item in value if item.get("aspect_type", "") in AIService.MAJOR_ASPECTS]
                     filtered.sort(key=lambda x: abs(float(x.get("orb", 99))))
-                    trimmed[key] = filtered
-                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(filtered)} (sadece major)")
+                    trimmed[key] = filtered[:max_items]
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} → {len(filtered[:max_items])} (major, top {max_items})")
 
                 # Sabit yıldızlar: top 10
                 elif all(isinstance(item, dict) and ("star" in str(item).lower() or "name" in item) for item in value[:3]):
                     trimmed[key] = value[:10]
-                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(value[:10])} (top 10)")
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} → {len(value[:10])} (top 10)")
 
                 # Midpoint / genel dizi: top 10
                 elif all(isinstance(item, dict) for item in value[:3]):
                     trimmed[key] = value[:10]
-                    logger.info(f"[AI] Deep trim '{key}': {len(value)} -> {len(value[:10])} (top 10)")
+                    logger.info(f"[AI] Deep trim '{key}': {len(value)} → {len(value[:10])} (top 10)")
 
                 else:
                     trimmed[key] = value
             elif isinstance(value, dict):
-                trimmed[key] = AIService._deep_trim(value)
+                trimmed[key] = AIService._deep_trim(value, max_items)
             else:
                 trimmed[key] = value
         return trimmed
