@@ -23,28 +23,41 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     BASE_RULES = """
-## KESİN KURALLAR
-### 1. YASAK TERİMLER (ASLA KULLANMA)
-- Gezegen isimleri: Mars, Venüs, Satürn, Jüpiter, Merkür, Ay, Güneş, Uranüs, Neptün, Plüton
-- Burç isimleri: Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık
-- Ev numaraları: 1. ev, 7. ev, 10. ev vb.
-- Açı isimleri: kavuşum, karşıt, üçgen, kare, altmışlık, kuintil
-- Teknik terimler: transit, progresyon, natal, ascendant, midheaven, düğüm, retrograd
-### 2. DİL VE ÜSLUP
-- Sade, anlaşılır Türkçe
-- Doğrudan ve net ifadeler
-- Mistik/ezoterik dil KULLANMA
+## KESİN KURALLAR — TÜM YORUMLAR İÇİN BAĞLAYICI
+
+### 1. YASAK TERİMLER (ASLA KULLANMA — TEKNİK TERIM SIFIR TOLERANS)
+Aşağıdaki terimler çıktıda HİÇBİR KOŞULDA geçmeyecek:
+- Gezegen adları: Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton
+  (Ay ve Güneş de dahil — bunlar yerine "duygusal enerji", "yaşam enerjisi" gibi ifadeler kullan)
+- Burç adları: Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık
+- Ev numaraları: "1. ev", "7. ev", "10. ev" vb.
+- Açı adları: kavuşum, karşıt, üçgen, kare, altmışlık, sextile, trine, opposition, conjunction
+- Teknik terimler: transit, natal, ascendant, midheaven, Chiron, Lilith, Dasha, Antardasha,
+  Mahadasha, Nakshatra, Navamsa, Firdaria, Kronokrator, antiscia, midpoint, dignity,
+  declination, progresyon, düğüm, retrograd, harmonic, orb, cusp, yükselen, alçalan
+
+### 2. ÇEVRESEL DÖNÜŞÜM KURALI
+Yukarıdaki terimleri DOĞRUDAN kullanma; bunun yerine etkiyi ve enerjiyi ANLAT:
+- "Satürn" → "yapısal baskı", "sorumluluk enerjisi", "olgunlaştırıcı güç"
+- "Venüs transiti" → "ilişki alanındaki aktif enerji"
+- "kare açısı" → "gerilim ve zorlayıcı dinamik"
+- "12. ev" → "bilinçaltı alanı", "içe dönük enerji bölgesi"
+- "Dasha dönemi" → "aktif dönem enerjisi", "yaşam döngüsünün şu anki tonu"
+
+### 3. DİL VE ÜSLUP
+- Sade, anlaşılır Türkçe — teknik bilgisi olmayan biri okuyup anlayabilmeli
+- Doğrudan ve somut ifadeler — soyut ezoterik dil YASAK
 - Kişiye adıyla hitap et, samimi ama profesyonel
-### 3. UZUNLUK (ÖNEMLİ)
-- Yanitin 500-800 kelime arasi olsun; daha uzun yazma, daha kisa da yazma.
-- Tum onemli basliklari isle ama her birini 1-2 paragrafta ozetle.
-- Gereksiz detay ve tekrardan kacin, yorum odakli ol.
-### 4. TAVSİYE YASAĞI (KESİN KURAL — İSTİSNASIZ)
-- TAVSİYE VERME. Asla "yapmalısın", "kaçınmalısın", "dene", "önerim şu", "dikkat et" gibi yönlendirici ifadeler kullanma.
-- Yorumun görevi sadece astrolojik tabloyu ve olası enerjiyi TANIMLAMAK, AÇIKLAMAK ve YORUMLAMAKTIR.
-- Kullanıcıya ne yapacağını söyleme. Ne olduğunu veya ne olabileceğini söyle.
-- Doğru format: "Bu dönemde iş alanında yoğun bir enerji aktif." (tasvir)
-- Yanlış format: "Bu dönemde iş konularına odaklanmalısın." (tavsiye — YASAK)
+
+### 4. UZUNLUK
+- 500-800 kelime arası; ne daha uzun ne daha kısa
+- Her başlık 1-2 paragraf — tekrar ve dolgu yok
+
+### 5. TAVSİYE YASAĞI (İSTİSNASIZ)
+- "yapmalısın", "kaçınmalısın", "odaklanmalısın", "dikkat et", "önerim şu" YASAK
+- Görev: tabloyu TANIMLA ve YORUMLA, yönlendirme YAPMA
+- Doğru → "Bu alanda yoğun ve zorlayıcı bir enerji aktif."
+- Yanlış → "Bu alanda dikkatli olmalısın." (TAVSİYE — YASAK)
 """
 
     # ════════════════════════════════════════════════════════════════════
@@ -193,235 +206,261 @@ class AIService:
         ],
     }
 
-    # Her analiz türü için özel prompt (kapsamlı ama sadece ilgili veriyle)
+    # Her analiz türü için özel prompt — teknik terim içermeyen, saf enerji dili
     TYPE_PROMPTS = {
         "birth_chart": """
-## DOĞUM HARİTASI VE KARAKTER ANALİZİ
-Yukarıdaki verileri kullanarak kapsamlı bir doğum haritası analizi yap.
-Şu başlıkları detaylıca işle:
-1. Yükselen burcun kişiliğe etkisi — dış dünyaya yansıyan karakter
-2. Ay burcunun duygusal yapıya etkisi — iç dünya ve ihtiyaçlar
-3. Güneş burcunun temel karaktere etkisi — ego ve yaşam amacı
-4. Gezegenlerin ev yerleşimleri — hayatın hangi alanında hangi enerji
-5. Önemli açılar ve kişilik dinamikleri (büyük üçgen, T-kare, grand cross varsa)
-6. Vimshottari Dasha dönemi ve Firdaria periyotlarına göre yaşam döngüleri
-7. Vedic Navamsa haritasından evlilik/partnerlik potansiyeli
-8. Doğum tutulmalarının yaşam temasına etkisi
+## DOĞUM HARİTASI VE KİŞİLİK ANALİZİ
+Verilen hesaplama sonuçlarını kullanarak kişinin temel yapısını yorumla.
+Teknik terim kullanma — sadece enerjiyi ve etkiyi anlat:
+
+1. DIŞ DÜNYAYA YANSIMA — Kişinin çevresine nasıl göründüğü, ilk izlenim, genel duruş
+2. İÇ DÜNYA VE DUYGULAR — Duygusal yapı, ihtiyaçlar, güvenlik hissi, içsel ritim
+3. TEMEL KİŞİLİK VE YAŞAM AMACI — Ego, güç alanı, hayatı sürdüren temel enerji
+4. YAŞAM ALANLARI ENERJİSİ — Hangi hayat alanında hangi enerji baskın (iş, ilişki, yaratıcılık vb.)
+5. İÇ GERİLİM VE BÜYÜME — Kişilikteki çatışmalar, zorlayıcı dinamikler ve büyümeye dönüşme biçimi
+6. AKTİF DÖNGÜSEL YAPI — Şu an hangi büyük yaşam döngüsünde olunduğu ve bu dönemin tonu
+7. ORTAKLIK VE DERİNLİK — Ruhsal amaç açısından ilişki ve partnerlik boyutu
+8. KADERSEL TEMA — Doğum döneminin yaşam temasına bıraktığı kalıcı iz
 """,
         "relationship": """
-## İLİŞKİ ANALİZİ
-Yukarıdaki verileri kullanarak ilişki potansiyelini ve dinamiklerini analiz et:
-1. Venüs ve Mars yerleşimleri — aşk ve arzu dili
-2. 5. ev (romantizm) ve 7. ev (partnerlik) vurguları
-3. Lilith'in konumu — bastırılan arzular ve gölge yönler
-4. Ay düğümleri (Kuzey/Güney) — ilişkilerdeki kadersel yolculuk
-5. Arap noktalarından evlilik ve ilişki göstergeleri
-6. Navamsa haritasından partner profili
-7. Deklinasyon paralelleri — manyetik çekim dinamikleri
-8. Sabit yıldızların romantik etkileri
+## İLİŞKİ POTANSİYELİ ANALİZİ
+Verilen hesaplama sonuçlarını kullanarak ilişki dinamiklerini yorumla.
+Teknik terim kullanma:
+
+1. AŞK VE ARZU DİLİ — Romantik çekim biçimi, ilişkide ne aranır, nasıl bağlanılır
+2. ROMANTİZM VE ORTAKLIK — Kısa vadeli ilgi ile uzun vadeli bağlılık arasındaki fark
+3. GİZLİ ARZULAR VE GÖLGE — Bastırılmış ya da farkında olunmayan çekim örüntüleri
+4. KADERSEL İLİŞKİ YÖNELİMİ — İlişkilerde tekrar eden kadersel tema
+5. BAĞLILIK GÖSTERGELERİ — Uzun süreli ortaklık potansiyelinin genel tablosu
+6. RUHSAL PARTNER PROFİLİ — Ruhsal uyum açısından hangi tip ortaklığın rezonans yarattığı
+7. ÇEKİM DİNAMİKLERİ — Manyetik çekim, uyum ve gerilim alanları
+8. DUYGUSAL DERİNLİK — İlişkide duygusal açılma kapasitesi ve sınırları
 """,
         "psychological_karmic": """
-## PSİKOLOJİK VE KARMİK ANALİZ
-Yukarıdaki verileri kullanarak derinlemesine psikolojik ve karmik analiz yap:
-1. Satürn yerleşimi — karmik dersler, korkular, sınırlanma alanları
-2. Plüton ve 8. ev — dönüşüm, güç dinamikleri, travma noktaları
-3. Chiron — şifa alanı, en derin yara ve iyileşme potansiyeli
-4. 12. ev gezegenleri — bilinçaltı, bastırılanlar, geçmiş yaşam izleri
-5. Sert açılar (kare, karşıt) — iç çatışma ve büyüme alanları
-6. Vimshottari Dasha — karmik zamanlama ve dönem dersleri
-7. Deep harmonic (H7, H9) — ilişkisel ve spiritüel titreşimler
-8. Doğum tutulmaları — ruhsal sözleşme ve misyon
+## PSİKOLOJİK VE DERİN ANALİZ
+Verilen hesaplama sonuçlarını kullanarak kişinin psikolojik yapısını yorumla.
+Teknik terim kullanma:
+
+1. SORUMLULUK VE SINIR ENERJİSİ — Hayatta yapısal baskı ve kısıtlama hissedilen alanlar
+2. DÖNÜŞÜM VE GÜÇ — Güç dinamikleri, köklü değişim kapısı, bastırılmış enerjinin açığa çıkışı
+3. EN DERİN YARA — Taşınan temel yara noktası ve dönüşüm potansiyeli
+4. BİLİNÇALTI ALANI — Görünmez örüntüler, baskılanmış içerikler, geçmişten gelen izler
+5. İÇ ÇATIŞMA VE BÜYÜME — Kişilik içindeki gerilimler ve büyüme enerjisine dönüşümü
+6. AKTİF DÖNEM ENERJİSİ — Şu anki büyük yaşam döngüsünün tonu ve dersi
+7. DERİN REZONANS — Bilinçdışı titreşim katmanları ve spiritüel bağlantı kapasitesi
+8. KADERSEL MİSYON — Doğum döneminin ruhsal sözleşme ve yaşam misyonuna etkisi
 """,
         "daily": """
-## GÜNLÜK ENERJİ YORUMU — SADECE BUGÜN
+## GÜNLÜK ENERJİ — SADECE BUGÜN
 
-### KESİN KISITLAMA
-Bu yorum YALNIZCA bugünkü transit_positions ve transit_to_natal_aspects verisine dayanmalıdır.
-- Dasha, Firdaria, Solar Return, karakter analizi KULLANMA
-- "Bu dönemde", "Bu yıl", "Uzun vadede" gibi ifadeler YASAK
-- Sadece BUGÜN aktif olan transit açıları yorumlanacak
+KESİN KISITLAMA: YALNIZCA bugünkü gezegen pozisyonları ile doğum haritası arasındaki aktif etkileşimler yorumlanır. Dönem analizi, karakter yorumu, uzun vade YASAK. "Bu dönemde", "bu yıl", "doğum haritanızda" ifadeleri YASAK.
 
-### YORUM FORMATI
+**BUGÜNÜN GENEL TONU**
+Bugün aktif olan enerji etkileşimlerinin birleşik atmosferi nasıl? (2-3 cümle, sade dil)
 
-**BUGÜNÜN GENEL TON**
-transit_to_natal_aspects listesindeki aktif açılar neler? Bu açıların birleşik etkisi bugüne nasıl bir ton katıyor? (2-3 cümle)
+**DUYGUSAL RENK**
+Bugün iç dünya ve duygusal iklim nasıl bir tona bürünüyor?
 
-**AY'IN BUGÜNKÜ POZİSYONU**
-transit_positions'daki Ay'ın bulunduğu konum bugünün duygusal ve iç dünya atmosferini nasıl renklendiriyor? (2-3 cümle)
+**ALAN BAZLI ENERJİ** (sadece bugün aktif etkileşimlerden türet, yoksa o başlığı atla)
+- İş ve üretkenlik alanında bugün hangi enerji aktif?
+- İletişim ve sosyal alanda bugün ne öne çıkıyor?
+- İlişkiler alanında bugün hangi dinamik var?
+- Fiziksel enerji ve beden alanında bugün tablo nasıl?
 
-**ALAN BAZLI ENERJİ (sadece aktif transit açılardan türet)**
-- İş/kariyer: Bugün bu alanda hangi transit etkisi aktif?
-- İletişim: Bugün bu alanda hangi transit etkisi aktif?
-- İlişkiler: Bugün bu alanda hangi transit etkisi aktif?
-- Enerji/beden: Bugün bu alanda hangi transit etkisi aktif?
-(Bir alanda bugün aktif transit açısı yoksa o başlığı yazma)
+**GÜNÜN RİTMİ**
+Sabah / öğle / akşam enerji dağılımında belirgin bir fark var mı?
 
-**BUGÜNÜN RİTMİ**
-Enerjinin gün boyunca nasıl dağıldığı — sabah/öğleden sonra/akşam farkı varsa belirt.
-
-Çıktı 350-500 kelime olsun. Natal harita karakterini arka plan bağlamı olarak kullanabilirsin ama odak daima bugünkü transitler.
+Çıktı 350-500 kelime. Karakter analizi, dönem yorumu, uzun vade YASAK.
 """,
         "transits": """
-## TRANSİT ANALİZİ
-Yukarıdaki verileri kullanarak transit etkilerini detaylı analiz et:
-1. Büyük gezegen transitleri (Jüpiter, Satürn, Uranüs, Neptün, Plüton) — uzun vadeli etkiler
-2. Transit-natal açıları ve ev etkileşimleri
-3. Solar Return yıllık teması
-4. Lunar Return aylık teması
-5. Yakın dönem tutulmalarının etkisi
-6. Firdaria periyotlarına göre yaşam döngüleri
-7. Transit sabit yıldız etkileri
+## AKTİF DÖNEM ENERJİLERİ
+Verilen verileri kullanarak aktif dönemin enerji tablosunu yorumla.
+Teknik terim kullanma:
+
+1. BÜYÜK DÖNEM ETKİLERİ — Uzun süre aktif kalan yavaş hareket eden gezegen enerjilerinin genel tonu
+2. AKTİF ETKİLEŞİMLER — Şu an doğum haritasıyla oluşan önemli enerji bağlantıları ve hayata yansımaları
+3. YILLIK TEMA — Bu yılın ana enerji teması
+4. AYLIK ODAK — Bu ay öne çıkan duygusal ve pratik alan
+5. YAKIN DÖNEM KIRIŞ NOKTALARI — Kozmik enerji değişimlerine yol açan olayların etkisi
+6. DÖNGÜ TONU — Şu an hangi büyük yaşam döngüsünde olunduğu
+7. YILDIZ ENERJİLERİ — Varsa güçlü yıldız bağlantılarının tonu
 """,
         "short_term": """
-## KISA VADELİ ÖNGÖRÜ (1-3 AY)
-Yukarıdaki verileri kullanarak önümüzdeki 1-3 aylık dönemin enerji tablosunu yorumla:
-1. Hızlı gezegen transitleri — hangi yaşam alanlarında ne tür bir enerji aktif olacak
-2. Ay düğümleri ve yakın tutulmalar — kadersel dönemeç ve kırılma noktaları
-3. Solar/Lunar Return dönemsel mesajları — bu ay/yılın ana teması
-4. Firdaria periyodu — şu an hangi enerji döneminde olduğu ve bu dönemin genel tonu
-5. Enerji pencereleri: hangi zaman aralıklarında hangi alan yoğun aktif
-6. Kariyer, ilişki, sağlık ve finans alanlarında 1-3 aylık enerji tablosu
+## KISA VADELİ ENERJİ TABLOSU (1-3 AY)
+Verilen verileri kullanarak önümüzdeki 1-3 aylık dönemin enerji tablosunu yorumla.
+Teknik terim kullanma:
+
+1. HIZLI DÖNEM ETKİLERİ — Kısa sürede geçen gezegen enerjilerinin tetikleyeceği genel ton
+2. KADERSEL DÖNEMEÇLER — Yakın dönemde öne çıkan kozmik kırılma noktaları
+3. AYLIK VE YILLIK TEMA — Bu ay ile bu yılın birleşen mesajı
+4. AKTİF DÖNEM TONU — Şu anki büyük döngünün bu 1-3 ay boyunca nasıl hissettireceği
+5. ENERJİ PENCERELERİ — Hangi zaman dilimlerinde hangi yaşam alanında yoğunluk var
+6. ALAN BAZLI TABLO — Kariyer, ilişki, sağlık ve maddi alan için 1-3 aylık enerji özeti
 """,
         "long_term": """
-## UZUN VADELİ ÖNGÖRÜ (1-5 YIL)
-Yukarıdaki verileri kullanarak önümüzdeki 1-5 yıllık dönemi analiz et:
-1. Vimshottari Dasha ana dönemi — yaşamın büyük döngüsü
-2. Firdaria kronokrator değişimleri — yıllık yönetici etkileri
-3. Büyük gezegen transitleri (Jüpiter döngüsü, Satürn döngüsü)
-4. Solar Return yıllık haritalarının kümülatif etkisi
-5. Deep harmonic uzun dalga analizi
-6. Kariyer, ilişki, sağlık, finans ve spiritüel gelişim başlıklarında uzun vadeli yol haritası
+## UZUN VADELİ ENERJİ TABLOSU (1-5 YIL)
+Verilen verileri kullanarak önümüzdeki 1-5 yıllık dönemin enerjisini yorumla.
+Teknik terim kullanma:
+
+1. BÜYÜK YAŞAM DÖNGÜSÜ — Şu an hangi büyük döngüde olunduğu ve genel mesajı
+2. DÖNEM DEĞİŞİMLERİ — Yıllık enerji yöneticilerinin sıralanması ve tonu
+3. YAVAŞ ETKİLER — Yıllarca aktif olan büyük enerji dönüşümleri
+4. YILLIK BİRİKİMLİ TABLO — Yıl yıl enerji tablosu
+5. DERİN DÖNÜŞÜM — Uzun vadeli psikolojik ve spiritüel dönüşüm süreci
+6. ALAN BAZLI UZUN VADE — Kariyer, ilişki, sağlık, maddi alan ve spiritüel gelişim yol haritası
 """,
         "career": """
-## KARİYER ANALİZİ
-Yukarıdaki verileri kullanarak kariyer ve mesleki potansiyeli analiz et:
-1. MC (Tepe Noktası) ve 10. ev yerleşimleri — kariyer yönü
-2. Satürn ve Jüpiter konumları — profesyonel disiplin ve şans
-3. 6. ev (günlük çalışma) ve 2. ev (gelir) vurguları
-4. Sabit yıldızların kariyer etkileri (Spica, Regulus, Sirius vb.)
-5. Solar Return kariyer ev vurguları
-6. Firdaria profesyonel dönem döngüleri
-7. Arap noktalarından meslek ve başarı göstergeleri
-8. Transit etkilerle kariyer fırsat pencereleri
+## KARİYER VE MESLEK ANALİZİ
+Verilen verileri kullanarak kariyer potansiyelini yorumla.
+Teknik terim kullanma:
+
+1. DOĞAL KARİYER ALANI — Kişinin doğasına uygun meslek ve çalışma biçimi
+2. DİSİPLİN VE ŞANS ENERJİSİ — Profesyonel hayatta yapısal zorluk ve büyüme potansiyeli
+3. ÇALIŞMA VE GELİR İLİŞKİSİ — Günlük iş ritmi ile maddi kazanç arasındaki enerji dengesi
+4. YILDIZ ENERJİLERİ — Güçlü kariyer bağlantısı olan yıldız etkilerinin tonu
+5. YILLIK KARİYER ODAĞI — Bu yılın kariyer alanındaki ana teması
+6. AKTİF DÖNEM MESLEKİ TONU — Şu anki yaşam döngüsünün kariyer üzerindeki etkisi
+7. BEREKET GÖSTERGELERİ — Maddi başarı ve meslek alanındaki güç noktaları
+8. FIRSATLAR VE ZOR DÖNEMLER — Kariyer alanındaki yoğun ve durağan enerji pencereleri
 """,
         "health": """
 ## SAĞLIK ANALİZİ
-Yukarıdaki verileri kullanarak sağlık ve bedensel potansiyeli analiz et:
-1. 6. ev (sağlık) ve 1. ev (beden) yerleşimleri — doğuştan gelen beden yapısı
-2. Chiron konumu — en derin fiziksel/psikolojik yara ve iyileşme kapısı
-3. Mars enerjisi ve fiziksel dayanıklılık — enerji yönetimi
-4. Satürn kronik eğilimleri ve dikkat edilmesi gereken zayıf bölgeler
-5. Sabit yıldızların sağlık etkileri (Algol, Caput Algol vb.)
-6. Deklinasyon paralellerinde sağlık göstergeleri
-7. Solar Return sağlık ev vurguları — bu yıl öne çıkan sağlık temaları
-8. Transit etkilerle sağlık uyarıları ve yenileme dönemleri
-9. Ay fazı — beden döngüsü ve enerji ritmi
+Verilen verileri kullanarak sağlık ve beden enerjisini yorumla.
+Teknik terim kullanma:
+
+1. BEDEN YAPISI VE VİTALİTE — Doğuştan gelen fiziksel enerji tonu ve dayanıklılık kapasitesi
+2. DERİN YARA VE İYİLEŞME — Taşınan en derin fiziksel veya duygusal yara ve iyileşme potansiyeli
+3. FİZİKSEL GÜÇ ENERJİSİ — Hareket, atılganlık ve enerji boşalma biçimi; yorgunluk kalıpları
+4. YAPISAL ZAYIFLIKLAR — Kronik yüklenme eğilimi gösteren beden alanları
+5. YILDIZ SAĞLIK BAĞLANTILARI — Varsa güçlü yıldız etkilerinin sağlık boyutu
+6. DERİN ENERJİ BAĞLANTILARI — Görünmez enerji ittifakları ve dengesizlik odakları
+7. AY RİTMİ VE BEDEN DÖNGÜSÜ — Enerji dalgalanmalarının aylık yapısı
+8. YILLIK SAĞLIK ODAĞI — Bu yıl öne çıkan sağlık enerjisi
+9. AKTİF DÖNEM ETKİSİ — Yakın dönemde sağlık alanında aktif enerji penceresi
 """,
         "finance": """
-## FİNANSAL ANALİZ
-Yukarıdaki verileri kullanarak finansal potansiyeli ve para yönetimini analiz et:
-1. 2. ev (gelir) ve 8. ev (ortak kaynaklar) yerleşimleri
-2. Jüpiter ve Venüs'ün finansal etkileri — bolluk ve kaynak akışı
-3. Part of Fortune (Şans Noktası) ve Arap finans noktaları
-4. Gezegen dignity skorlarına göre kaynak yönetimi gücü
-5. Solar Return finansal ev vurguları
-6. Transit Jüpiter ve Satürn'ün 2. ve 8. evden geçişleri
-7. Finansal fırsat pencereleri ve riskli dönemler
+## FİNANSAL ENERJİ ANALİZİ
+Verilen verileri kullanarak finansal potansiyeli yorumla.
+Teknik terim kullanma:
+
+1. GELİR VE KAYNAK ENERJİSİ — Kişisel kazanç enerjisi ve para ile ilişki biçimi
+2. ORTAK KAYNAKLAR — Ortak sermaye, miras, yatırım alanlarıyla ilişki enerjisi
+3. BEREKET AKIŞI — Şans ve bolluk noktası; maddi akışın doğal kanalları
+4. KAYNAK YÖNETİMİ GÜCÜ — Sahip olunan kaynakları kullanma kapasitesi
+5. YILLIK MADDİ ODAK — Bu yılın finansal alandaki ana teması
+6. BÜYÜK GEÇİŞ ENERJİLERİ — Gelir ve kaynak alanındaki uzun vadeli dönüşümler
+7. FIRSAT VE ZOR DÖNEMLER — Maddi alanda yoğun ve durağan enerji pencereleri
 """,
         "spiritual": """
 ## RUHSAL GELİŞİM ANALİZİ
-Yukarıdaki verileri kullanarak spiritüel potansiyeli ve ruhsal yolculuğu analiz et:
-1. 9. ev (yüksek bilinç), 12. ev (spiritüel derinlik), Neptün yerleşimi
-2. Deep harmonic (H5, H7, H9, H12) — spiritüel titreşim katmanları
-3. Vimshottari Dasha spiritüel dönemi — içsel yolculuk zamanlaması
-4. Navamsa (H9) haritasından ruhsal eğilimler
-5. Ay düğümleri — kadersel ruhsal misyon
-6. Ay fazı (lunation cycle) — spiritüel ritim
-7. Sabit yıldızların spiritüel etkileri (Fomalhaut, Aldebaran vb.)
-8. Antiscia noktaları — gölge ve denge dinamikleri
+Verilen verileri kullanarak spiritüel potansiyeli yorumla.
+Teknik terim kullanma:
+
+1. YÜKSEK BİLİNÇ VE DERİNLİK — Ruhsal anlayış kapasitesi ve içe dönüşe eğilim
+2. SPİRİTÜEL TİTREŞİM KATMANLARI — Farklı düzeylerdeki ruhsal potansiyel ve içsel bağlantı
+3. İÇSEL YOLCULUK DÖNGÜSÜ — Şu anki büyük döngünün spiritüel gelişime açtığı pencere
+4. RUHSAL ORTAKLIK — Spiritüel uyum açısından ilişki boyutunun derinliği
+5. KADERSEL MİSYON — Yaşam misyonunun ruhsal yönü ve yönelim
+6. SPİRİTÜEL RİTİM — Ruhsal enerji akışının döngüsel yapısı
+7. YILDIZ BAĞLANTILARI — Varsa spiritüel güç katan yıldız enerjilerinin tonu
+8. GÖLGE VE DENGE — Entegre edilmesi gereken gizli enerjiler
 """,
         "summary": """
-## KOZMİK ÖZET (KISA)
-Yukarıdaki verileri kullanarak 300-500 kelimelik kısa ve öz bir kozmik özet hazırla:
-1. En güçlü 3 gezegen ve hayata somut etkisi
-2. Yaşam amacı ve kullanılmayan en büyük potansiyel
-3. Şu anki transit dönemin ana mesajı — aktif transit açıları ne söylüyor
-4. Önümüzdeki dönem için en önemli tek somut tavsiye
-KISA olsun, uzun yazma. Her başlık 2-3 cümle yeterli.
+## KOZMİK ÖZET
+Verilen verileri kullanarak 300-500 kelimelik kısa ve öz bir özet hazırla.
+Teknik terim kullanma:
+
+1. EN GÜÇLÜ 3 ENERJİ — Haritadaki en baskın 3 enerji odağı ve hayata somut yansıması
+2. YAŞAM AMACI — En büyük kullanılmamış potansiyel ve hayatı yönlendiren temel enerji
+3. ŞU ANKİ DÖNEM MESAJI — Aktif dönemin tek net mesajı
+4. EN KRİTİK TEMA — Önümüzdeki dönemde en belirgin şekilde hissedilecek enerji alanı
+Her başlık 2-3 cümle — kısa, öz, net.
 """,
         # ── YENİ TÜRLER ──────────────────────────────────────────────
         "vedic": """
-## VEDİK ASTROLOJİ ANALİZİ (Dasha & Nakshatra)
-Yukarıdaki verileri kullanarak Vedik astroloji perspektifinden derinlemesine analiz yap:
-1. Vimshottari Dasha — şu anki Ana Dönem (Mahadasha) ve Alt Dönem (Antardasha): hangi gezegenin enerjisi hâkim, ne anlama geliyor
-2. Dasha döneminin pratik yansımaları — bu dönemde hangi yaşam alanları öne çıkıyor
-3. Nakshatra analizi — Ay'ın Nakshatra'sı ve kişilik, kader üzerindeki etkisi
-4. Navamsa (D9) haritası — ruhsal amaç, partnerlik ve derinlik katmanı
-5. Firdaria periyodu ile Vedik dönem karşılaştırması — çakışan temalar
-6. Gezegen dignity skorları (Vedik perspektif) — hangi gezegenler güçlü veya zayıf
-7. Önümüzdeki Dasha değişimi — ne zaman olacak ve yaşamda nasıl bir kırılma getirecek
-8. Vedik harmonik (H9 Navamsa) üzerinden ruhsal misyon özeti
+## DÖNEMSELLİK ANALİZİ (Vedik Sistem)
+Verilen Vedik hesaplama verilerini kullanarak dönemsel enerji tablosunu yorumla.
+Teknik terim kullanma:
+
+1. ANA DÖNEM ENERJİSİ — Şu an aktif olan büyük dönemin yönetici enerjisi ve genel tonu
+2. ALT DÖNEM ETKİSİ — Ana dönemin içindeki aktif alt dönemin etkisi ve bu kombinasyonun hayata yansıması
+3. DOĞUMSAL YILDIZ ENERJİSİ — Doğumdaki duygusal enerji noktasının kişilik ve kader üzerindeki etkisi
+4. RUHSAL AMAÇ BOYUTU — Ruhsal gelişim haritasından partnerlik ve derin anlam katmanı
+5. DÖNEM KARŞILAŞTIRMASI — Farklı dönem sistemlerinin birbiriyle uyumu veya çelişkisi
+6. GÜÇLÜ VE ZAYIF ENERJİ NOKTALARI — Hangi enerjilerin güçlü, hangilerinin zayıf konumda olduğu
+7. YAKLAŞAN DÖNEM DEĞİŞİMİ — Bir sonraki büyük dönem geçişinin zamanı ve genel tonu
+8. RUHSAL MİSYON ÖZETI — Dönemsel enerji tablosundan çıkan genel yönelim
 """,
         "eclipses": """
 ## TUTULMA ETKİLERİ ANALİZİ
-Yukarıdaki verileri kullanarak tutulmaların yaşam üzerindeki etkilerini analiz et:
-1. Doğum tutulmaları — doğuma yakın güneş/ay tutulmaları ve yaşam temasına kalıcı etkisi
-2. Kadersel aktivasyon noktaları — natal haritadaki hangi noktalar tutulma ekseninde
-3. Şu anki/yakın dönem tutulmaları — aktif tutulma hangi natal noktayı tetikliyor
-4. Tutulma ekseninin yaşam alanlarına etkisi — hangi ev ve konu bu aktivasyondan etkileniyor
-5. Tutulma sonrası 6 aylık açılım penceresi — bu dönemde hangi yaşam alanı yoğun aktif
-6. Ay düğümleri (Kuzey/Güney) — karmik yön ve tutulma ekseninin mesajı
-7. Bu tutulma döneminin genel enerjisi ve yaşam üzerindeki olası temaları
+Verilen tutulma verilerini kullanarak tutulmaların yaşam üzerindeki etkilerini yorumla.
+Teknik terim kullanma:
+
+1. DOĞUMSAL TUTULMA İZİ — Doğum dönemindeki kozmik kırılma noktalarının yaşam temasına kalıcı etkisi
+2. AKTİVASYON NOKTALARI — Doğum haritasındaki hangi enerji alanlarının tutulma ekseniyle kesiştiği
+3. AKTİF TUTULMA ETKİSİ — Şu an veya yakın dönemde aktif tutulmanın hangi enerji alanını tetiklediği
+4. ETKİLENEN YAŞAM ALANLARI — Tutulma ekseninin hangi hayat alanını öne çıkardığı
+5. AÇILIM PENCERESİ — Tutulma sonrası 6 aylık dönemde hangi yaşam alanının yoğun aktif olacağı
+6. KADERSEL YÖNELİM — Tutulma ekseninin kadersel mesajı
+7. DÖNEM ENERJİSİ — Bu tutulma döneminin genel tonu ve yaşam üzerindeki temaları
 """,
         "harmonic": """
-## HARMONİK REZONANS ANALİZİ
-Yukarıdaki derin harmonik verileri kullanarak gizli potansiyelleri ve örüntüleri analiz et:
-1. H5 (5. Harmonik) — yaratıcı ifade, sanat ve ilham kapasitesi
-2. H7 (7. Harmonik) — manevi yetenek, ilham ve spiritüel bağlantı
-3. H9 Navamsa — ruhsal amaç ve evlilik/partnerlik derinliği
-4. H12 (12. Harmonik) — bilinçaltı örüntüler ve gizli güçler
-5. Midpoint analizi — gezegen orta noktalarındaki gizli yapılandırıcı güçler
-6. Antiscia noktaları — gölge yansımalar ve dengelenmesi gereken enerjiler
-7. Deklinasyon paralelleri — gizli konjonksiyonlar ve fark edilmemiş bağlantılar
-8. Bu harmonik haritanın yaşama pratik yansıması — ne tür alanlarda güçlü rezonans var
+## DERİN ENERJİ VE REZONANS ANALİZİ
+Verilen derin harmonik verileri kullanarak gizli potansiyelleri yorumla.
+Teknik terim kullanma:
+
+1. YARATICI İFADE ALANI — Sanat, yaratıcılık ve kendini ifade etme kapasitesinin enerji yapısı
+2. MANEVİ BAĞLANTI — Spiritüel yetenek, ilham kapasitesi ve yüksek frekans bağlantısı
+3. RUHSAL ORTAKLIK DERİNLİĞİ — Ruhsal amaç ve derin ilişki bağının rezonansı
+4. GİZLİ BİLİNÇALTI ÖRÜNTÜLER — Bilinçdışı enerji kalıpları ve gizli güçler
+5. GİZLİ YAPISAL GÖSTERGELER — Gezegen orta noktalarındaki derin enerji yapılandırıcıları
+6. GÖLGE VE DENGE ENERJİLERİ — Yansıma enerjileri ve dengelenmesi gereken alanlar
+7. GİZLİ BAĞLANTILAR — Görünmez enerji köprüleri ve fark edilmemiş örüntüler
+8. PRATİK YANSIMA — Bu derin haritanın günlük yaşama ve ilişkilere somut yansıması
 """,
         "esoteric": """
-## EZOTERİK ETKİLER ANALİZİ
-Yukarıdaki verileri kullanarak gizli, ezoterik ve kadim astroloji tekniklerini analiz et:
-1. Arap noktaları — Şans Noktası, Ruh Noktası, Aşk Noktası ve diğer kritik Arap noktaları
-2. Part of Fortune — maddi şans ve bereket akışının haritadaki yeri
-3. Antiscia ve Contra-antiscia — gölge eksen ve bastırılmış enerji odakları
-4. Sabit yıldızlar — natalde güçlü sabit yıldızların ezoterik mesajı (Spica, Algol, Regulus vb.)
-5. Deklinasyon paralelleri — görünmez konjonksiyonlar ve gizli müttefikler
-6. Midpoint yapıları — karmaşık gezegen birleşimlerindeki saklı mesajlar
-7. Ay fazı (lunation cycle) — doğumdaki Ay fazının yaşam ritmi ve spiritüel misyona etkisi
-8. Bu ezoterik haritanın bütünsel yorumu — tüm gizli göstergeler ne söylüyor
+## EZOTERİK ENERJİ ANALİZİ
+Verilen ezoterik hesaplama verilerini kullanarak gizli enerji haritasını yorumla.
+Teknik terim kullanma:
+
+1. ŞANS VE BEREKET NOKTASI — Maddi şans ve bolluk akışının doğal kanalı
+2. RUH NOKTASI VE AŞK ENERJİSİ — Ruhsal merkez ve aşk alanındaki enerji odağı
+3. GÖLGE EKSENİ — Bastırılmış veya farkında olunmayan enerji odakları
+4. YILDIZ ENERJİ BAĞLANTILARI — Güçlü yıldız enerjilerinin ezoterik mesajı
+5. GİZLİ ENERJİ KÖPRÜLERİ — Görünmez enerji bağlantıları ve gizli müttefikler
+6. GİZLİ YAPISAL MESAJLAR — Enerji orta noktalarındaki saklı anlam katmanları
+7. AY DÖNGÜSÜ VE YAŞAM RİTMİ — Doğumsal ay enerjisinin yaşam ritmi ve ruhsal misyona etkisi
+8. BÜTÜNSEL EZOTERİK TABLO — Tüm gizli göstergelerin birleşik mesajı
 """,
         "timing": """
-## ZAMANLAMA TEKNİKLERİ — DÖNEM ANALİZİ
-Yukarıdaki verileri kullanarak birden fazla zamanlama tekniğini sentezleyerek dönem analizi yap:
-1. Firdaria Kronokrator — şu anki dönemin yöneticisi ve alt dönem: bu kombinasyonun tonu ve odağı
-2. Vimshottari Dasha ana + alt dönem — Vedik zamanlama katmanı
-3. Solar Return — bu yılın başlangıcı ve yıl boyunca aktif olacak ana tema
-4. Lunar Return — bu aydaki odak ve duygusal iklim
-5. Tutulmalar — yakın dönem tutulmalarının zamanlama üzerindeki aktivasyon etkisi
-6. Transit tetikleyiciler — büyük gezegenlerin natal noktalara kritik geçiş tarihleri
-7. Tüm tekniklerin sentezi — hangi dönemler birden fazla teknik tarafından öne çıkarılıyor
-8. Önümüzdeki 3-6 ay için en kritik tarih aralıkları ve o dönemlerde aktif enerji temaları
+## ZAMANLAMA ANALİZİ — DÖNEM SENTEZİ
+Verilen zamanlama verilerini kullanarak birden fazla sistem üzerinden dönem sentezi yap.
+Teknik terim kullanma:
+
+1. DÖNEM YÖNETİCİSİ — Şu anki dönemin yönetici enerjisi ve alt dönem kombinasyonunun genel tonu
+2. VEDİK ZAMAN KATMANI — Vedik sistemden dönem enerjisi
+3. YILLIK AÇILIŞ — Bu yılın kozmik başlangıç enerjisi ve yıl boyunca taşıyacağı tema
+4. AYLIK ODAK — Bu aydaki duygusal iklim ve pratik yönelim
+5. KOZMİK KIRIŞ NOKTALARI — Yakın dönem büyük kozmik olayların zamanlama üzerindeki etkisi
+6. BÜYÜK GEÇİŞ DÖNEMLERİ — Önemli enerji değişimlerinin kritik geçiş dönemleri
+7. SİSTEMLERİN SENTEZİ — Birden fazla sistemin aynı anda öne çıkardığı dönem ve tonu
+8. ÖNÜMÜZDEKİ 3-6 AY — En kritik enerji aralıkları ve baskın temaları
 """,
         "health_energy": """
-## SAĞLIK & ENERJİ — VİTALİTE PROFİLİ
-Yukarıdaki verileri kullanarak sağlık ve enerji potansiyelini çok katmanlı yorumla:
-1. Beden vitalitenin temel haritası — Yükselen ve 1. ev beden yapısını nasıl şekillendiriyor
-2. Chiron — ruhsal yara ve bedensel zayıflık noktası; haritada nerede konumlanıyor ve ne anlam taşıyor
-3. Mars enerjisi — fiziksel güç kaynağı, enerji boşalma biçimi, yorgunluk kalıpları
-4. Satürn — kronik zayıflıklar ve hangi beden alanlarında dikkat gerektiren yapısal eğilimler
-5. Sabit yıldızların sağlık bağlantıları — kritik yıldız bağlantıları varsa yorumla
-6. Deklinasyon paralelleri — gizli sağlık bağlantıları ve enerji ittifakları
-7. Gezegen dignity skorları — zayıf gezegenlerin ilişkili olduğu organ/sistem eğilimleri
-8. Solar Return sağlık ev vurguları — bu yıl öne çıkan sağlık temaları
-9. Transit tetikleyiciler — yakın dönemde aktif olan sağlık enerji penceresi
-10. Ay fazı ve beden ritmi — enerji dalgalanmalarının döngüsel yapısı
+## SAĞLIK VE VİTALİTE PROFİLİ
+Verilen verileri kullanarak sağlık, enerji ve beden potansiyelini çok katmanlı yorumla.
+Teknik terim kullanma:
+
+1. TEMEL VİTALİTE YAPISI — Doğuştan gelen fiziksel enerji tonu ve dayanıklılık kapasitesi
+2. DERİN YARA VE İYİLEŞME NOKTASI — En derin fiziksel veya duygusal yara alanı ve dönüşüm kapasitesi
+3. FİZİKSEL GÜÇ VE ENERJİ — Hareket enerjisi, atılganlık ve enerji boşalma kalıpları
+4. YAPISAL ZAYIFLIK EĞİLİMLERİ — Kronik yüklenme ve dikkat gerektiren beden alanları
+5. YILDIZ SAĞLIK REZONANSSI — Varsa güçlü yıldız bağlantılarının sağlık üzerindeki etkisi
+6. GİZLİ ENERJİ BAĞLANTILARI — Görünmez sağlık örüntüleri ve enerji dengesizlik odakları
+7. ENERJİ TONU VE BEDEN SİSTEMLERİ — Zayıf enerji alanlarının ilişkili olduğu beden sistemleri
+8. YILLIK SAĞLIK ODAĞI — Bu yıl öne çıkan sağlık enerji teması
+9. AKTİF DÖNEM SAĞLIK PENCERESİ — Yakın dönemde aktif olan sağlık enerjisi
+10. AY DÖNGÜSÜ VE BEDEN RİTMİ — Enerji dalgalanmalarının döngüsel yapısı
 """,
     }
 

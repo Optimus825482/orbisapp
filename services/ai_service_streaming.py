@@ -15,18 +15,23 @@ class AIServiceStreaming:
     @staticmethod
     def _build_system_prompt(interpretation_type: str) -> str:
         """Yorum türüne göre system prompt döndür"""
+        base = (
+            "Sen bir astroloji yorumlama motorusun. "
+            "Verilen hesaplama verisini yorumlarsın. "
+            "KESİN KURAL: Gezegen isimleri (Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton, Ay, Güneş), "
+            "burç isimleri (Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık), "
+            "ev numaraları (1. ev, 7. ev vb.), açı adları (kare, karşıt, üçgen, kavuşum), "
+            "ve teknik terimler (transit, natal, ascendant, Chiron, Dasha, Navamsa, Firdaria, retrograd) "
+            "çıktıda HİÇBİR KOŞULDA geçmez. "
+            "Tavsiye vermezsin. Yönlendirmezsin. Sadece enerjiyi ve etkiyi tanımlarsın."
+        )
         if interpretation_type == "daily":
             return (
-                "Sen bir astroloji yorumlama motorusun. "
-                "Görevin SADECE bugünkü transit pozisyonlarını ve transit-natal açılarını yorumlamaktır. "
-                "Dasha, Firdaria, Solar Return, karakter analizi veya uzun vadeli dönemlerden KESİNLİKLE bahsetme. "
-                "Tavsiye vermezsin. Sadece bugünkü aktif transit enerjisini ve bunun yaşam alanlarına yansımasını betimlersin."
+                base + " "
+                "EKLEME KISITLAMA: YALNIZCA bugünkü gezegen pozisyonları ile doğum haritası arasındaki "
+                "aktif etkileşimleri yorumlarsın. Dönem analizi, karakter yorumu, uzun vade YASAK."
             )
-        return (
-            "Sen bir astroloji yorumlama motorusun. "
-            "Görevin yalnızca sana verilen hesaplama verisini yorumlamaktır. "
-            "Tavsiye vermezsin. Yönlendirmezsin. Sadece astrolojik tabloyu ve enerjiyi tanımlarsın."
-        )
+        return base
 
     @staticmethod
     async def call_provider_streaming(

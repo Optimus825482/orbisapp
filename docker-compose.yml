@@ -19,7 +19,7 @@ services:
       - FLASK_ENV=production
       - DEBUG=False
       - PORT=8005
-      
+
       # AI API Keys (Coolify'da Environment Variables olarak ayarla)
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}

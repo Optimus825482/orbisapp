@@ -37,5 +37,5 @@ EXPOSE 8005
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8005/api/health || exit 1
 
-# Start command with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8005", "--workers", "4", "--threads", "2", "--timeout", "120", "wsgi:app"]
+# Start command — gevent worker ile yüksek eşzamanlı bağlantı
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
