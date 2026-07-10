@@ -2868,54 +2868,32 @@ super() }}
         console.warn("[ORBIS] ⚠️ Monetization record error (non-fatal):", recordError);
       }
     
-// ⚡ STREAMING DESTEĞI - SSE ile gerçek zamanlı AI yorumu
-      console.log( "[ORBIS] 🚀 Streaming AI yorumu başlatılıyor..." );
+// STREAMING AI YORUMU
+      console.log( '[ORBIS] Streaming AI yorumu baslatiliyor...' );
 
-      $body.html( `
-        <div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg">
-          <div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div>
-          <span class="text-[11px] text-slate-300">AI yanıt yazıyor...</span>
-        </div>
-        <div id="streaming-content" class="text-[11px] leading-relaxed"></div>
-      `);
+      $body.html( '<div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg"><div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div><span class="text-[11px] text-slate-300">AI yanit yaziyor...</span></div><div id="streaming-content" class="text-[11px] leading-relaxed"></div>' );
 
       var streamingContent = '';
       var startTime = Date.now();
 
-      fetch( "/api/ai/interpret-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      fetch( '/api/ai/interpret-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify( {
           natal_data: astroData,
           interpretation_type: tabId,
-          user_name: astroData.user_name || "Kullanıcı",
+          user_name: astroData.user_name || 'Kullanici',
           device_id: deviceId,
           email: userEmail
         } )
       } )
         .then( async function ( response ) {
           if ( response.status === 429 ) {
-            $body.html( `
-              <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
-                <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
-                  <span class="material-icons-round text-4xl text-amber-400">videocam</span>
-                </div>
-                <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
-                <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                  AI yorum almak icin lutfen kisa bir reklam izleyin.
-                  Uygulamamiz tamamen ucretsizdir.
-                </p>
-                <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
-                  Tamam
-                </button>
-              </div>
-            `);
+            $body.html( '<div class="flex flex-col items-center justify-center py-8 px-4 text-center"><div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6"><span class="material-icons-round text-4xl text-amber-400">videocam</span></div><h3 class="text-white font-bold text-lg mb-3">Reklam Izleme Gerekli</h3><p class="text-slate-400 text-sm mb-6 max-w-xs">AI yorum almak icin lutfen kisa bir reklam izleyin. Uygulamamiz tamamen ucretsizdir.</p><button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">Tamam</button></div>' );
             return;
           }
 
-          if ( !response.ok ) {
-            throw new Error( 'HTTP ' + response.status );
-          }
+          if ( !response.ok ) throw new Error( 'HTTP ' + response.status );
 
           var reader = response.body.getReader();
           var decoder = new TextDecoder();
@@ -2942,8 +2920,12 @@ super() }}
                   chunkCount++;
                   if ( firstChunkTime === null ) {
                     firstChunkTime = Date.now() - startTime;
-                    console.log( '[ORBIS] ⚡ İlk chunk ' + firstChunkTime + 'ms\'de geldi' );
+                    console.log( '[ORBIS] Ilk chunk ' + firstChunkTime + 'ms de geldi' );
                     $body.find( '.animate-spin' ).parent().remove();
+
+                    if ( typeof CosmicLoader !== 'undefined' && CosmicLoader.hideLoader ) {
+                      CosmicLoader.hideLoader();
+                    }
                   }
 
                   streamingContent += data.content;
@@ -2956,8 +2938,7 @@ super() }}
 
                 } else if ( data.type === 'done' ) {
                   var totalTime = Date.now() - startTime;
-                  console.log( '[ORBIS] ✅ Streaming tamamlandı (' + chunkCount + ' chunks, ' + totalTime + 'ms)' );
-                  console.log( '[ORBIS] ⚡ İlk chunk: ' + firstChunkTime + 'ms | Toplam: ' + totalTime + 'ms' );
+                  console.log( '[ORBIS] Streaming tamamlandi (' + chunkCount + ' chunks, ' + totalTime + 'ms)' );
 
                   currentInterpretationText = streamingContent;
                   $( '#ai-modal-footer' ).removeClass( 'hidden' );
@@ -2967,7 +2948,7 @@ super() }}
                 }
 
               } catch ( parseError ) {
-                console.warn( '[ORBIS] ⚠️ SSE parse error:', parseError );
+                console.warn( '[ORBIS] SSE parse error:', parseError );
               }
             }
           }
@@ -2979,13 +2960,8 @@ super() }}
           }
         } )
         .catch( function ( error ) {
-          console.error( '[ORBIS] ❌ Streaming error:', error );
-          $body.html( `
-            <div class="text-center py-8">
-              <p class="text-red-400 text-xs mb-2">⚠️ Bağlantı Hatası</p>
-              <p class="text-slate-400 text-[10px]">` + ( error.message || 'Bilinmeyen hata' ) + `</p>
-            </div>
-          `);
+          console.error( '[ORBIS] Streaming error:', error );
+          $body.html( '<div class="text-center py-8"><p class="text-red-400 text-xs mb-2">Baglanti Hatasi</p><p class="text-slate-400 text-[10px]">' + ( error.message || 'Bilinmeyen hata' ) + '</p></div>' );
         } );
   }
 
