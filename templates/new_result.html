@@ -172,10 +172,21 @@ super() }}
         </p>
       </div>
     </div>
-    <button onclick="shareResults()"
-      class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-      <span class="material-icons-round text-lg">share</span>
-    </button>
+    <div class="flex items-center gap-2">
+      <!-- Kozmik Kredi & 24h Reklamsız Pass Rozeti -->
+      <button id="cosmic-credit-pill" type="button" onclick="window.monetization?.showCreditModal()"
+        class="h-9 px-3 rounded-full bg-gradient-to-r from-amber-500/20 via-primary/20 to-amber-500/10 border border-amber-500/30 flex items-center gap-1.5 text-amber-300 hover:text-white hover:border-amber-400 transition-all active:scale-95 shadow-sm shadow-amber-500/10 cursor-pointer"
+        title="Kozmik Kredilerim & Reklamsız Mod">
+        <span class="material-icons-round text-base text-amber-400 animate-pulse">stars</span>
+        <span id="cosmic-credit-count" class="text-xs font-bold font-mono">2</span>
+        <span id="cosmic-credit-label" class="text-[9px] font-bold uppercase tracking-wider text-amber-200/80 hidden sm:inline">Kredi</span>
+      </button>
+
+      <button onclick="shareResults()"
+        class="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <span class="material-icons-round text-base">share</span>
+      </button>
+    </div>
   </header>
 
   <!-- Content Tabs Navigation -->
@@ -1687,8 +1698,83 @@ super() }}
   </div>
 </footer>
 
+<!-- COSMIC CREDIT & 24H AD-FREE PASS MODAL -->
+<div id="cosmic-credit-modal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md" onclick="window.monetization?.closeCreditModal()">
+  <div class="relative w-full max-w-sm bg-gradient-to-br from-slate-900 via-surface-dark to-slate-900 rounded-3xl border border-white/10 shadow-2xl p-6 text-white" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+          <span class="material-icons-round text-amber-400 text-xl">stars</span>
+        </div>
+        <div>
+          <h3 class="font-display font-bold text-base text-white">Kozmik Kredilerim</h3>
+          <p class="text-[10px] text-slate-400 uppercase tracking-widest">Ödüllü Seçenekler</p>
+        </div>
+      </div>
+      <button onclick="window.monetization?.closeCreditModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <span class="material-icons-round text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Status Info Card -->
+    <div class="mb-5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 grid grid-cols-2 gap-2 text-center">
+      <div class="p-2 rounded-xl bg-white/[0.02]">
+        <span class="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Mevcut Kredi</span>
+        <span id="modal-credit-current" class="text-xl font-bold font-mono text-amber-300">2</span>
+      </div>
+      <div class="p-2 rounded-xl bg-white/[0.02]">
+        <span class="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Reklamsız Mod</span>
+        <div id="modal-adfree-current" class="text-xs font-bold text-slate-300 pt-1">Pasif</div>
+      </div>
+    </div>
+
+    <!-- Reward Options -->
+    <div class="space-y-3">
+      <!-- Option 1: +2 Credits -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-white/[0.02] to-amber-500/5 border border-amber-500/20 hover:border-amber-500/40 transition-all flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-icons-round text-amber-400 text-lg">videocam</span>
+            <span class="text-xs font-bold text-white">1 Video = +2 Kozmik Kredi</span>
+          </div>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">+2 Kredi</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          Kısa bir video izleyerek kredinizi artırın. Dilediğiniz analizi dilediğiniz zaman reklamsız başlatın.
+        </p>
+        <button id="btn-watch-credits" type="button" onclick="window.monetization?.watchForCredits()"
+          class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 mt-1 cursor-pointer">
+          <span class="material-icons-round text-sm">play_circle</span>
+          <span>İzle ve 2 Kredi Al</span>
+        </button>
+      </div>
+
+      <!-- Option 2: 24h Ad-Free Pass -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-white/[0.02] to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-icons-round text-emerald-400 text-lg">verified_user</span>
+            <span class="text-xs font-bold text-white">2 Video = 24 Saat Reklamsız</span>
+          </div>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">24 Saat Pass</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          2 kısa video izleyin; sonraki 24 saat boyunca tüm analizleri, haritaları ve seslendirmeleri tamamen reklamsız kullanın.
+        </p>
+        <button id="btn-watch-adfree" type="button" onclick="window.monetization?.watchForAdFreePass()"
+          class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5 mt-1 cursor-pointer">
+          <span class="material-icons-round text-sm">bolt</span>
+          <span>24 Saat Reklamsız Yap</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endif %} {% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='js/results/ai-summary.js') }}"></script>
+<script src="{{ url_for('static', filename='js/monetization.js') }}"></script>
 <script>
   // window.astroData head'de set edildi, burada da referans oluştur
   const astroData = window.astroData;
@@ -2751,89 +2837,63 @@ super() }}
       // usage.allowed kontrolü PWA için de yok — sınırsız erişim
       // usage.requires_ad kontrolü PWA için yok — direkt devam
     } else {
-      // Native (Android) için mevcut reklam akışı
-      // Limit doldu mu?
-      if ( !usage.allowed ) {
-        $body.html( `
-              <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
-                  <div class="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-6">
-                      <span class="material-icons-round text-4xl text-amber-400">lock</span>
-                  </div>
-                  <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
-                  <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                      AI yorum almak icin lutfen kisa bir reklam izleyin.
-                      Uygulamamiz tamamen ucretsizdir.
-                  </p>
-                  <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
-                      Tamam
-                  </button>
-              </div>
-            `);
-        return;
-      }
+      // Native (Android) için Kozmik Kredi & Reklamsız Pass Akışı
+      const isAdFree = Boolean(usage.is_ad_free || window.monetization?.isAdFree);
+      const credits = typeof usage.cosmic_credits === 'number' ? usage.cosmic_credits : (window.monetization?.credits ?? 0);
 
-      // Reklam izleme gerekli mi?
-      if ( usage.requires_ad ) {
-        console.log( "[ORBIS] 🎬 Rewarded ad required for AI comment, remaining:", usage.remaining );
+      if (isAdFree) {
+        console.log("[ORBIS] 🛡️ 24h Reklamsız Mod aktif, reklam gösterilmiyor.");
+      } else if (credits > 0) {
+        console.log(`[ORBIS] ⭐ Kullanıcının ${credits} Kozmik Kredisi var, 1 kredi harcanıyor.`);
+        await window.monetization?.spendCredit(1, tabId);
+      } else {
+        // Kredi ve pass yok — reklam göster veya kullanıcıyı yönlendir
+        console.log("[ORBIS] 🎬 Kredi yok, ödüllü reklam gösteriliyor...");
 
-        // OrbisRewardedAds kontrolü
-        console.log( "[ORBIS] 🔍 Checking OrbisRewardedAds..." );
-        console.log( "[ORBIS] 🔍 window.OrbisRewardedAds:", window.OrbisRewardedAds );
-        console.log( "[ORBIS] 🔍 typeof showForInterpretation:", typeof window.OrbisRewardedAds?.showForInterpretation );
-
-        // Rewarded ad göster - OrbisRewardedAds veya direkt OrbisBridge.showRewardedAd()
         const showAd = async () => {
           if (window.OrbisRewardedAds && typeof window.OrbisRewardedAds.showForInterpretation === 'function') {
             return await window.OrbisRewardedAds.showForInterpretation();
           }
+          if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
+            const r = await window.MobileBridge.showBonusRewardedAd();
+            return r && r.success;
+          }
           if (window.OrbisBridge && typeof window.OrbisBridge.showRewardedAd === 'function') {
             return await window.OrbisBridge.showRewardedAd();
           }
-          return null; // Reklam sistemi yok
+          return null;
         };
 
         const rewarded = await showAd();
         console.log("[ORBIS] 🎁 Rewarded ad result:", rewarded);
 
         if (rewarded === null) {
-          // Reklam sistemi hic yok - uygulama yeniden baslatilmali
-          console.error("[ORBIS] ❌ OrbisRewardedAds/OrbisBridge not available!");
+          console.warn("[ORBIS] ⚠️ Reklam sistemi yok, analize izin veriliyor.");
+        } else if (!rewarded) {
           $body.html(`
             <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
-              <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
-                <span class="material-icons-round text-4xl text-red-400">error</span>
+              <div class="w-16 h-16 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-4">
+                <span class="material-icons-round text-3xl text-amber-400">stars</span>
               </div>
-              <h3 class="text-white font-bold text-lg mb-3">Reklam Sistemi Yüklenemedi</h3>
-              <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                Lütfen uygulamayı kapatıp tekrar açın.
+              <h3 class="text-white font-bold text-base mb-2">Analizi Başlatmak İçin</h3>
+              <p class="text-slate-400 text-xs mb-6 max-w-xs leading-relaxed">
+                Bu analizi başlatmak için kısa bir video izleyebilir veya Kozmik Kredi kazanabilirsiniz.
               </p>
-              <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
-                Tamam
-              </button>
+              <div class="flex flex-col gap-2.5 w-full max-w-xs">
+                <button onclick="interpretTab('${tabId}')" class="w-full py-3 bg-gradient-to-r from-primary to-accent text-white font-bold text-xs uppercase tracking-wider rounded-xl active:scale-95 transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2 cursor-pointer">
+                  <span class="material-icons-round text-base">play_circle</span>
+                  <span>Videoyu İzle ve Başlat</span>
+                </button>
+                <button onclick="closeAIModal(); window.monetization?.showCreditModal();" class="w-full py-2.5 bg-white/5 border border-white/10 text-slate-300 font-bold text-xs rounded-xl hover:bg-white/10 transition-all cursor-pointer">
+                  Kozmik Kredilerim
+                </button>
+              </div>
             </div>
           `);
           return;
         }
-
-        if (!rewarded) {
-          $body.html(`
-            <div class="flex flex-col items-center justify-center py-8 px-4 text-center">
-              <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
-                <span class="material-icons-round text-4xl text-red-400">error</span>
-              </div>
-              <h3 class="text-white font-bold text-lg mb-3">Reklam İzleme Gerekli</h3>
-              <p class="text-slate-400 text-sm mb-6 max-w-xs">
-                AI yorum okumak için reklam izlemeniz gerekiyor!
-              </p>
-              <button onclick="closeAIModal()" class="px-6 py-3 bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition-all">
-                Tamam
-              </button>
-            </div>
-          `);
-          return;
-        }
-      } // end if (usage.requires_ad)
-    } // end if (isNativeApp) else
+      }
+    }
 
       // 🆕 REKLAM İZLENDİ - Backend'e kaydet
       console.log("[ORBIS] 🎬 Recording ad watch to backend...");

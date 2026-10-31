@@ -675,6 +675,8 @@ def api_check_usage():
             "allowed": True,
             "requires_ad": False,
             "remaining": 999,
+            "cosmic_credits": 999,
+            "is_ad_free": True,
             "message": "PWA istemci - reklam zorunlulugu yok",
             "platform": "pwa"
         })

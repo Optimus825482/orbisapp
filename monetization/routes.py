@@ -30,40 +30,79 @@ def _is_pwa_request() -> bool:
 
 @monetization_bp.route("/check-usage", methods=["POST"])
 def check_usage():
-    """Kullanıcının kullanım durumunu kontrol et.
+    """Kullanıcının kullanım durumunu, Kozmik Kredi ve 24h Reklamsız Pass durumunu kontrol et."""
+    data = request.get_json() or {}
+    device_id = data.get("device_id")
+    email = data.get("email")
 
-    PWA (web) istemcilerde AdMob çalışmadığı için sınırsız erişim döner.
-    """
     if _is_pwa_request():
         logger.info(f"[monetization] check-usage - PWA istemci, no-op (UA: {request.headers.get('User-Agent', '')[:50]})")
         return jsonify({
             "usage": {
-                "is_premium": False,
+                "is_premium": True,
                 "is_admin": False,
-                "remaining": 999,
+                "remaining": "unlimited",
                 "requires_ad": False,
                 "show_ads": False,
+                "cosmic_credits": 999,
+                "is_ad_free": True
             },
-            "can_use": {"allowed": True, "requires_ad": False, "remaining": 999},
+            "can_use": {
+                "allowed": True,
+                "requires_ad": False,
+                "remaining": "unlimited",
+                "is_ad_free": True,
+                "cosmic_credits": 999
+            },
             "show_ads": False,
             "platform": "pwa",
-            "message": "PWA istemci - reklam zorunluluğu yok"
+            "message": "PWA istemci - sınırsız erişim"
         })
-
-    data = request.get_json()
-    device_id = data.get("device_id")
 
     if not device_id:
         return jsonify({"error": "device_id gerekli"}), 400
 
-    usage = usage_tracker.get_user_usage(device_id)
-    can_use = usage_tracker.can_use_feature(device_id)
+    usage = usage_tracker.get_user_usage(device_id, email)
+    can_use = usage_tracker.can_use_feature(device_id, 'interpretation', email)
 
     return jsonify({
         "usage": usage,
         "can_use": can_use,
-        "show_ads": True
+        "show_ads": usage.get("show_ads", True)
     })
+
+
+@monetization_bp.route("/claim-reward", methods=["POST"])
+def claim_reward():
+    """Ödüllü reklam izlendikten sonra ödülü tanımla (credits veya ad_free_24h)."""
+    data = request.get_json() or {}
+    device_id = data.get("device_id")
+    reward_type = data.get("reward_type", "credits")
+    email = data.get("email")
+
+    if not device_id:
+        return jsonify({"error": "device_id gerekli"}), 400
+
+    res = usage_tracker.claim_reward(device_id, reward_type, email)
+    logger.info(f"[monetization] claim_reward - device_id: {device_id}, reward_type: {reward_type}, res: {res}")
+    return jsonify(res)
+
+
+@monetization_bp.route("/spend-credit", methods=["POST"])
+def spend_credit():
+    """Analiz veya özellik başlatırken Kozmik Kredi harca."""
+    data = request.get_json() or {}
+    device_id = data.get("device_id")
+    amount = int(data.get("amount", 1))
+    feature = data.get("feature", "analysis")
+    email = data.get("email")
+
+    if not device_id:
+        return jsonify({"error": "device_id gerekli"}), 400
+
+    res = usage_tracker.spend_credit(device_id, amount, feature, email)
+    logger.info(f"[monetization] spend_credit - device_id: {device_id}, res: {res}")
+    return jsonify(res)
 
 
 @monetization_bp.route("/record-usage", methods=["POST"])
@@ -82,12 +121,13 @@ def record_usage():
             "message": "PWA - reklam kaydedilmedi"
         })
 
-    data = request.get_json()
+    data = request.get_json() or {}
     device_id = data.get("device_id")
     feature = data.get("feature", "interpretation")
+    email = data.get("email")
 
     if not device_id:
         return jsonify({"error": "device_id gerekli"}), 400
 
-    result = usage_tracker.record_usage(device_id, feature)
+    result = usage_tracker.record_usage(device_id, feature, email)
     return jsonify(result)
