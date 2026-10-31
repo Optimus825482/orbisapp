@@ -440,7 +440,7 @@ def api_get_ai_interpretation():
                                     session=session,
                                     provider=provider,
                                     prompt=prompt,
-                                    max_tokens=4096,
+                                    max_tokens=16384,
                                     timeout=120,
                                     interpretation_type=interpretation_type,
                                 ):

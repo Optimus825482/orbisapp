@@ -3,7 +3,7 @@
 AI Streaming Routes - Server-Sent Events (SSE) ile gerçek zamanlı AI yanıtları
 - Sadece ilgili hesaplama sonuçlarını LLM'e filtreler (gereksiz/eksik veri yok)
 - Sıfır astrolojik terim, tamamen hesaplama verilerine dayalı derin uzman yorumu
-- 4096 token ve 120sn timeout ile yarım kalmayan tam yanıt garantisi
+- 16384 token ve 120sn timeout ile yarım kalmayan tam yanıt garantisi
 - Aktif -> Yedek fallback zinciri ve anlık Queue tabanlı SSE aktarımı
 """
 import asyncio
@@ -110,7 +110,7 @@ def interpret_stream():
                                         session=session,
                                         provider=provider,
                                         prompt=prompt,
-                                        max_tokens=4096,
+                                        max_tokens=16384,
                                         timeout=120,
                                         interpretation_type=interpretation_type,
                                     ):

@@ -42,7 +42,7 @@ class AIServiceStreaming:
         session: aiohttp.ClientSession,
         provider: dict,
         prompt: str,
-        max_tokens: int = 4096,
+        max_tokens: int = 16384,
         timeout: int = 120,
         temperature: float = 0.3,
         interpretation_type: str = ""
@@ -139,7 +139,7 @@ class AIServiceStreaming:
         session: aiohttp.ClientSession,
         provider: dict,
         prompt: str,
-        max_tokens: int = 4096,
+        max_tokens: int = 16384,
         timeout: int = 120,
         temperature: float = 0.3
     ) -> dict:
