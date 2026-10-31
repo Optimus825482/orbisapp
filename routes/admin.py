@@ -25,7 +25,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 # ═══════════════════════════════════════════════════════════════
 
 # Admin email listesi (environment variable'dan veya hardcoded)
-ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', 'erkan@example.com').split(',')
+ADMIN_EMAILS = [e.strip().lower() for e in os.environ.get('ADMIN_EMAILS', 'erkan@example.com').split(',') if e.strip()]
 
 
 def admin_required(f):
@@ -33,7 +33,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Session'dan admin kontrolü
-        admin_email = session.get('admin_email')
+        admin_email = (session.get('admin_email') or '').strip().lower()
         if not admin_email or admin_email not in ADMIN_EMAILS:
             return redirect(url_for('admin.login'))
         return f(*args, **kwargs)
@@ -50,8 +50,8 @@ def login():
 @handle_errors("Admin doğrulama başarısız")
 def verify_admin():
     """Firebase token'ı doğrula ve admin yetkisi kontrol et"""
-    data = request.get_json()
-    email = data.get('email')
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
     uid = data.get('uid')
     
     if not email:
@@ -73,6 +73,7 @@ def verify_admin():
     # Session'a kaydet
     session['admin_email'] = email
     session['admin_uid'] = uid
+    session['admin_name'] = data.get('displayName') or email.split('@')[0]
     
     logger.info(f"Admin login successful: {email}")
     
@@ -87,6 +88,7 @@ def logout():
     """Admin çıkış"""
     session.pop('admin_email', None)
     session.pop('admin_uid', None)
+    session.pop('admin_name', None)
     return redirect(url_for('admin.login'))
 
 
@@ -209,7 +211,6 @@ def _attach_ga_data(date_range: str) -> dict:
         rows = data.get('rows', []) or []
         # Son gün (bugün) değerleri
         today = rows[-1] if rows else {}
-        avg_time = (data.get('totalPageViews') and data.get('totalConversions'))
         return {
             'signupsSeries': data.get('usersSeries', []),
             'activeSeries': data.get('sessionsSeries', []),
@@ -218,23 +219,6 @@ def _attach_ga_data(date_range: str) -> dict:
             'gaUsersToday': today.get('users', 0),
             'gaSessionsToday': today.get('sessions', 0),
             'gaAvgTime': data.get('avgSessionDuration', '—'),
-        }
-    except Exception:
-        return {}
-
-
-def _attach_ga_data(date_range: str) -> dict:
-    """GA4 Data API'den series çek. Service yoksa boş döner (client default)."""
-    try:
-        from services.google_analytics import get_overview
-        data = get_overview(date_range)
-        if not data:
-            return {}
-        return {
-            'signupsSeries': data.get('usersSeries', []),
-            'activeSeries': data.get('sessionsSeries', []),
-            'gaConversions': data.get('totalConversions', 0),
-            'gaPageViews': data.get('totalPageViews', 0),
         }
     except Exception:
         return {}
@@ -256,6 +240,9 @@ def _attach_admob_data(date_range: str) -> dict:
         ecpm_usd = data.get('ecpm_usd', 0) or 0
         # Sparkline: son N günlük gelir (USD)
         spark_usd = [float(r.get('revenue_usd', 0) or 0) for r in rows[-8:]]
+        # Chart series
+        revenue_series = [{'label': r.get('date', '')[-5:], 'value': float(r.get('revenue_usd', 0) or 0)} for r in rows[-8:]] if rows else []
+        rewarded_series = [{'label': r.get('date', '')[-5:], 'value': int(r.get('rewarded_impressions', r.get('impressions', 0)) or 0)} for r in rows[-8:]] if rows else []
         return {
             'admob': {
                 'revenue_today': rev_today_usd,
@@ -269,53 +256,111 @@ def _attach_admob_data(date_range: str) -> dict:
                 'range': data.get('range', date_range),
             },
             'admobSparkline': spark_usd or None,
+            'admobRevenueSeries': revenue_series or None,
+            'admobRewardedSeries': rewarded_series or None,
         }
     except Exception:
         return {}
 
 
 def _attach_activity() -> dict:
-    """Firestore son 10 olay (signup, push, error). Premium kaldirildi."""
+    """Firestore son 10 olay (signup, push, admin işlem)."""
     try:
         from services.firebase_service import firebase_service
         if not firebase_service.db:
             return {}
-        # purchases koleksiyonundan son 10 kayıt (geriye uyumluluk)
         from google.cloud.firestore import Query
-        docs = firebase_service.db.collection('purchases') \
-            .order_by('timestamp', direction=Query.DESCENDING) \
-            .limit(10).stream()
+        from datetime import datetime, timezone
+
+        def format_rel(t):
+            if not t:
+                return ''
+            try:
+                dt = t if isinstance(t, datetime) else datetime.fromisoformat(str(t).replace('Z', '+00:00'))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                delta = datetime.now(timezone.utc) - dt
+                if delta.days > 0:
+                    return f'{delta.days}g önce'
+                elif delta.seconds > 3600:
+                    return f'{delta.seconds // 3600}s önce'
+                elif delta.seconds > 60:
+                    return f'{delta.seconds // 60}dk önce'
+                else:
+                    return 'az önce'
+            except Exception:
+                return ''
+
         items = []
-        for d in docs:
-            data = d.to_dict() or {}
-            t = data.get('timestamp')
-            rel = ''
-            if t:
-                try:
-                    from datetime import datetime, timezone
-                    dt = t if isinstance(t, datetime) else datetime.fromisoformat(str(t))
-                    if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
-                    delta = datetime.now(timezone.utc) - dt
-                    if delta.days > 0:
-                        rel = f'{delta.days}g önce'
-                    elif delta.seconds > 3600:
-                        rel = f'{delta.seconds // 3600}s önce'
-                    elif delta.seconds > 60:
-                        rel = f'{delta.seconds // 60}dk önce'
-                    else:
-                        rel = 'az önce'
-                except Exception:
-                    rel = ''
-            # Premium kaldirildi: sadece push/info olaylari goster
-            items.append({
-                'type': 'info',
-                'title': f"Etkinlik · {data.get('packageId', data.get('type', 'bilinmiyor'))}",
-                'meta': f"uid: {data.get('userId', '?')[:12]}…",
-                'relative': rel,
-                'at': str(t) if t else None,
-            })
-        return {'activity': items} if items else {}
+
+        # 1. Son kullanıcı kayıtları
+        try:
+            users_docs = list(firebase_service.db.collection('users')
+                .order_by('createdAt', direction=Query.DESCENDING)
+                .limit(6).stream())
+            for d in users_docs:
+                u = d.to_dict() or {}
+                t = u.get('createdAt')
+                email = u.get('email', '')
+                name = u.get('displayName') or (email.split('@')[0] if email else 'Yeni Kullanıcı')
+                items.append({
+                    'type': 'signup',
+                    'title': f'Yeni Kayıt · {name}',
+                    'meta': email or f"uid: {d.id[:10]}…",
+                    'relative': format_rel(t),
+                    'timestamp': str(t) if t else '',
+                })
+        except Exception as e:
+            logger.debug(f"[Admin] Activity user signup fetch notice: {e}")
+
+        # 2. Son admin işlem kayıtları (push gönderimi, ayar güncelleme vs.)
+        try:
+            admin_docs = list(firebase_service.db.collection('admin_logs')
+                .order_by('timestamp', direction=Query.DESCENDING)
+                .limit(6).stream())
+            for d in admin_docs:
+                log_data = d.to_dict() or {}
+                t = log_data.get('timestamp')
+                act = log_data.get('action', 'islem')
+                title = 'Admin İşlemi'
+                meta = log_data.get('adminEmail', 'Admin')
+                if act == 'push_sent':
+                    title = f"Push Bildirim: {log_data.get('details', {}).get('title', '')[:25]}"
+                elif act == 'ai_settings_update':
+                    title = f"AI Sağlayıcı Güncellendi ({log_data.get('details', {}).get('active_provider', '')})"
+
+                items.append({
+                    'type': 'info',
+                    'title': title,
+                    'meta': meta,
+                    'relative': format_rel(t),
+                    'timestamp': str(t) if t else '',
+                })
+        except Exception as e:
+            logger.debug(f"[Admin] Activity admin logs fetch notice: {e}")
+
+        # 3. Geriye uyumluluk: eski purchases
+        if len(items) < 5:
+            try:
+                p_docs = list(firebase_service.db.collection('purchases')
+                    .order_by('timestamp', direction=Query.DESCENDING)
+                    .limit(5).stream())
+                for d in p_docs:
+                    data = d.to_dict() or {}
+                    t = data.get('timestamp')
+                    items.append({
+                        'type': 'info',
+                        'title': f"Etkinlik · {data.get('packageId', data.get('type', 'bilinmiyor'))}",
+                        'meta': f"uid: {data.get('userId', '?')[:12]}…",
+                        'relative': format_rel(t),
+                        'timestamp': str(t) if t else '',
+                    })
+            except Exception:
+                pass
+
+        # Tarihe göre sırala ve son 10 adedini dön
+        items.sort(key=lambda x: x.get('timestamp') or '', reverse=True)
+        return {'activity': items[:10]} if items else {}
     except Exception:
         return {}
 
@@ -418,7 +463,7 @@ def get_users():
     # Sadece gerekli field'lari oku (premium/credits kaldirildi)
     PROJECTION = ["email", "displayName", "photoURL",
                    "totalAnalyses", "adsWatched", "rewardedAdsWatched",
-                   "createdAt", "dailyUsage"]
+                   "createdAt", "dailyUsage", "lastLogin", "lastSeen", "isAdmin"]
 
     users_ref = db.collection('users')
 
@@ -454,12 +499,15 @@ def get_users():
         'email': data.get('email'),
         'displayName': data.get('displayName'),
         'photoURL': data.get('photoURL'),
+        'isAdmin': ((data.get('email') or '').lower() in ADMIN_EMAILS) or bool(data.get('isAdmin', False)),
         'isPremium': False,  # geriye uyumluluk: artik herkes ucretsiz
         'credits': 0,        # geriye uyumluluk
         'totalAnalyses': data.get('totalAnalyses', 0),
         'adsWatched': data.get('adsWatched', 0),
         'rewardedAdsWatched': data.get('rewardedAdsWatched', 0),
         'createdAt': data.get('createdAt'),
+        'lastLogin': data.get('lastLogin'),
+        'lastSeen': data.get('lastSeen') or data.get('lastLogin'),
         'dailyUsage': data.get('dailyUsage', {})
     } for uid, data in users]
 
@@ -498,25 +546,27 @@ def get_user_detail(user_id):
     
     data = doc.to_dict()
     
-    # Satın alma geçmişi
-    purchases = list(
-        db.collection('purchases')
-        .where(filter=FieldFilter('userId', '==', user_id))
-        .order_by('timestamp', direction='DESCENDING')
-        .limit(20)
-        .stream()
-    )
-    
+    # Satın alma / etkinlik geçmişi (composite index hatasına karşı korumalı)
     purchase_list = []
-    for p in purchases:
-        pdata = p.to_dict()
-        purchase_list.append({
-            'id': p.id,
-            'type': pdata.get('type'),
-            'item': pdata.get('item') or pdata.get('packageId'),
-            'amount': pdata.get('amount') or pdata.get('credits'),
-            'timestamp': pdata.get('timestamp')
-        })
+    try:
+        purchases = list(
+            db.collection('purchases')
+            .where(filter=FieldFilter('userId', '==', user_id))
+            .limit(20)
+            .stream()
+        )
+        for p in purchases:
+            pdata = p.to_dict()
+            purchase_list.append({
+                'id': p.id,
+                'type': pdata.get('type'),
+                'item': pdata.get('item') or pdata.get('packageId'),
+                'amount': pdata.get('amount') or pdata.get('credits'),
+                'timestamp': pdata.get('timestamp')
+            })
+        purchase_list.sort(key=lambda x: str(x.get('timestamp') or ''), reverse=True)
+    except Exception as e:
+        logger.warning(f"User purchases query error: {e}")
 
     return jsonify({
         'success': True,
@@ -525,8 +575,8 @@ def get_user_detail(user_id):
             'email': data.get('email'),
             'displayName': data.get('displayName'),
             'photoURL': data.get('photoURL'),
-            # Premium/credits kaldirildi: sabit degerler dondurulur (geriye uyumluluk)
-            'isPremium': False,
+            'isAdmin': ((data.get('email') or '').lower() in ADMIN_EMAILS) or bool(data.get('isAdmin', False)),
+            'isPremium': False,  # geriye uyumluluk: artik herkes ucretsiz
             'premiumPackageId': None,
             'premiumExpiry': None,
             'credits': 0,
@@ -534,6 +584,8 @@ def get_user_detail(user_id):
             'adsWatched': data.get('adsWatched', 0),
             'rewardedAdsWatched': data.get('rewardedAdsWatched', 0),
             'createdAt': data.get('createdAt'),
+            'lastLogin': data.get('lastLogin'),
+            'lastSeen': data.get('lastSeen') or data.get('lastLogin'),
             'dailyUsage': data.get('dailyUsage', {}),
             'fcmTokens': data.get('fcmTokens', []),
             'purchases': purchase_list
@@ -822,7 +874,7 @@ def get_ai_settings():
 @handle_errors("AI ayarları güncellenemedi")
 def update_ai_settings():
     """Firestore'a AI provider ayarlarını kaydet"""
-    data = request.get_json()
+    data = request.get_json() or {}
     db = firebase_service.db
     if not db:
         return jsonify({
@@ -834,12 +886,18 @@ def update_ai_settings():
     from datetime import datetime
     from firebase_admin import firestore
 
+    providers = data.get('providers', [])
+    active_provider = (data.get('active_provider') or '').strip()
+    # Eğer aktif seçilmemişse ama provider varsa ilkini aktif yap
+    if not active_provider and providers:
+        active_provider = (providers[0].get('name') or '').strip()
+
     doc_data = {
-        'providers': data.get('providers', []),
-        'active_provider': data.get('active_provider', ''),
-        'backup_1': data.get('backup_1', ''),
-        'backup_2': data.get('backup_2', ''),
-        'backup_3': data.get('backup_3', ''),
+        'providers': providers,
+        'active_provider': active_provider,
+        'backup_1': (data.get('backup_1') or '').strip(),
+        'backup_2': (data.get('backup_2') or '').strip(),
+        'backup_3': (data.get('backup_3') or '').strip(),
         'updated_at': firestore.SERVER_TIMESTAMP,
         'updated_by': session.get('admin_email', 'unknown'),
     }
@@ -850,11 +908,11 @@ def update_ai_settings():
     db.collection('admin_logs').add({
         'action': 'ai_settings_update',
         'adminEmail': session.get('admin_email'),
-        'details': {'active_provider': data.get('active_provider')},
+        'details': {'active_provider': active_provider},
         'timestamp': firestore.SERVER_TIMESTAMP
     })
 
-    logger.info(f"AI settings updated by {session.get('admin_email')}: active={data.get('active_provider')}")
+    logger.info(f"AI settings updated by {session.get('admin_email')}: active={active_provider}")
 
     return jsonify({
         'success': True,
@@ -867,20 +925,29 @@ def update_ai_settings():
 @handle_errors("AI test başarısız")
 def test_ai_provider():
     """Provider'ı test et - basit bir API çağrısı yap"""
-    data = request.get_json()
-    base_url = data.get('base_url', '').rstrip('/')
-    api_key = data.get('api_key', '')
-    model = data.get('model', '')
-    name = data.get('name', 'Test')
+    data = request.get_json() or {}
+    base_url = (data.get('base_url') or '').strip().rstrip('/')
+    api_key = (data.get('api_key') or '').strip()
+    model = (data.get('model') or '').strip()
+    name = (data.get('name') or 'Test').strip()
 
     if not api_key:
         return jsonify({'success': False, 'error': 'API Key gerekli'}), 400
+
+    # base_url normalizasyonu: chat/completions çift eklenmesini önle
+    if not base_url:
+        url = "https://api.openai.com/v1/chat/completions"
+    elif base_url.endswith('/chat/completions'):
+        url = base_url
+    elif base_url.endswith('/v1'):
+        url = f"{base_url}/chat/completions"
+    else:
+        url = f"{base_url}/chat/completions"
 
     import aiohttp
     import asyncio
 
     async def test():
-        url = f"{base_url}/chat/completions"
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         # Test icin yeterli token ve anlamli prompt
         payload = {
@@ -898,17 +965,17 @@ def test_ai_provider():
                     raw_text = await resp.text()
                     if resp.status == 200:
                         try:
-                            data = json.loads(raw_text)
+                            res_json = json.loads(raw_text)
                             # Farkli API formatlarini dene
                             content = ""
-                            choices = data.get('choices', [])
+                            choices = res_json.get('choices', [])
                             if choices:
                                 msg = choices[0].get('message', {}) or choices[0].get('delta', {})
                                 content = msg.get('content', '')
                             if not content:
-                                content = data.get('response', '') or data.get('text', '')
+                                content = res_json.get('response', '') or res_json.get('text', '')
                             if not content:
-                                content = f"Yanit alindi (format: {list(data.keys())[:3]})"
+                                content = f"Yanit alindi (format: {list(res_json.keys())[:3]})"
                             return {'success': True, 'response': content.strip(), 'status': resp.status}
                         except json.JSONDecodeError:
                             # Bazi API'ler duz text doner
@@ -921,13 +988,21 @@ def test_ai_provider():
             return {'success': False, 'error': str(e)[:200]}
 
     try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
 
-    result = loop.run_until_complete(test())
-    logger.info(f"[AI Test] {name}: {'✅' if result['success'] else '❌'} {result.get('error', '')}")
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                result = pool.submit(lambda: asyncio.run(test())).result(timeout=20)
+        else:
+            result = asyncio.run(test())
+    except Exception as e:
+        result = {'success': False, 'error': str(e)[:200]}
+
+    logger.info(f"[AI Test] {name}: {'✅' if result.get('success') else '❌'} {result.get('error', '')}")
     return jsonify(result)
 
 

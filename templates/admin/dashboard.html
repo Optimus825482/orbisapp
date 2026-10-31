@@ -295,6 +295,16 @@
     if (Array.isArray(s.admobSparkline) && s.admobSparkline.length && window.OrbisCharts) {
       window.OrbisCharts.sparkline(document.getElementById('admob-spark'), s.admobSparkline, { height: 60 });
     }
+    if (Array.isArray(s.admobRevenueSeries) && s.admobRevenueSeries.length && window.OrbisCharts) {
+      window.OrbisCharts.lineChart(document.getElementById('chart-revenue'),
+        [{ name: 'USD', values: s.admobRevenueSeries.map(x => x.value), color: 'success' }],
+        { xLabels: s.admobRevenueSeries.map(x => x.label), height: 240, label: 'USD' });
+    }
+    if (Array.isArray(s.admobRewardedSeries) && s.admobRewardedSeries.length && window.OrbisCharts) {
+      window.OrbisCharts.lineChart(document.getElementById('chart-rewarded'),
+        [{ name: 'Rewarded', values: s.admobRewardedSeries.map(x => x.value), color: 'warning' }],
+        { xLabels: s.admobRewardedSeries.map(x => x.label), height: 240, label: 'Rewarded' });
+    }
   } catch (err) {
     console.warn('[admin] dashboard load failed', err);
   }

@@ -2265,14 +2265,49 @@ super() }}
     }
 
     function applyModalFontSize() {
-      $( '#ai-modal-body' ).css( 'font-size', modalFontSize + 'px' );
-      $( '#font-size-display' ).text( modalFontSize + 'px' );
+      const sz = modalFontSize + 'px';
+      const lh = Math.round( modalFontSize * 1.65 ) + 'px';
+      $( '#font-size-display' ).text( sz );
+
+      let styleEl = document.getElementById( 'modal-font-style' );
+      if ( !styleEl ) {
+        styleEl = document.createElement( 'style' );
+        styleEl.id = 'modal-font-style';
+        document.head.appendChild( styleEl );
+      }
+      styleEl.textContent = `
+        #ai-modal-body,
+        #streaming-content,
+        #ai-modal-body p,
+        #streaming-content p,
+        #ai-modal-body li,
+        #streaming-content li,
+        #ai-modal-body span:not(#font-size-display):not(.material-icons-round):not([class*="icon"]),
+        #streaming-content span {
+          font-size: ${sz} !important;
+          line-height: ${lh} !important;
+        }
+        #ai-modal-body strong,
+        #streaming-content strong,
+        #ai-modal-body b,
+        #streaming-content b {
+          font-size: ${sz} !important;
+        }
+        #ai-modal-body h1, #streaming-content h1,
+        #ai-modal-body h2, #streaming-content h2,
+        #ai-modal-body h3, #streaming-content h3,
+        #ai-modal-body h4, #streaming-content h4 {
+          font-size: ${modalFontSize + 3}px !important;
+          line-height: ${Math.round((modalFontSize + 3) * 1.4)}px !important;
+        }
+      `;
     }
 
   // existing logic continuation...
   function openAIModal() {
     // Footer'ı gizle (loading state'de görünmesin)
     $( '#ai-modal-footer' ).addClass( 'hidden' );
+    applyModalFontSize();
     $( '#ai-modal' ).removeClass( 'hidden' ).addClass( 'flex' );
     $( '#ai-modal-container' ).css( 'transform', 'translateY(100%)' ).animate( { 'opacity': 1 }, 10, function () {
       $( this ).css( 'transform', 'translateY(0)' );
@@ -2785,7 +2820,8 @@ super() }}
 // STREAMING AI YORUMU
       console.log( '[ORBIS] Streaming AI yorumu baslatiliyor...' );
 
-      $body.html( '<div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg"><div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div><span class="text-[11px] text-slate-300">AI yanit yaziyor...</span></div><div id="streaming-content" class="text-[11px] leading-relaxed"></div>' );
+      $body.html( '<div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg"><div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div><span class="text-[11px] text-slate-300">AI yanıt hazırlıyor...</span></div><div id="streaming-content" class="leading-relaxed"></div>' );
+      applyModalFontSize();
 
       var streamingContent = '';
       var startTime = Date.now();
@@ -2909,6 +2945,7 @@ super() }}
 
   // Sayfa yüklendiğinde
   $( document ).ready( function () {
+    applyModalFontSize();
     // Harita sekmesi aktifse hemen çiz
     if ( $( "#tab-chart" ).hasClass( "active" ) ) {
       setTimeout( renderAstroChart, 200 );

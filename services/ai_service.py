@@ -561,28 +561,43 @@ Teknik terim kullanma:
         return None
 
     def _get_fallback_chain(self) -> List[dict]:
-        """Aktif + yedek sırasına göre provider listesi döndür"""
+        """Aktif + yedek sırasına göre provider listesi döndür (Önce Firestore /admin/ai-settings)"""
         settings = self._get_providers_from_firestore()
         providers = settings.get('providers', [])
 
-        if not providers:
-            # Firestore'da provider yoksa env'den dene
-            return self._get_env_fallback_chain()
-
         chain = []
-        order_keys = ['active_provider', 'backup_1', 'backup_2', 'backup_3']
+        seen_names = set()
 
-        for key in order_keys:
-            name = settings.get(key, '')
-            provider = self._get_provider_by_name(name, providers)
-            if provider:
-                chain.append(provider)
+        if providers:
+            # 1. Sıralı anahtarlar: active_provider, backup_1, backup_2, backup_3
+            order_keys = ['active_provider', 'backup_1', 'backup_2', 'backup_3']
 
-        # Eğer hiç provider yoksa env'den dene
+            for key in order_keys:
+                name = str(settings.get(key, '')).strip()
+                if not name:
+                    continue
+                for p in providers:
+                    p_name = str(p.get('name', '')).strip()
+                    if (p_name.lower() == name.lower() or str(p.get('id', '')).strip() == name) and p_name not in seen_names:
+                        if p.get('api_key'):
+                            chain.append(p)
+                            seen_names.add(p_name)
+                        break
+
+            # 2. Eğer active_provider adı tam eşleşmediyse veya yedekler eksikse:
+            # Firestore'da (/admin/ai-settings) tanımlı TÜM geçerli provider'ları chain'e ekle
+            for p in providers:
+                p_name = str(p.get('name', '')).strip()
+                if p_name not in seen_names and p.get('api_key'):
+                    chain.append(p)
+                    seen_names.add(p_name)
+
+        # 3. Yalnızca Firestore'da hiç geçerli provider bulunamazsa ortam değişkenlerine (env) dön
         if not chain:
-            return self._get_env_fallback_chain()
+            logger.warning("[AI] Firestore'da geçerli provider bulunamadı, ortam değişkenlerine (env) dönülüyor.")
+            chain = self._get_env_fallback_chain()
 
-        logger.info(f"[AI] Fallback zinciri: {' -> '.join(p['name'] for p in chain)}")
+        logger.info(f"[AI] Fallback zinciri: {' -> '.join(p.get('name', 'Adsız') for p in chain)}")
         return chain
 
     def _get_env_fallback_chain(self) -> List[dict]:

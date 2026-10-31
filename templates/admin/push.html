@@ -221,7 +221,7 @@
         document.getElementById('title').value = '';
         document.getElementById('body').value = '';
         updatePreview();
-      } else { throw new Error(j.error || 'Gönderim başarısız'); }
+      } else { throw new Error(j.message || j.error || 'Gönderim başarısız'); }
     } catch (err) {
       showToast(err.message, 'error');
     } finally {

@@ -106,9 +106,22 @@ function saveProvider() {
   if(!name||!base_url||!api_key||!model){showBanner('error','Tüm alanlar zorunlu');return;}
   const obj={name,base_url,api_key,model};
   if(editIndex>=0) providers[editIndex]=obj; else providers.push(obj);
+  const actSel = document.getElementById('active-provider');
+  if(!actSel.value) actSel.value = name;
   saveToFirestore(); closeModal();
 }
-function deleteProvider(i){if(!confirm('Silmek istediğinize emin misiniz?'))return;providers.splice(i,1);saveToFirestore();}
+function deleteProvider(i){
+  if(!confirm('Silmek istediğinize emin misiniz?'))return;
+  const deletedName = providers[i]?.name;
+  providers.splice(i,1);
+  ['active-provider','backup-1','backup-2','backup-3'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.value === deletedName) el.value = '';
+  });
+  const actSel = document.getElementById('active-provider');
+  if(!actSel.value && providers.length > 0) actSel.value = providers[0].name;
+  saveToFirestore();
+}
 async function saveToFirestore(after=true) {
   const data={providers,active_provider:document.getElementById('active-provider').value,backup_1:document.getElementById('backup-1').value,backup_2:document.getElementById('backup-2').value,backup_3:document.getElementById('backup-3').value};
   try{const r=await fetch('/admin/api/ai-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();
