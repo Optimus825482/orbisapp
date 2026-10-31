@@ -640,13 +640,26 @@ def api_check_usage():
     PWA (web) istemcileri icin AdMob calismadigi icin reklam zorunlulugu
     kaldirilir. Sadece native (Android/Capacitor) istemcilerde reklam istenir.
     """
-    from monetization.usage_tracker import UsageTracker
+    from monetization.usage_tracker import UsageTracker, is_exempt_email
 
     data = request.get_json() or {}
     device_id = data.get('device_id')
     email = data.get('email')
 
     logger.info(f"[API] check_usage - device_id: {device_id}, email: {email}")
+
+    if is_exempt_email(email):
+        logger.info(f"[API] check_usage - Muaf hesap ({email}), reklamlar devre dışı")
+        return jsonify({
+            "allowed": True,
+            "requires_ad": False,
+            "is_ad_free": True,
+            "is_exempt": True,
+            "show_ads": False,
+            "cosmic_credits": 9999,
+            "remaining": "unlimited",
+            "message": "Geliştirici hesabı - Reklamlar tamamen kapalı"
+        })
 
     if not device_id:
         logger.error("[API] check_usage - device_id missing")

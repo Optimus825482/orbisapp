@@ -11,6 +11,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Geliştirici & Yönetici Hesapları (AdSense / AdMob Ceza Koruması)
+EXEMPT_EMAILS = {
+    'ikinciyenikitap54@gmail.com',
+    'erkanerdem8254@gmail.com',
+    'djerkan8254@gmail.com'
+}
+
+
+def is_exempt_email(email: str) -> bool:
+    if not email:
+        return False
+    return email.strip().lower() in EXEMPT_EMAILS
+
 
 class UsageTracker:
     """Kullanıcı kullanım takibi - Kozmik Kredi & 24h Reklamsız Pass Destekli"""
@@ -93,6 +106,25 @@ class UsageTracker:
 
     def get_user_usage(self, device_id: str, email: str = None) -> dict:
         """Kullanıcının bugünkü kullanımını, kredisini ve reklamsız mod durumunu getir"""
+        # Geliştirici / Yönetici hesapları AdSense / AdMob ceza koruması
+        if is_exempt_email(email):
+            return {
+                "device_id": device_id,
+                "today_usage": 0,
+                "cosmic_credits": 9999,
+                "is_ad_free": True,
+                "is_exempt": True,
+                "ad_free_until": "2099-12-31T23:59:59",
+                "ad_free_seconds": 99999999,
+                "daily_limit": 0,
+                "remaining": "unlimited",
+                "is_premium": True,
+                "show_ads": False,
+                "requires_ad": False,
+                "last_ad_watch": None,
+                "message": "Geliştirici hesabı - Reklamlar tamamen kapalı"
+            }
+
         today = date.today().isoformat()
         now = datetime.now()
 
@@ -163,19 +195,35 @@ class UsageTracker:
     def can_use_feature(self, device_id: str, feature: str = "ad_watch", email: str = None) -> dict:
         """
         Kullanıcı özelliği kullanabilir mi?
+        - Geliştirici / Yönetici hesapları: AdSense/AdMob ceza koruması nedeniyle reklamlar kapalıdır.
         - 24 saatlik Reklamsız Mod aktifse: Doğrudan izin verilir.
         - Kozmik Kredisi varsa (> 0): Kredi harcayarak doğrudan başlanabilir.
         - Hiçbiri yoksa: 1 video izleyerek veya kredi kazanarak devam edebilir.
         """
         usage = self.get_user_usage(device_id, email)
-        is_ad_free = usage.get("is_ad_free", False)
+        is_exempt = usage.get("is_exempt", False) or is_exempt_email(email)
+        is_ad_free = usage.get("is_ad_free", False) or is_exempt
         credits = usage.get("cosmic_credits", 0)
+
+        if is_exempt:
+            return {
+                "allowed": True,
+                "requires_ad": False,
+                "is_ad_free": True,
+                "is_exempt": True,
+                "show_ads": False,
+                "ad_free_seconds": 99999999,
+                "cosmic_credits": 9999,
+                "message": "Geliştirici hesabı - Reklamlar tamamen devre dışı"
+            }
 
         if is_ad_free:
             return {
                 "allowed": True,
                 "requires_ad": False,
                 "is_ad_free": True,
+                "is_exempt": False,
+                "show_ads": False,
                 "ad_free_seconds": usage.get("ad_free_seconds", 0),
                 "cosmic_credits": credits,
                 "message": "Reklamsız mod aktif"
@@ -188,6 +236,8 @@ class UsageTracker:
                 "can_spend_credit": True,
                 "cosmic_credits": credits,
                 "is_ad_free": False,
+                "is_exempt": False,
+                "show_ads": True,
                 "message": f"{credits} Kozmik Krediniz var. Kredi harcanarak açılabilir."
             }
 
@@ -197,6 +247,8 @@ class UsageTracker:
             "can_spend_credit": False,
             "cosmic_credits": 0,
             "is_ad_free": False,
+            "is_exempt": False,
+            "show_ads": True,
             "message": "Devam etmek için reklam izleyebilir veya kredi kazanabilirsiniz."
         }
 
@@ -206,6 +258,17 @@ class UsageTracker:
         - reward_type == 'credits': +2 Kozmik Kredi ekler.
         - reward_type == 'ad_free_24h': 24 saat reklamsız pass verir/uzatır.
         """
+        if is_exempt_email(email):
+            return {
+                "success": True,
+                "reward_type": reward_type,
+                "cosmic_credits": 9999,
+                "is_ad_free": True,
+                "is_exempt": True,
+                "ad_free_seconds": 99999999,
+                "message": "Geliştirici hesabı - Reklam izleme muafiyeti"
+            }
+
         now = datetime.now()
         user_usage = self.get_user_usage(device_id, email)
         cur_credits = user_usage.get("cosmic_credits", 2)
@@ -329,6 +392,16 @@ class UsageTracker:
         """
         Kullanımı kaydet (reklam izleme)
         """
+        if is_exempt_email(email):
+            return {
+                "success": True,
+                "device_id": device_id,
+                "is_exempt": True,
+                "today_usage": 0,
+                "is_ad_free": True,
+                "show_ads": False
+            }
+
         today = date.today().isoformat()
         now = datetime.now()
 

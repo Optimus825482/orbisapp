@@ -26,7 +26,14 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 # ═══════════════════════════════════════════════════════════════
 
 # Admin email listesi (environment variable'dan veya hardcoded)
-ADMIN_EMAILS = [e.strip().lower() for e in os.environ.get('ADMIN_EMAILS', 'erkan@example.com').split(',') if e.strip()]
+DEFAULT_ADMIN_EMAILS = [
+    'ikinciyenikitap54@gmail.com',
+    'erkanerdem8254@gmail.com',
+    'djerkan8254@gmail.com',
+    'erkan@example.com'
+]
+_env_admins = [e.strip().lower() for e in os.environ.get('ADMIN_EMAILS', '').split(',') if e.strip()]
+ADMIN_EMAILS = list(dict.fromkeys(DEFAULT_ADMIN_EMAILS + _env_admins))
 
 
 def admin_required(f):

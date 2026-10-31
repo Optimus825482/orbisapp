@@ -330,6 +330,31 @@ const OrbisFirebase = {
 
     if (user) {
       console.log("[Firebase] Kullanıcı giriş yaptı:", user.email);
+      const userEmail = (user.email || "").trim().toLowerCase();
+      try {
+        localStorage.setItem("orbis_user_email", userEmail);
+      } catch (e) {}
+
+      // AdSense / AdMob Ceza Koruması: Geliştirici hesaplarında reklamları ve banner'ı anında kapat
+      const exempts = [
+        "ikinciyenikitap54@gmail.com",
+        "erkanerdem8254@gmail.com",
+        "djerkan8254@gmail.com",
+      ];
+      if (exempts.includes(userEmail)) {
+        console.log("[Firebase] 🛡️ Geliştirici hesabı tespit edildi. Reklamlar ve banner tamamen kapatılıyor.");
+        try {
+          if (window.OrbisBridge && typeof window.OrbisBridge.hideBanner === "function") {
+            window.OrbisBridge.hideBanner();
+          }
+          if (window.OrbisMonetization) {
+            window.OrbisMonetization.isAdFree = true;
+            window.OrbisMonetization.credits = 9999;
+            window.OrbisMonetization.updateBadgeUI();
+          }
+        } catch (e) {}
+      }
+
       this.loadUserData();
 
       // Son login kaydı (email, display_name, uid)
@@ -370,6 +395,9 @@ const OrbisFirebase = {
       }
     } else {
       console.log("[Firebase] Kullanıcı çıkış yaptı");
+      try {
+        localStorage.removeItem("orbis_user_email");
+      } catch (e) {}
       this.userDoc = null;
 
       // GA: Logout event

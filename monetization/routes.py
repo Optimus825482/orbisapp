@@ -6,7 +6,7 @@ PWA (web) istemcilerde bu endpoint'ler no-op döner — sınırsız erişim.
 """
 import logging
 from flask import Blueprint, request, jsonify
-from monetization.usage_tracker import UsageTracker
+from monetization.usage_tracker import UsageTracker, is_exempt_email
 
 logger = logging.getLogger(__name__)
 

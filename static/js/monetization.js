@@ -28,15 +28,43 @@ class MonetizationManager {
         return deviceId;
     }
 
+    EXEMPT_EMAILS = [
+        'ikinciyenikitap54@gmail.com',
+        'erkanerdem8254@gmail.com',
+        'djerkan8254@gmail.com'
+    ];
+
     getUserEmail() {
         try {
-            return window.OrbisFirebase?.getCurrentUser()?.email || null;
+            const stored = (localStorage.getItem('orbis_user_email') || '').trim().toLowerCase();
+            if (stored) return stored;
+            if (window.OrbisFirebase?.getCurrentUser()?.email) {
+                return window.OrbisFirebase.getCurrentUser().email.toLowerCase().trim();
+            }
+            if (window.firebaseAuth?.user?.email) {
+                return window.firebaseAuth.user.email.toLowerCase().trim();
+            }
         } catch (e) {
             return null;
         }
+        return null;
+    }
+
+    isExemptUser() {
+        const email = (this.getUserEmail() || '').trim().toLowerCase();
+        return this.EXEMPT_EMAILS.includes(email);
     }
 
     async checkUsage() {
+        if (this.isExemptUser()) {
+            this.credits = 9999;
+            this.isAdFree = true;
+            this.adFreeSeconds = 99999999;
+            this.updateBadgeUI();
+            this.initTeasers();
+            return { is_exempt: true, is_ad_free: true, show_ads: false, cosmic_credits: 9999 };
+        }
+
         try {
             const response = await fetch(`${this.API_BASE}/check-usage`, {
                 method: 'POST',
@@ -319,22 +347,29 @@ class MonetizationManager {
         const unlockedList = this.getUnlockedTeasers();
         document.querySelectorAll('.teaser-box').forEach(box => {
             const id = box.id;
-            if (this.isAdFree || unlockedList.includes(id)) {
+            if (this.isAdFree || this.isExemptUser() || unlockedList.includes(id)) {
                 box.classList.add('teaser-unlocked');
             }
         });
+
+        // Reklamsız modda veya geliştirici hesabında in-feed reklam kartlarını gizle
+        if (this.isAdFree || this.isExemptUser()) {
+            document.querySelectorAll('.in-feed-ad-card').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
     }
 
     async unlockTeaser(teaserId) {
         const box = document.getElementById(teaserId);
         if (!box) return;
 
-        // 1. Reklamsız mod aktifse hemen aç
-        if (this.isAdFree) {
+        // 1. Reklamsız mod veya geliştirici hesabı aktifse hemen aç
+        if (this.isAdFree || this.isExemptUser()) {
             box.classList.add('teaser-unlocked');
             this.markTeaserUnlocked(teaserId);
             if (typeof window.showToast === 'function') {
-                window.showToast('Reklamsız mod aktif olduğu için kilit doğrudan açıldı!', 'success');
+                window.showToast('Geliştirici hesabı / Reklamsız mod: Kilit doğrudan açıldı! 🔓', 'success');
             }
             return;
         }

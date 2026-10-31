@@ -49,6 +49,32 @@ const OrbisBridge = {
     IS_TESTING: false,
   },
 
+  // ═══════════════════════════════════════════════════════════════
+  // ADMOB CEZA KORUMASI - Geliştirici & Yönetici Hesapları
+  // ═══════════════════════════════════════════════════════════════
+  EXEMPT_EMAILS: [
+    'ikinciyenikitap54@gmail.com',
+    'erkanerdem8254@gmail.com',
+    'djerkan8254@gmail.com'
+  ],
+
+  /**
+   * AdSense / AdMob geçersiz tıklama cezası koruması:
+   * Geliştirici veya hesap sahibi oturum açmışsa ASLA reklam yükleme veya gösterme!
+   */
+  isExemptUser() {
+    try {
+      const stored = (localStorage.getItem('orbis_user_email') || '').trim().toLowerCase();
+      if (stored && this.EXEMPT_EMAILS.includes(stored)) return true;
+      if (window.firebaseAuth?.user?.email && this.EXEMPT_EMAILS.includes(window.firebaseAuth.user.email.toLowerCase().trim())) return true;
+      if (window.OrbisFirebase?.getCurrentUser()?.email && this.EXEMPT_EMAILS.includes(window.OrbisFirebase.getCurrentUser().email.toLowerCase().trim())) return true;
+      if (window.firebase?.auth && window.firebase.auth().currentUser?.email && this.EXEMPT_EMAILS.includes(window.firebase.auth().currentUser.email.toLowerCase().trim())) return true;
+    } catch (e) {
+      console.warn("[ORBIS] isExemptUser kontrol hatası:", e);
+    }
+    return false;
+  },
+
   /** AdMob config döndür — tek kaynak window.ADMOB_CONFIG; fallback CONFIG.ADMOB_FALLBACK. */
   _getAdmob() {
     const cfg = window.ADMOB_CONFIG;
@@ -884,6 +910,10 @@ const OrbisBridge = {
 
   async initAdMob() {
     if (!this.state.isNative) return;
+    if (this.isExemptUser()) {
+      console.log("[ORBIS] 🛡️ Geliştirici hesabı - AdMob başlatma atlandı (ceza koruması)");
+      return;
+    }
 
     try {
       const { AdMob } = Capacitor.Plugins;
@@ -967,7 +997,7 @@ const OrbisBridge = {
   },
 
   async showBanner() {
-    if (!this.state.isNative || this.state.isPremium) return;
+    if (!this.state.isNative || this.state.isPremium || this.isExemptUser()) return;
 
     try {
       const { AdMob } = Capacitor.Plugins;
@@ -1022,7 +1052,7 @@ const OrbisBridge = {
 
   // Interstitial (tam ekran) reklam
   async loadInterstitialAd() {
-    if (!this.state.isNative) return;
+    if (!this.state.isNative || this.isExemptUser()) return;
 
     try {
       const { AdMob } = Capacitor.Plugins;
@@ -1040,7 +1070,7 @@ const OrbisBridge = {
   },
 
   async showInterstitialAd() {
-    if (!this.state.isNative || this.state.isPremium) return;
+    if (!this.state.isNative || this.state.isPremium || this.isExemptUser()) return;
 
     // Her X analizde bir göster
     if (this.state.totalAnalyses % this.CONFIG.INTERSTITIAL_INTERVAL !== 0) {
@@ -1067,7 +1097,7 @@ const OrbisBridge = {
   },
 
   async loadRewardedAd() {
-    if (!this.state.isNative) return;
+    if (!this.state.isNative || this.isExemptUser()) return;
 
     try {
       const { AdMob } = Capacitor.Plugins;
@@ -1093,7 +1123,7 @@ const OrbisBridge = {
    * Analiz sonrasi veya dashboard'da bonus butonu tiklandiginda gosterilir.
    */
   async loadBonusRewardedAd() {
-    if (!this.state.isNative) return;
+    if (!this.state.isNative || this.isExemptUser()) return;
 
     try {
       const { AdMob } = Capacitor.Plugins;
@@ -1118,6 +1148,11 @@ const OrbisBridge = {
    * @returns {Promise<{success: boolean, reason: string|null}>}
    */
   async showBonusRewardedAd() {
+    if (this.isExemptUser()) {
+      console.log("[ORBIS] 🛡️ Geliştirici hesabı - Bonus reklam izlenmiş sayılıyor.");
+      return Promise.resolve({ success: true, reason: "exempt_owner" });
+    }
+
     return new Promise(async (resolve) => {
       try {
         if (!this.state.isNative) {
@@ -1217,6 +1252,7 @@ const OrbisBridge = {
    * @returns {Promise<boolean>} - true gosterildi, false desteklenmiyor/hata
    */
   async showNativeAdvancedAd(containerId) {
+    if (this.isExemptUser()) return false;
     const adConfig = this._getAdmob();
     const nativeId = adConfig.nativeAdvancedId;
 
@@ -1236,6 +1272,11 @@ const OrbisBridge = {
   },
 
   async showRewardedAdFlow() {
+    if (this.isExemptUser()) {
+      console.log("[ORBIS] 🛡️ Geliştirici hesabı - Rewarded reklam doğrudan onaylandı.");
+      return Promise.resolve({ success: true, reason: "exempt_owner" });
+    }
+
     // WEB PLATFORM: modal popup ile reklam deneyimi
     if (!this.state.isNative) {
       console.log("[ORBIS] Web platform - reklam modal gösteriliyor...");
@@ -1248,6 +1289,11 @@ const OrbisBridge = {
   },
 
   async showRewardedAd() {
+    if (this.isExemptUser()) {
+      console.log("[ORBIS] 🛡️ Geliştirici hesabı - Rewarded reklam doğrudan onaylandı.");
+      return Promise.resolve({ success: true, reason: "exempt_owner" });
+    }
+
     return new Promise(async (resolve) => {
       try {
         // ═════════════════════════════════════════════════════════
@@ -1674,6 +1720,8 @@ const OrbisBridge = {
    * @returns {Promise<boolean>} - true = interstitial izlendi, false = basarisiz
    */
   showInterstitialAsRewardFallback(reason) {
+    if (this.isExemptUser()) return Promise.resolve(true);
+
     return new Promise(async (resolve) => {
       if (!this.state.isNative) {
         resolve(false);

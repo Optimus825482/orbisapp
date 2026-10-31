@@ -2762,6 +2762,19 @@ super() }}
 
   async function interpretTab( tabId ) {
     // ═══════════════════════════════════════════════════════════════
+    // Geliştirici & Reklamsız Mod Kontrolü:
+    // Eğer kullanıcı muaf hesapsa veya 24h reklamsız moddaysa
+    // ASLA reklam veya onay popup'ı gösterme, analizi hemen başlat.
+    // ═══════════════════════════════════════════════════════════════
+    const isExempt = (window.OrbisBridge && typeof window.OrbisBridge.isExemptUser === "function" && window.OrbisBridge.isExemptUser()) ||
+                     (window.monetization && (window.monetization.isAdFree || window.monetization.isExemptUser()));
+    if (isExempt) {
+      console.log("[ORBIS] 🛡️ Geliştirici / Reklamsız hesap - Reklam atlandı:", tabId);
+      runInterpretAnalysis(tabId);
+      return;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // BONUS REKLAM AKIŞI (AdMob ID: 9025146181)
     // Her analiz tıklamasında Rewarded Interstitial göster → başarılıysa
     // analiz sonucunu göster. "summary" sekmesi hariç (giriş ekranı).
