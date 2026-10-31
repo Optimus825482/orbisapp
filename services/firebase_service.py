@@ -201,17 +201,26 @@ class FirebaseService:
             
             response = messaging.send_each_for_multicast(message)
             
-            # Başarısız token'ları temizle
-            if response.failure_count > 0:
+            # Başarısız token'ları temizle ve yanıtları JSON uyumlu hale getir
+            clean_responses = []
+            if getattr(response, 'responses', None):
                 for idx, resp in enumerate(response.responses):
-                    if not resp.success:
-                        if isinstance(resp.exception, messaging.UnregisteredError):
+                    is_ok = bool(getattr(resp, 'success', False))
+                    msg_id = getattr(resp, 'message_id', None)
+                    err = str(resp.exception) if getattr(resp, 'exception', None) else None
+                    clean_responses.append({
+                        'success': is_ok,
+                        'message_id': msg_id,
+                        'error': err
+                    })
+                    if not is_ok and idx < len(tokens):
+                        if isinstance(getattr(resp, 'exception', None), messaging.UnregisteredError):
                             self._remove_invalid_token(tokens[idx])
             
             return {
-                'success_count': response.success_count,
-                'failure_count': response.failure_count,
-                'responses': response.responses
+                'success_count': getattr(response, 'success_count', 0),
+                'failure_count': getattr(response, 'failure_count', 0),
+                'responses': clean_responses
             }
             
         except Exception as e:

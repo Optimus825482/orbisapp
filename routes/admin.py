@@ -1292,9 +1292,23 @@ def send_push_notification():
         
         is_success = (result is not None) or (sent_count > 0) or (in_app_count > 0)
         
+        # JSON serileştirme güvenliği (SendResponse veya yabancı nesneler için tam koruma)
+        clean_result = None
+        if isinstance(result, dict):
+            clean_result = {}
+            for k, v in result.items():
+                try:
+                    import json
+                    json.dumps(v)
+                    clean_result[k] = v
+                except (TypeError, ValueError):
+                    clean_result[k] = str(v)
+        elif result is not None:
+            clean_result = {'messageId': str(result)}
+
         return jsonify({
             'success': is_success,
-            'result': result if isinstance(result, dict) else {'messageId': result},
+            'result': clean_result,
             'sentCount': sent_count,
             'inAppCount': in_app_count,
             'message': 'Bildirim başarıyla gönderildi.' if is_success else 'FCM servisi yanıt vermedi ancak işlem günlüğe kaydedildi.'
