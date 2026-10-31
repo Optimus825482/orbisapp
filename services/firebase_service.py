@@ -294,13 +294,16 @@ class FirebaseService:
         try:
             from datetime import datetime
             
-            self.db.collection('users').document(user_id).update({
+            self.db.collection('users').document(user_id).set({
                 'fcmTokens': firestore.ArrayUnion([{
                     'token': token,
                     'platform': platform,
                     'updatedAt': datetime.utcnow().isoformat()
-                }])
-            })
+                }]),
+                'notificationsEnabled': True,
+                'pushPermission': 'granted',
+                'pushPermissionUpdatedAt': datetime.utcnow().isoformat()
+            }, merge=True)
             return True
         except Exception as e:
             logger.error(f"[Firebase] Token kaydetme hatası: {e}")

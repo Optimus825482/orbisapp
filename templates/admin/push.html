@@ -16,11 +16,16 @@
       <form id="push-form" class="stack-4">
         <div>
           <label class="form-label">Hedef Kitle</label>
-          <div class="grid grid--3" style="gap: var(--space-2);">
+          <div class="grid grid--5" style="gap: var(--space-2);">
             <label class="target-option is-active" style="padding: var(--space-3);">
               <input type="radio" name="targetType" value="all" class="hidden" checked />
               <span class="material-symbols-outlined" style="font-size: 18px;">groups</span>
               <span style="font-size: 13px;">Herkese</span>
+            </label>
+            <label class="target-option" style="padding: var(--space-3);">
+              <input type="radio" name="targetType" value="active" class="hidden" />
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--success);">bolt</span>
+              <span style="font-size: 13px;">Aktifler</span>
             </label>
             <label class="target-option" style="padding: var(--space-3);">
               <input type="radio" name="targetType" value="topic" class="hidden" />
@@ -32,32 +37,61 @@
               <span class="material-symbols-outlined" style="font-size: 18px;">person</span>
               <span style="font-size: 13px;">Kullanıcı</span>
             </label>
+            <label class="target-option" style="padding: var(--space-3);">
+              <input type="radio" name="targetType" value="token" class="hidden" />
+              <span class="material-symbols-outlined" style="font-size: 18px;">devices</span>
+              <span style="font-size: 13px;">Token</span>
+            </label>
           </div>
         </div>
 
         <div id="topic-select" hidden>
           <label for="topic" class="form-label">Topic Seç</label>
           <select id="topic" class="select">
-            <option value="all_users">Tüm Kullanıcılar</option>
+            <option value="all_users">Tüm Kullanıcılar (all_users)</option>
             <option value="daily_horoscope">Günlük Burç Aboneleri</option>
             <option value="weekly_horoscope">Haftalık Burç Aboneleri</option>
           </select>
         </div>
 
         <div id="user-select" hidden>
-          <label for="userId" class="form-label">Kullanıcı ID</label>
-          <input type="text" id="userId" class="input" placeholder="Firebase User ID" />
+          <label for="userId" class="form-label">Kullanıcı ID veya E-posta</label>
+          <input type="text" id="userId" class="input" placeholder="Firebase UID veya kullanıcı e-postası…" />
+        </div>
+
+        <div id="token-select" hidden>
+          <label for="deviceToken" class="form-label">FCM Cihaz Token</label>
+          <input type="text" id="deviceToken" class="input" placeholder="fcm_token..." />
+        </div>
+
+        <div id="active-info-banner" hidden style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: var(--space-3); font-size: 12px; color: var(--ink);">
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--success); margin-bottom: 2px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>
+            Şu an Aktif Olan Kullanıcılar Hedeflendi
+          </div>
+          <div class="text-ink-faint">Bildirim anlık olarak online kullanıcılara kendi isimleriyle kişiselleştirilerek push ve uygulama içi banner olarak iletilecektir.</div>
         </div>
 
         <div>
-          <label for="title" class="form-label">Başlık</label>
-          <input type="text" id="title" class="input" placeholder="Bildirim başlığı" required />
+          <div class="row row--between" style="margin-bottom: 4px;">
+            <label for="title" class="form-label" style="margin: 0;">Başlık</label>
+            <span style="font-size: 11px; color: var(--primary); cursor: pointer;" id="push-add-tag-title">+ {name} etiketi ekle</span>
+          </div>
+          <input type="text" id="title" class="input" placeholder="Bildirim başlığı (Örn: Merhaba {name}! ✨)" required />
         </div>
 
         <div>
-          <label for="body" class="form-label">Mesaj</label>
-          <textarea id="body" class="textarea" rows="4" placeholder="Bildirim içeriği" required></textarea>
+          <div class="row row--between" style="margin-bottom: 4px;">
+            <label for="body" class="form-label" style="margin: 0;">Mesaj</label>
+            <span style="font-size: 11px; color: var(--primary); cursor: pointer;" id="push-add-tag-body">+ {name} etiketi ekle</span>
+          </div>
+          <textarea id="body" class="textarea" rows="4" placeholder="Bildirim içeriği (Örn: Sevgili {name}, bugünkü gökyüzü haritan seni bekliyor.)" required></textarea>
         </div>
+
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+          <input type="checkbox" id="sendInApp" checked />
+          <span>Uygulama İçi (In-App) Bildirim Olarak da İlet</span>
+        </label>
 
         <button type="submit" class="btn btn--primary btn--lg btn--block">
           <span class="material-symbols-outlined">send</span>
@@ -117,25 +151,26 @@
     <section class="card stagger">
       <header class="card-head">
         <div>
-          <h2 class="card-title">Önizleme</h2>
-          <p class="card-subtitle">Gönderilecek bildirimin görünümü</p>
+          <h2 class="card-title">Canlı Önizleme</h2>
+          <p class="card-subtitle">Kullanıcı cihazındaki bildirim görünümü</p>
         </div>
         <span class="badge badge--dot badge--info">Canlı</span>
       </header>
       <div class="card-body">
-        <div style="background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; gap: var(--space-3);">
-          <div class="metric-icon" style="width: 40px; height: 40px; flex-shrink: 0;">
-            <span class="material-symbols-outlined">all_inclusive</span>
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-xl); padding: var(--space-4); display: flex; gap: var(--space-3); box-shadow: var(--glass-shadow-lg);">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--grad-primary); display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
+            <img src="/static/all-icons/Android/Icon-72.png" alt="ORBIS" style="width: 26px; height: 26px; border-radius: 6px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="material-symbols-outlined" style="display: none; color: #fff; font-size: 22px;">notifications_active</span>
           </div>
           <div style="flex: 1; min-width: 0;">
             <div class="row row--between" style="margin-bottom: 2px;">
-              <span style="font-weight: 600; font-size: 13px; color: var(--ink);" id="preview-title">ORBIS</span>
-              <span style="font-size: 10px; color: var(--ink-faint);">şimdi</span>
+              <span style="font-weight: 600; font-size: 13px; color: #fff;" id="preview-title">ORBIS</span>
+              <span style="font-size: 11px; color: #94a3b8;">şimdi</span>
             </div>
-            <p style="font-size: 12px; color: var(--ink-muted); line-height: 1.4; margin: 0;" id="preview-body">Bildirim önizlemesi burada görünecek...</p>
+            <p style="font-size: 12px; color: #cbd5e1; line-height: 1.45; margin: 0; word-break: break-word;" id="preview-body">Bildirim önizlemesi burada görünecek...</p>
           </div>
         </div>
-        <p style="font-size: 10px; color: var(--ink-faint); text-align: center; margin-top: var(--space-3);">Gerçek görünüm cihaza göre değişebilir</p>
+        <p style="font-size: 11px; color: var(--ink-faint); text-align: center; margin-top: var(--space-3); margin-bottom: 0;">Kullanıcı kilit ekranında veya bildirim çekmecesinde bu şekilde görür</p>
       </div>
     </section>
 
@@ -149,14 +184,126 @@
       <div class="card-body" style="padding-top: 0;">
         <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">all_users</span><span style="font-size: 12px; color: var(--ink-muted);">Tüm kayıtlı cihazlar</span></div>
         <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">daily_horoscope</span><span style="font-size: 12px; color: var(--ink-muted);">Günlük aboneler</span></div>
+        <div class="info-row"><span style="font-size: 13px; font-family: var(--font-mono); color: var(--primary);">weekly_horoscope</span><span style="font-size: 12px; color: var(--ink-muted);">Haftalık aboneler</span></div>
       </div>
     </section>
   </div>
 </div>
+
+<!-- ═══ Bildirim İzni Veren Kullanıcılar & Cihazlar ═══ -->
+<section class="card stagger" style="margin-top: var(--space-6);">
+  <header class="card-head">
+    <div>
+      <h2 class="card-title">Bildirim İzni Verenler (Abone Listesi)</h2>
+      <p class="card-subtitle">Uygulamadan push bildirimi almayı kabul eden aktif kullanıcı ve cihazlar</p>
+    </div>
+    <div class="row" style="gap: var(--space-2);">
+      <button class="btn btn--ghost btn--sm" type="button" onclick="loadSubscribers()">
+        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
+        Yenile
+      </button>
+    </div>
+  </header>
+  <div class="card-body">
+    <!-- Stat Sayaçları (Admin KPI Metric Card Design) -->
+    <div class="grid grid--4 stagger" style="margin-bottom: var(--space-5);">
+      <div class="metric">
+        <div class="metric-head">
+          <span class="metric-label">Toplam Abone</span>
+          <span class="metric-icon"><span class="material-symbols-outlined">notifications_active</span></span>
+        </div>
+        <div id="sub-stat-total" class="metric-value">0</div>
+        <div class="metric-foot">
+          <span class="metric-compare">İzin vermiş tüm cihazlar</span>
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-head">
+          <span class="metric-label">Web / PWA</span>
+          <span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">language</span></span>
+        </div>
+        <div id="sub-stat-web" class="metric-value">0</div>
+        <div class="metric-foot">
+          <span class="metric-compare">Tarayıcı & Masaüstü</span>
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-head">
+          <span class="metric-label">Android Native</span>
+          <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">android</span></span>
+        </div>
+        <div id="sub-stat-android" class="metric-value">0</div>
+        <div class="metric-foot">
+          <span class="metric-compare">Capacitor mobil uygulama</span>
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-head">
+          <span class="metric-label">Kayıtlı Kullanıcı</span>
+          <span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">verified_user</span></span>
+        </div>
+        <div id="sub-stat-auth" class="metric-value">0</div>
+        <div class="metric-foot">
+          <span class="metric-compare">Hesabı bağlı üyeler</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtreleme & Arama -->
+    <div class="row row--between" style="margin-bottom: var(--space-4); gap: var(--space-3); flex-wrap: wrap;">
+      <div class="input-group" style="flex: 1; min-width: 260px;">
+        <span class="input-group-icon material-symbols-outlined">search</span>
+        <input id="subscriber-search" class="input" type="search" placeholder="İsim, e-posta veya cihaz ara..." />
+      </div>
+      <div class="period-selector" role="tablist">
+        <button type="button" class="period-option is-active" data-sub-filter="all">Tümü</button>
+        <button type="button" class="period-option" data-sub-filter="web">Web (PWA)</button>
+        <button type="button" class="period-option" data-sub-filter="android">Android</button>
+        <button type="button" class="period-option" data-sub-filter="auth">Giriş Yapmış</button>
+      </div>
+    </div>
+
+    <!-- Tablo -->
+    <div class="table-wrap">
+      <table class="table" id="subscribers-table">
+        <thead>
+          <tr>
+            <th>Kullanıcı / Cihaz</th>
+            <th>Platform</th>
+            <th>Token Özeti</th>
+            <th>Konular</th>
+            <th>İzin Tarihi</th>
+            <th style="text-align: right;">İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="subscribers-tbody">
+          <tr><td colspan="6">
+            <div class="empty" style="padding: var(--space-8) 0;">
+              <div class="empty-icon"><span class="material-symbols-outlined">hourglass_empty</span></div>
+              <div class="empty-title">Yükleniyor…</div>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+  let allSubscribers = [];
+  let currentSubFilter = 'all';
+  let subSearchQuery = '';
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   document.querySelectorAll('input[name="targetType"]').forEach(function (radio) {
     radio.addEventListener('change', function () {
       document.querySelectorAll('.target-option').forEach(function (opt) { opt.classList.remove('is-active'); });
@@ -164,24 +311,45 @@
       const v = this.value;
       document.getElementById('topic-select').hidden = v !== 'topic';
       document.getElementById('user-select').hidden = v !== 'user';
+      document.getElementById('token-select').hidden = v !== 'token';
+      const activeBanner = document.getElementById('active-info-banner');
+      if (activeBanner) activeBanner.hidden = v !== 'active';
     });
   });
 
   document.getElementById('title').addEventListener('input', updatePreview);
   document.getElementById('body').addEventListener('input', updatePreview);
 
+  // Quick tag ekleme butonları
+  const addTag = (targetInputId, tag) => {
+    const el = document.getElementById(targetInputId);
+    if (!el) return;
+    const start = el.selectionStart || el.value.length;
+    const end = el.selectionEnd || el.value.length;
+    el.value = el.value.substring(0, start) + tag + el.value.substring(end);
+    el.focus();
+    el.selectionStart = el.selectionEnd = start + tag.length;
+    updatePreview();
+  };
+  document.getElementById('push-add-tag-title')?.addEventListener('click', () => addTag('title', ' {name}'));
+  document.getElementById('push-add-tag-body')?.addEventListener('click', () => addTag('body', ' {name}'));
+
   function updatePreview() {
-    const title = document.getElementById('title').value || 'ORBIS';
-    const body = document.getElementById('body').value || 'Bildirim önizlemesi burada görünecek...';
+    const rawTitle = document.getElementById('title').value || 'ORBIS';
+    const rawBody = document.getElementById('body').value || 'Bildirim önizlemesi burada görünecek...';
+    // Canlı önizlemede {name} etiketini örnek bir isimle (Erkan) gösterelim
+    const sampleName = 'Erkan';
+    const title = rawTitle.replace(/\{name\}|\{isim\}|\{ad\}|\{displayName\}/gi, sampleName);
+    const body = rawBody.replace(/\{name\}|\{isim\}|\{ad\}|\{displayName\}/gi, sampleName);
     document.getElementById('preview-title').textContent = title;
     document.getElementById('preview-body').textContent = body;
   }
 
   const TEMPLATES = {
-    daily:  { title: '🌟 Günlük Burç Yorumunuz Hazır!', body: 'Bugün yıldızlar sizin için ne söylüyor? Günlük kozmik rehberinizi keşfedin.' },
-    weekly: { title: '📅 Haftalık Kozmik Analiz',         body: 'Bu haftanın astrolojik enerjileri ve size özel tavsiyeleri görüntüleyin.' },
-    engagement: { title: '✨ Yeni Analiz Sizi Bekliyor', body: 'Bugün yıldızlar size özel bir şey söylüyor. Hemen analizinizi başlatın.' },
-    update: { title: '🚀 ORBIS Güncellendi!',             body: 'Yeni özellikler ve iyileştirmeler sizi bekliyor. Uygulamayı açın ve keşfedin.' }
+    daily:      { title: '🌟 {name}, Günlük Enerjin Hazır!', body: 'Sevgili {name}, bugün gökyüzünün sana sunduğu fırsatları ve kozmik haritanı keşfet.' },
+    weekly:     { title: '📅 {name}, Haftalık Kozmik Analizin', body: 'Bu haftanın gezegen hareketleri senin haritanı nasıl etkiliyor? Detaylar için dokun.' },
+    engagement: { title: '✨ {name}, Yıldızlar Sana Sesleniyor', body: 'Haritandaki yeni transitler aktifleşti. Senin için hazırlanan güncel yorumu incele.' },
+    update:     { title: '🚀 ORBIS Güncellendi!', body: 'Yeni özellikler ve kişiselleştirilmiş kozmik rehberiniz sizi bekliyor. Hemen keşfedin.' }
   };
 
   window.useTemplate = function (key) {
@@ -199,13 +367,19 @@
     const targetType = targetTypeEl.value;
     const title = document.getElementById('title').value.trim();
     const body = document.getElementById('body').value.trim();
+    const sendInApp = document.getElementById('sendInApp')?.checked || false;
     if (!title || !body) { showToast('Başlık ve mesaj gerekli', 'error'); return; }
+    
     let target = null;
     if (targetType === 'topic') target = document.getElementById('topic').value;
     else if (targetType === 'user') {
       target = document.getElementById('userId').value.trim();
       if (!target) { showToast('Kullanıcı ID gerekli', 'error'); return; }
+    } else if (targetType === 'token') {
+      target = document.getElementById('deviceToken').value.trim();
+      if (!target) { showToast('Cihaz Token gerekli', 'error'); return; }
     }
+
     const btn = this.querySelector('button[type="submit"]');
     const orig = btn.innerHTML;
     btn.disabled = true;
@@ -213,7 +387,7 @@
     try {
       const r = await fetch('/admin/api/push/send', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetType, target, title, body })
+        body: JSON.stringify({ targetType, target, title, body, sendInApp })
       });
       const j = await r.json();
       if (j.success) {
@@ -228,6 +402,149 @@
       btn.disabled = false;
       btn.innerHTML = orig;
     }
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // ABONE LİSTESİ (SUBSCRIBERS)
+  // ═══════════════════════════════════════════════════════════════
+
+  async function loadSubscribers() {
+    const tbody = document.getElementById('subscribers-tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty" style="padding: var(--space-8) 0;"><div class="empty-icon"><span class="material-symbols-outlined animate-spin">progress_activity</span></div><div class="empty-title">Yükleniyor…</div></div></td></tr>';
+    }
+    try {
+      const r = await fetch('/admin/api/push/subscribers', { credentials: 'same-origin' });
+      const j = await r.json();
+      if (!j.success || !j.data) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-title">Veri yüklenemedi</div></div></td></tr>';
+        return;
+      }
+      allSubscribers = j.data.subscribers || [];
+      const stats = j.data.stats || {};
+      
+      document.getElementById('sub-stat-total').textContent = stats.total || 0;
+      document.getElementById('sub-stat-web').textContent = stats.web || 0;
+      document.getElementById('sub-stat-android').textContent = stats.android || 0;
+      document.getElementById('sub-stat-auth').textContent = stats.authenticated || 0;
+
+      renderSubscribers();
+    } catch (e) {
+      console.warn('[Push] loadSubscribers error:', e);
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-title">Bağlantı hatası</div></div></td></tr>';
+    }
+  }
+
+  function renderSubscribers() {
+    const tbody = document.getElementById('subscribers-tbody');
+    if (!tbody) return;
+
+    let filtered = allSubscribers.slice();
+
+    if (currentSubFilter === 'web') filtered = filtered.filter(s => s.platform === 'web');
+    else if (currentSubFilter === 'android') filtered = filtered.filter(s => s.platform === 'android');
+    else if (currentSubFilter === 'auth') filtered = filtered.filter(s => !!s.userId);
+
+    if (subSearchQuery) {
+      const q = subSearchQuery.toLowerCase();
+      filtered = filtered.filter(s => 
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.email || '').toLowerCase().includes(q) ||
+        (s.deviceId || '').toLowerCase().includes(q) ||
+        (s.token || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty" style="padding: var(--space-8) 0;">' +
+        '<div class="empty-icon"><span class="material-symbols-outlined">notifications_off</span></div>' +
+        '<div class="empty-title">Bildirim izni veren bulunamadı</div>' +
+        '<div class="empty-desc">Filtre kriterlerinize uyan abone yok veya henüz izin veren cihaz kaydedilmemiş.</div>' +
+        '</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(s => {
+      const isAuth = !!s.userId;
+      const initial = (s.name || s.email || 'C').charAt(0).toUpperCase();
+      const platformBadge = s.platform === 'android'
+        ? '<span class="badge badge--warning"><span class="material-symbols-outlined" style="font-size: 13px;">android</span> Android</span>'
+        : s.platform === 'ios'
+        ? '<span class="badge badge--info"><span class="material-symbols-outlined" style="font-size: 13px;">phone_iphone</span> iOS</span>'
+        : '<span class="badge badge--primary"><span class="material-symbols-outlined" style="font-size: 13px;">language</span> Web PWA</span>';
+
+      const topicsStr = (s.topics && s.topics.length) 
+        ? s.topics.map(t => '<span class="badge badge--sm" style="font-size: 11px;">' + escapeHtml(t) + '</span>').join(' ')
+        : '<span style="color: var(--ink-faint); font-size: 11px;">all_users</span>';
+
+      const copyTokenBtn = `<button type="button" class="icon-btn icon-btn--ghost" onclick="navigator.clipboard.writeText('${escapeHtml(s.token)}'); showToast('Token kopyalandı', 'success');" title="Token'ı kopyala"><span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span></button>`;
+
+      return '<tr>' +
+        '<td><div class="row" style="gap: var(--space-3);">' +
+          '<div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 12px; ' + (isAuth ? 'background: var(--primary); color: #fff;' : 'background: var(--glass-bg-2);') + '">' + escapeHtml(initial) + '</div>' +
+          '<div>' +
+            '<div style="font-weight: 500; font-size: 13px;">' + escapeHtml(s.name) + (isAuth ? ' <span class="badge badge--dot badge--success" style="font-size: 10px;">Üye</span>' : ' <span class="badge badge--sm" style="font-size: 10px;">Misafir</span>') + '</div>' +
+            '<div style="color: var(--ink-muted); font-size: 11px;">' + escapeHtml(s.email || (s.deviceId ? 'ID: ' + s.deviceId : '')) + '</div>' +
+          '</div>' +
+        '</div></td>' +
+        '<td>' + platformBadge + '</td>' +
+        '<td><div class="row" style="gap: 4px;"><code style="font-size: 11px; color: var(--ink-muted); background: var(--glass-bg-2); padding: 2px 6px; border-radius: 4px;">' + escapeHtml(s.token_short) + '</code>' + copyTokenBtn + '</div></td>' +
+        '<td>' + topicsStr + '</td>' +
+        '<td style="color: var(--ink-muted); font-size: 12px;">' + escapeHtml(s.updatedAt) + '</td>' +
+        '<td style="text-align: right;">' +
+          '<button type="button" class="btn btn--primary btn--sm" onclick="targetSubscriber(\'' + escapeHtml(s.userId || '') + '\', \'' + escapeHtml(s.token) + '\', \'' + escapeHtml(s.name) + '\')">' +
+            '<span class="material-symbols-outlined" style="font-size: 14px;">send</span> Gönder' +
+          '</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  window.targetSubscriber = function(userId, token, name) {
+    if (userId) {
+      const radio = document.querySelector('input[name="targetType"][value="user"]');
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+      }
+      const uInput = document.getElementById('userId');
+      if (uInput) uInput.value = userId;
+    } else {
+      const radio = document.querySelector('input[name="targetType"][value="token"]');
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+      }
+      const tInput = document.getElementById('deviceToken');
+      if (tInput) tInput.value = token;
+    }
+
+    const titleInput = document.getElementById('title');
+    if (titleInput) {
+      titleInput.value = 'Merhaba ' + (name !== 'Misafir Cihaz' ? name : '') + ' ✨';
+      updatePreview();
+      titleInput.focus();
+    }
+    document.getElementById('push-form-card')?.scrollIntoView({ behavior: 'smooth' });
+    showToast(name + ' hedeflendi, mesajınızı yazıp gönderebilirsiniz', 'info');
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('subscriber-search')?.addEventListener('input', function (e) {
+      subSearchQuery = e.target.value || '';
+      renderSubscribers();
+    });
+
+    document.querySelectorAll('[data-sub-filter]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-sub-filter]').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        currentSubFilter = btn.getAttribute('data-sub-filter');
+        renderSubscribers();
+      });
+    });
+
+    loadSubscribers();
   });
 </script>
 {% endblock %}

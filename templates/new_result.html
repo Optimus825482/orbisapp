@@ -1560,23 +1560,23 @@ super() }}
           <div class="flex items-center gap-2">
             <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Yazı:</span>
             <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10">
-              <button onclick="changeModalFontSize(-2)"
+              <button type="button" onclick="changeModalFontSize(-2)"
                 class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
                 title="Küçült">
-                <span class="text-xs font-bold">A-</span>
+                <span class="text-xs font-bold pointer-events-none">A-</span>
               </button>
-              <span id="font-size-display" class="text-[10px] font-bold text-white min-w-[36px] text-center font-mono">16px</span>
-              <button onclick="changeModalFontSize(2)"
+              <span id="font-size-display" class="text-[10px] font-bold text-white min-w-[36px] text-center font-mono select-none">16px</span>
+              <button type="button" onclick="changeModalFontSize(2)"
                 class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
                 title="Büyüt">
-                <span class="text-sm font-bold">A+</span>
+                <span class="text-sm font-bold pointer-events-none">A+</span>
               </button>
             </div>
-            <button onclick="changeModalFontSize(16 - modalFontSize)"
+            <button type="button" onclick="resetModalFontSize()"
               class="text-[9px] text-slate-500 hover:text-slate-300 transition-colors ml-1" title="Sıfırla">
-              <span class="material-icons-round text-xs">restart_alt</span>
+              <span class="material-icons-round text-xs pointer-events-none">restart_alt</span>
             </button>
-      </div>
+          </div>
     </footer>
   </div>
 </div>
@@ -1694,8 +1694,10 @@ super() }}
   const astroData = window.astroData;
   const orbVideoUrl = "{{ url_for('static', filename='orb.mp4') }}";
   let currentInterpretationText = "";
-    let kozmikOzetText = "";
-    let modalFontSize = parseInt( localStorage.getItem( 'orbis-modal-font-size' ) || '16' );
+  let kozmikOzetText = "";
+  const _savedFontSize = parseInt( localStorage.getItem( 'orbis-modal-font-size' ), 10 );
+  window.modalFontSize = (!isNaN(_savedFontSize) && _savedFontSize >= 12 && _savedFontSize <= 28) ? _savedFontSize : 16;
+  var modalFontSize = window.modalFontSize;
 
   function switchResultTab( tabId ) {
     $( ".tab-content" ).removeClass( "active" );
@@ -2245,30 +2247,66 @@ super() }}
         </div>`;
       $( '#ai-modal-body' ).html( marked.parse( kozmikOzetText ) + disclaimerNote );
 
+      // Modalı aç
+      openAIModal();
+
       // Font boyutunu uygula
       applyModalFontSize();
 
       // Footer'ı göster (TTS, font controls, copy)
       $( '#ai-modal-footer' ).removeClass( 'hidden' );
-
-      // Modalı aç
-      openAIModal();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // FONT BOYUTU KONTROL
     // ═══════════════════════════════════════════════════════════════════════════
     function changeModalFontSize( delta ) {
-      modalFontSize = Math.max( 12, Math.min( 28, modalFontSize + delta ) );
-      localStorage.setItem( 'orbis-modal-font-size', modalFontSize.toString() );
+      let cur = parseInt( window.modalFontSize || modalFontSize, 10 );
+      if ( isNaN( cur ) || cur < 12 || cur > 28 ) cur = 16;
+      cur = Math.max( 12, Math.min( 28, cur + delta ) );
+      window.modalFontSize = cur;
+      modalFontSize = cur;
+      try {
+        localStorage.setItem( 'orbis-modal-font-size', cur.toString() );
+      } catch ( e ) {}
+      applyModalFontSize();
+    }
+
+    function resetModalFontSize() {
+      window.modalFontSize = 16;
+      modalFontSize = 16;
+      try {
+        localStorage.setItem( 'orbis-modal-font-size', '16' );
+      } catch ( e ) {}
       applyModalFontSize();
     }
 
     function applyModalFontSize() {
-      const sz = modalFontSize + 'px';
-      const lh = Math.round( modalFontSize * 1.65 ) + 'px';
+      let cur = parseInt( window.modalFontSize || modalFontSize, 10 );
+      if ( isNaN( cur ) || cur < 12 || cur > 28 ) {
+        cur = 16;
+        window.modalFontSize = 16;
+        modalFontSize = 16;
+      }
+      const sz = cur + 'px';
+      const lh = Math.round( cur * 1.65 ) + 'px';
+      const hSz = ( cur + 4 ) + 'px';
+      const hLh = Math.round( ( cur + 4 ) * 1.35 ) + 'px';
+
       $( '#font-size-display' ).text( sz );
 
+      // 1. Doğrudan DOM elementlerine inline style ver (anında etki ve yüksek öncelik)
+      const targets = [
+        '#ai-modal-body',
+        '#streaming-content',
+        '#ai-stream-content',
+        '#ai-modal-body p',
+        '#streaming-content p',
+        '#ai-stream-content p'
+      ];
+      $( targets.join( ', ' ) ).css( { 'font-size': sz, 'line-height': lh } );
+
+      // 2. Head içerisindeki <style> etiketini güncelle (tüm iç elementleri ve dinamik stream parçalarını kapsasın)
       let styleEl = document.getElementById( 'modal-font-style' );
       if ( !styleEl ) {
         styleEl = document.createElement( 'style' );
@@ -2277,28 +2315,40 @@ super() }}
       }
       styleEl.textContent = `
         #ai-modal-body,
+        #ai-modal-body *,
         #streaming-content,
-        #ai-modal-body p,
-        #streaming-content p,
-        #ai-modal-body li,
-        #streaming-content li,
-        #ai-modal-body span:not(#font-size-display):not(.material-icons-round):not([class*="icon"]),
-        #streaming-content span {
+        #streaming-content *,
+        #ai-stream-content,
+        #ai-stream-content * {
           font-size: ${sz} !important;
           line-height: ${lh} !important;
         }
         #ai-modal-body strong,
         #streaming-content strong,
+        #ai-stream-content strong,
         #ai-modal-body b,
-        #streaming-content b {
+        #streaming-content b,
+        #ai-stream-content b {
           font-size: ${sz} !important;
+          line-height: ${lh} !important;
+          font-weight: 700 !important;
         }
-        #ai-modal-body h1, #streaming-content h1,
-        #ai-modal-body h2, #streaming-content h2,
-        #ai-modal-body h3, #streaming-content h3,
-        #ai-modal-body h4, #streaming-content h4 {
-          font-size: ${modalFontSize + 3}px !important;
-          line-height: ${Math.round((modalFontSize + 3) * 1.4)}px !important;
+        #ai-modal-body h1, #streaming-content h1, #ai-stream-content h1,
+        #ai-modal-body h2, #streaming-content h2, #ai-stream-content h2,
+        #ai-modal-body h3, #streaming-content h3, #ai-stream-content h3,
+        #ai-modal-body h4, #streaming-content h4, #ai-stream-content h4 {
+          font-size: ${hSz} !important;
+          line-height: ${hLh} !important;
+          font-weight: 700 !important;
+        }
+        #ai-modal-footer,
+        #ai-modal-footer * {
+          font-size: unset;
+          line-height: unset;
+        }
+        #font-size-display {
+          font-size: 10px !important;
+          line-height: 1 !important;
         }
       `;
     }
@@ -2889,6 +2939,7 @@ super() }}
                   currentInterpretationText = streamingContent;
                   $body.find( '.animate-spin' ).parent().remove();
                   $( '#ai-modal-footer' ).removeClass( 'hidden' );
+                  applyModalFontSize();
 
                 } else if ( data.type === 'error' ) {
                   console.error( '[ORBIS] AI Streaming error event:', data.message );
@@ -2924,6 +2975,7 @@ super() }}
             $body.find( '.animate-spin' ).parent().remove();
             $( '#streaming-content' ).html( marked.parse( streamingContent ) );
             $( '#ai-modal-footer' ).removeClass( 'hidden' );
+            applyModalFontSize();
           }
         } )
         .catch( function ( error ) {

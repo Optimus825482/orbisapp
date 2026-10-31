@@ -332,12 +332,22 @@ const OrbisFirebase = {
       console.log("[Firebase] Kullanıcı giriş yaptı:", user.email);
       this.loadUserData();
 
-      // Son login kaydı
+      // Son login kaydı (email, display_name, uid)
       fetch("/api/stats/user-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, display_name: user.displayName || user.email }),
+        body: JSON.stringify({ email: user.email, display_name: user.displayName || user.email, uid: user.uid }),
       }).catch(() => {});
+
+      // Kayıtlı FCM token varsa kullanıcının hesabı ile eşleştir
+      try {
+        const savedToken = localStorage.getItem("orbis_fcm_token");
+        if (savedToken && window.OrbisBridge && typeof window.OrbisBridge.registerFCMToken === "function") {
+          window.OrbisBridge.registerFCMToken(savedToken, window.OrbisBridge.state?.isNative ? "android" : "web");
+        }
+      } catch (e) {
+        console.warn("[Firebase] Token sync notice:", e);
+      }
 
       // Heartbeat başlat (her 60sn)
       this.startHeartbeat(user.email, user.displayName);
@@ -419,6 +429,9 @@ const OrbisFirebase = {
       displayName: this.user.displayName,
       photoURL: this.user.photoURL,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      loginCount: 1,
 
       // Monetizasyon
       isPremium: false,
@@ -908,6 +921,22 @@ const OrbisFirebase = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, display_name: displayName }),
       });
+
+      // Uygulama içi (In-App) bildirim kontrolü
+      try {
+        const uid = this.auth && this.auth.currentUser ? this.auth.currentUser.uid : null;
+        const res = await fetch(`/api/notifications/in-app?email=${encodeURIComponent(email || '')}&userId=${encodeURIComponent(uid || '')}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.notifications) && data.notifications.length) {
+            data.notifications.forEach(n => {
+              if (window.MobileBridge && typeof window.MobileBridge.showInAppNotification === 'function') {
+                window.MobileBridge.showInAppNotification(n.title, n.body);
+              }
+            });
+          }
+        }
+      } catch (ne) {}
     } catch (e) {
       // Sessizce başarısız ol - önemli değil
     }

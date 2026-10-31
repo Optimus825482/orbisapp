@@ -41,6 +41,10 @@
 
         <div class="stack-3" style="font-size: 13px;">
           <div class="info-row">
+            <span class="info-label">Toplam Giriş</span>
+            <span id="user-login-count" class="info-value" style="font-weight: 600; font-family: var(--font-mono);">1 kez</span>
+          </div>
+          <div class="info-row">
             <span class="info-label">İzlenen Rewarded</span>
             <span id="user-rewarded" class="info-value">0</span>
           </div>
@@ -49,8 +53,8 @@
             <span id="user-created" class="info-value">—</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Son Aktivite</span>
-            <span id="user-last-active" class="info-value">—</span>
+            <span class="info-label">Son Giriş</span>
+            <span id="user-last-login" class="info-value">—</span>
           </div>
         </div>
 
@@ -161,12 +165,20 @@
     document.getElementById('user-analyses').textContent = d.totalAnalyses != null ? formatNumber(d.totalAnalyses) : '—';
     document.getElementById('user-ads').textContent = d.adsWatched != null ? formatNumber(d.adsWatched) : '—';
     document.getElementById('user-rewarded').textContent = d.rewardedAdsWatched != null ? formatNumber(d.rewardedAdsWatched) : '—';
+    document.getElementById('user-login-count').textContent = formatNumber(d.loginCount || 1) + ' kez';
     document.getElementById('user-created').textContent = d.createdAt ? formatDate(d.createdAt) : '—';
-    document.getElementById('user-last-active').textContent = d.dailyUsage?.date || '—';
-    // Premium kaldirildi: sadece ucretsiz rozeti goster
-    document.getElementById('status-badge').innerHTML = d.isAdmin
-      ? '<span class="badge badge--dot badge--primary">Admin</span>'
-      : '<span class="badge badge--neutral"><span class="material-symbols-outlined" style="font-size: 14px;">person</span>Ücretsiz Üye</span>';
+    document.getElementById('user-last-login').textContent = (d.lastLogin || d.lastSeen) ? formatDate(d.lastLogin || d.lastSeen) : '—';
+    // Aktiflik ve yetki rozetleri
+    let badges = [];
+    if (d.isOnline) {
+      badges.push('<span class="badge badge--dot badge--success" style="font-weight: 600;"><span class="badge-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>Şu an Aktif</span>');
+    }
+    if (d.isAdmin) {
+      badges.push('<span class="badge badge--dot badge--primary">Admin</span>');
+    } else if (!d.isOnline) {
+      badges.push('<span class="badge badge--neutral"><span class="material-symbols-outlined" style="font-size: 14px;">person</span>Ücretsiz Üye</span>');
+    }
+    document.getElementById('status-badge').innerHTML = '<div style="display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;">' + badges.join('') + '</div>';
 
     if (d.dailyUsage) {
       document.getElementById('daily-date').textContent = d.dailyUsage.date || '—';

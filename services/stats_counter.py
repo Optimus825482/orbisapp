@@ -111,8 +111,8 @@ class StatsCounter:
             cur_date = data.get(f'{field}_date')
             doc_ref = self._doc
             if cur_date != today:
-                # Gün değişti — sıfırla ve yeni tarihi yaz
-                doc_ref.update({field: 0, f'{field}_date': today, field: firestore.Increment(1)})
+                # Gün değişti — bu günün ilk olayı, 1'e ayarla ve yeni tarihi yaz
+                doc_ref.update({field: 1, f'{field}_date': today})
             else:
                 doc_ref.update({field: firestore.Increment(1)})
         except Exception as e:
@@ -249,24 +249,52 @@ class StatsCounter:
 
     @retry_on_deadline(max_retries=3, timeout_seconds=5)
     def get_overview(self) -> Optional[dict]:
-        """Dashboard icin tum istatistikleri tek dokumandan oku (SADECE 1 READ)"""
+        """Dashboard icin tum istatistikleri tek dokumandan oku (SADECE 1 READ).
+        Eksik veya sifir veriler varsa users tablosundan otomatik mutabakat yapar."""
         if not self.db:
             return None
+
+        today = datetime.now().strftime("%Y-%m-%d")
 
         # ONCE counter dokumanindan oku
         try:
             doc = self._doc.get()
             if doc.exists:
-                data = doc.to_dict()
-                # Gunluk aktif sayisini guncelle (arka planda)
-                self.on_daily_activity(datetime.now().strftime("%Y-%m-%d"))
+                data = doc.to_dict() or {}
+                
+                # total_users eksik veya 0 ise gercek kullanici sayisi ile mutabakat yap
+                total_users = data.get(FIELD_TOTAL_USERS, 0)
+                if not total_users or total_users <= 0:
+                    try:
+                        count_res = self.db.collection("users").count().get()
+                        actual_count = count_res[0][0].value
+                        if actual_count > 0:
+                            data[FIELD_TOTAL_USERS] = actual_count
+                            self._doc.update({FIELD_TOTAL_USERS: actual_count})
+                    except Exception as ce:
+                        logger.warning(f"[Stats] User count verification error: {ce}")
+
+                # Gunluk aktif sayisini guncelle
+                try:
+                    active_res = self.db.collection("users").where(
+                        filter=FieldFilter("dailyUsage.date", "==", today)
+                    ).count().get()
+                    active_cnt = active_res[0][0].value
+                    # Heartbeat online sayisiyla karsilastir (en az online sayisi kadar olmali)
+                    online_cnt = len(self.get_online_users(within_minutes=60))
+                    effective_active = max(active_cnt, online_cnt)
+                    data[FIELD_ACTIVE_TODAY] = effective_active
+                    self._set_active_today(effective_active)
+                except Exception as ae:
+                    logger.warning(f"[Stats] Active today check error: {ae}")
+
                 return data
         except Exception as e:
             logger.error(f"[Stats] Overview read error: {e}")
 
         # COUNTER YOKSA fallback: `select()` projection ile sadece gerekli field'lar
         try:
-            logger.info("[Stats] Counter dokumani bulunamadi, fallback select() ile okunuyor...")
+            logger.info("[Stats] Counter dokumani bulunamadi, users koleksiyonundan olusturuluyor...")
             docs = list(self.db.collection("users").select([
                 "totalAnalyses", "adsWatched", "rewardedAdsWatched", "dailyUsage.date"
             ]).stream())
@@ -275,24 +303,31 @@ class StatsCounter:
             analyses = 0
             ads = 0
             rewarded_ads = 0
-            today = datetime.now().strftime("%Y-%m-%d")
             active = 0
 
             for d in docs:
-                data = d.to_dict()
-                analyses += data.get("totalAnalyses", 0) or 0
-                ads += data.get("adsWatched", 0) or 0
-                rewarded_ads += data.get("rewardedAdsWatched", 0) or 0
-                if data.get("dailyUsage", {}).get("date") == today:
+                u_data = d.to_dict()
+                analyses += u_data.get("totalAnalyses", 0) or 0
+                ads += u_data.get("adsWatched", 0) or 0
+                rewarded_ads += u_data.get("rewardedAdsWatched", 0) or 0
+                if u_data.get("dailyUsage", {}).get("date") == today:
                     active += 1
 
-            return {
+            initial_data = {
                 "total_users": total,
                 "total_analyses": analyses,
                 "total_ads_watched": ads,
                 "total_rewarded_ads": rewarded_ads,
                 "active_today": active,
+                "analyses_today": 0,
+                "rewarded_ads_today": 0,
             }
+            try:
+                self._doc.set(initial_data, merge=True)
+            except Exception as se:
+                logger.error(f"[Stats] Failed to persist initial stats: {se}")
+
+            return initial_data
         except Exception as e:
             logger.error(f"[Stats] Fallback read error: {e}")
             return None

@@ -5,29 +5,39 @@
 
 {% block content %}
 {% if not admob_configured %}
-<section class="card stagger">
-  <div class="card-body" style="text-align: center; padding: var(--space-8);">
-    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--ink-faint);">ads_click</span>
-    <h2 class="card-title" style="margin-top: var(--space-3);">AdMob OAuth yapılandırılmamış</h2>
-    <p class="text-ink-faint" style="max-width: 480px; margin: var(--space-2) auto var(--space-4);">
-      Sunucu tarafı raporları için şu ortam değişkenleri gerekli:
-      <code>ADMOB_CLIENT_ID</code>, <code>ADMOB_CLIENT_SECRET</code>,
-      <code>ADMOB_REFRESH_TOKEN</code>, <code>ADMOB_PUBLISHER_ID</code>.
-    </p>
-    <p class="text-ink-faint" style="font-size: 12px;">
-      AdMob API'yi Google Cloud Console'dan enable etmeyi unutma:
-      <code>console.developers.google.com/apis/api/admob.googleapis.com</code>
-    </p>
+<div class="card stagger" style="margin-bottom: var(--space-5); border-left: 3px solid var(--warning);">
+  <div class="card-body" style="padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: var(--space-3); max-width: 820px;">
+      <span class="material-symbols-outlined" style="font-size: 28px; color: var(--warning);">info</span>
+      <div>
+        <div style="font-weight: 600; font-size: 14px; color: var(--ink);">AdMob İzleme &amp; Tahmin Modu Aktif</div>
+        <div class="text-ink-faint" style="font-size: 12px; margin-top: 2px;">
+          Canlı Google AdMob API bağlantısı (OAuth) henüz tamamlanmadığı için veriler Firestore uygulama içi reklam izleme sayaçları ve sektör ortalaması eCPM üzerinden sunulmaktadır.
+        </div>
+      </div>
+    </div>
+    <span class="badge badge--warning">Firestore / Tahmini</span>
   </div>
-</section>
+</div>
 {% else %}
+<div class="card stagger" style="margin-bottom: var(--space-5); border-left: 3px solid var(--success);">
+  <div class="card-body" style="padding: var(--space-3) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);">
+    <div style="display: flex; align-items: center; gap: var(--space-3);">
+      <span class="material-symbols-outlined" style="font-size: 24px; color: var(--success);">check_circle</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--ink);">Google AdMob API Canlı Bağlı</span>
+    </div>
+    <span class="badge badge--dot badge--success">Canlı API</span>
+  </div>
+</div>
+{% endif %}
 
-<div class="row row--between" style="margin: var(--space-4) 0;">
+<div class="row row--between" style="margin: var(--space-4) 0 var(--space-5);">
   <div>
-    <h2 style="font-size: 14px; font-weight: 600; color: var(--ink); margin: 0;">Zaman aralığı</h2>
-    <p class="text-ink-faint" style="font-size: 12px; margin: 2px 0 0;">AdMob data 24 saat gecikmeli olabilir</p>
+    <h2 style="font-size: 14px; font-weight: 600; color: var(--ink); margin: 0;">Zaman Aralığı</h2>
+    <p class="text-ink-faint" style="font-size: 12px; margin: 2px 0 0;">Filtrelenen periyot için reklam gösterim ve kazançları</p>
   </div>
   <div class="period" role="tablist" aria-label="Zaman aralığı" id="admob-period">
+    <button class="period-option" data-range="1d" type="button">Bugün</button>
     <button class="period-option" data-range="7d" type="button">7g</button>
     <button class="period-option is-active" data-range="30d" type="button">30g</button>
     <button class="period-option" data-range="90d" type="button">90g</button>
@@ -42,6 +52,7 @@
     </div>
     <div class="metric-value tabular" id="admob-total-revenue">—</div>
     <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">attach_money</span>USD / ₺</span>
       <span class="metric-compare" id="admob-total-revenue-range">seçili aralık</span>
     </div>
   </div>
@@ -52,6 +63,7 @@
     </div>
     <div class="metric-value tabular" id="admob-total-impressions">—</div>
     <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">ads_click</span>Gösterim</span>
       <span class="metric-compare">seçili aralık</span>
     </div>
   </div>
@@ -62,7 +74,8 @@
     </div>
     <div class="metric-value tabular" id="admob-total-ecpm">—</div>
     <div class="metric-foot">
-      <span class="metric-compare">1000 impression başına</span>
+      <span class="trend trend--flat"><span class="material-symbols-outlined">equalizer</span>1000 Gösterim</span>
+      <span class="metric-compare">başı</span>
     </div>
   </div>
   <div class="metric">
@@ -72,6 +85,7 @@
     </div>
     <div class="metric-value tabular" id="admob-last-revenue">—</div>
     <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">event</span>Tarih</span>
       <span class="metric-compare" id="admob-last-revenue-date">son veri</span>
     </div>
   </div>
@@ -80,10 +94,10 @@
 <section class="card stagger" style="margin-top: var(--space-5);">
   <header class="card-head">
     <div>
-      <h2 class="card-title">Günlük gelir</h2>
-      <p class="card-subtitle">USD bazında günlük AdMob kazancı</p>
+      <h2 class="card-title">Günlük Gelir Trendi</h2>
+      <p class="card-subtitle">USD bazında günlük reklam getirisi dağılımı</p>
     </div>
-    <span class="badge badge--dot badge--success">AdMob</span>
+    <span class="badge badge--dot badge--success">AdMob Geliri</span>
   </header>
   <div class="card-body">
     <div class="chart" id="admob-revenue-chart" data-chart='{"type":"line","label":"Gelir (USD)","series":[{"name":"USD","values":[],"color":"success"}],"xLabels":[]}'></div>
@@ -91,12 +105,13 @@
 </section>
 
 <div class="grid grid--12 stagger" style="margin-top: var(--space-5);">
-  <section class="card col-span-7">
+  <section class="card col-span-8">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Günlük detay</h2>
-        <p class="card-subtitle">Tarih, gelir, impression, RPM</p>
+        <h2 class="card-title">Günlük Detay Raporu</h2>
+        <p class="card-subtitle">Tarih, gelir (USD &amp; ₺), impression ve 1000 gösterim başı getiri (RPM)</p>
       </div>
+      <span class="badge badge--dot badge--primary">Tablo</span>
     </header>
     <div class="card-body" style="padding: 0;">
       <div class="table-wrap">
@@ -104,9 +119,9 @@
           <thead>
             <tr>
               <th>Tarih</th>
-              <th class="text-right">Gelir (USD)</th>
+              <th class="text-right">Gelir (USD / ₺)</th>
               <th class="text-right">Impression</th>
-              <th class="text-right">RPM (USD)</th>
+              <th class="text-right">RPM (eCPM)</th>
             </tr>
           </thead>
           <tbody>
@@ -117,34 +132,37 @@
     </div>
   </section>
 
-  <section class="card col-span-5">
+  <section class="card col-span-4">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Uygulamalar</h2>
-        <p class="card-subtitle">AdMob hesabına bağlı uygulamalar</p>
+        <h2 class="card-title">Uygulamalar &amp; Birimler</h2>
+        <p class="card-subtitle">AdMob hesabına bağlı uygulamalar ve reklam kimlikleri</p>
       </div>
+      <span class="badge badge--dot badge--success">Birimler</span>
     </header>
     <div class="card-body" id="admob-apps-list">
       <div class="empty-state"><span class="material-symbols-outlined">apps</span><div>Yükleniyor…</div></div>
     </div>
   </section>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 (function () {
   const fmtUSD = (v) => '$' + Number(v || 0).toFixed(2);
-  const fmtInt = (v) => Number(v || 0).toLocaleString('en-US');
+  const fmtInt = (v) => Number(v || 0).toLocaleString('tr-TR');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  // TRY kuru — sayfa yüklendiğinde /admin/api/fx/rate'ten çekilir
   window._fxRate = null;
   fetch('/admin/api/fx/rate', { credentials: 'same-origin' })
     .then(r => r.ok ? r.json() : null)
     .then(j => { if (j && j.success) window._fxRate = j.rate; })
     .catch(() => {});
+
   const fmtUSDandTRY = (usd, tryV) => {
     const u = Number(usd || 0).toFixed(2);
-    if (tryV != null) return '$' + u + ' (₺' + Number(tryV).toFixed(2) + ')';
+    if (tryV != null && tryV !== '') return '$' + u + ' (₺' + Number(tryV).toFixed(2) + ')';
     if (window._fxRate) return '$' + u + ' (₺' + (Number(usd) * window._fxRate).toFixed(2) + ')';
     return '$' + u;
   };
@@ -159,21 +177,24 @@
 
   async function loadOverview() {
     setActive(currentRange);
-    const r = await fetch('/admin/api/admob/overview?range=' + currentRange, { credentials: 'same-origin' });
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      showError(err.message || 'AdMob verisi alınamadı');
-      return;
+    try {
+      const r = await fetch('/admin/api/admob/overview?range=' + currentRange, { credentials: 'same-origin' });
+      if (!r.ok) {
+        showError('AdMob verisi alınamadı');
+        return;
+      }
+      const j = await r.json();
+      if (!j.success || !j.data) { showError('Veri bulunamadı'); return; }
+      renderOverview(j.data);
+    } catch (e) {
+      showError('Bağlantı hatası oluştu');
     }
-    const j = await r.json();
-    if (!j.success || !j.data) { showError('Veri yok'); return; }
-    renderOverview(j.data);
   }
 
   function renderOverview(d) {
     document.getElementById('admob-total-revenue').textContent = fmtUSDandTRY(d.revenue_usd, d.revenue_usd_try);
     document.getElementById('admob-total-revenue-range').textContent =
-      d.range === '7d' ? 'son 7 gün' : d.range === '30d' ? 'son 30 gün' : 'son 90 gün';
+      d.range === '1d' ? 'bugün' : d.range === '7d' ? 'son 7 gün' : d.range === '30d' ? 'son 30 gün' : 'son 90 gün';
     document.getElementById('admob-total-impressions').textContent = fmtInt(d.impressions);
     document.getElementById('admob-total-ecpm').textContent = fmtUSDandTRY(d.ecpm_usd, d.ecpm_usd_try);
 
@@ -187,7 +208,7 @@
       document.getElementById('admob-last-revenue-date').textContent = 'veri yok';
     }
 
-    // Daily table
+    // Günlük Detay Tablosu
     const tbody = document.querySelector('#admob-daily-table tbody');
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align: center; padding: var(--space-5);">Bu aralıkta veri yok</td></tr>';
@@ -195,21 +216,21 @@
       tbody.innerHTML = rows.slice().reverse().map((r) => {
         const imp = Number(r.impressions || 0);
         const rev = Number(r.revenue_usd || 0);
-        const revTry = Number(r.revenue_usd_try || 0);
-        const rpm = imp ? (rev / imp * 1000) : 0;
-        const rpmTry = rpm * (window._fxRate || 1);
+        const revTry = r.revenue_usd_try != null ? r.revenue_usd_try : (window._fxRate ? rev * window._fxRate : null);
+        const rpm = r.ecpm_usd != null ? Number(r.ecpm_usd) : (imp ? (rev / imp * 1000) : 0);
+        const rpmTry = r.ecpm_usd_try != null ? r.ecpm_usd_try : (window._fxRate ? rpm * window._fxRate : null);
         return '<tr>' +
           '<td>' + esc(r.date || '—') + '</td>' +
-          '<td class="text-right tabular">' + fmtUSDandTRY(rev, revTry) + '</td>' +
+          '<td class="text-right tabular" style="font-weight: 600;">' + fmtUSDandTRY(rev, revTry) + '</td>' +
           '<td class="text-right tabular">' + fmtInt(imp) + '</td>' +
           '<td class="text-right tabular">' + fmtUSDandTRY(rpm, rpmTry) + '</td>' +
         '</tr>';
       }).join('');
     }
 
-    // Revenue chart
+    // Gelir Çizgi Grafiği
     const values = rows.map((r) => Number(r.revenue_usd || 0));
-    const labels = rows.map((r) => (r.date || '').slice(0));
+    const labels = rows.map((r) => String(r.date || ''));
     const el = document.getElementById('admob-revenue-chart');
     el.setAttribute('data-chart', JSON.stringify({
       type: 'line', label: 'Gelir (USD)',
@@ -217,32 +238,50 @@
       xLabels: labels,
     }));
     if (window.OrbisCharts && window.OrbisCharts.lineChart) {
-      window.OrbisCharts.lineChart(el, [{ name: 'USD', values: values, color: 'success' }], { height: 240, label: 'Gelir (USD)' });
+      window.OrbisCharts.lineChart(el, [{ name: 'USD', values: values, color: 'success' }], { xLabels: labels, height: 240, label: 'Gelir (USD)' });
     }
   }
 
   async function loadApps() {
-    const r = await fetch('/admin/api/admob/apps', { credentials: 'same-origin' });
     const target = document.getElementById('admob-apps-list');
-    if (!r.ok) {
-      target.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">error</span><div>Uygulamalar alınamadı</div></div>';
-      return;
+    try {
+      const r = await fetch('/admin/api/admob/apps', { credentials: 'same-origin' });
+      if (!r.ok) {
+        target.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">error</span><div>Uygulamalar alınamadı</div></div>';
+        return;
+      }
+      const j = await r.json();
+      if (!j.success || !Array.isArray(j.data) || !j.data.length) {
+        target.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">apps</span><div>Kayıtlı uygulama bulunamadı</div></div>';
+        return;
+      }
+      target.innerHTML = j.data.map((a) => {
+        let unitsHtml = '';
+        if (Array.isArray(a.units) && a.units.length) {
+          unitsHtml = '<div style="margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">' +
+            a.units.map(u =>
+              '<div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; padding: 4px 8px; background: var(--surface-2); border-radius: 4px;">' +
+                '<span style="font-weight: 500; color: var(--ink);">' + esc(u.name) + '</span>' +
+                '<span class="badge badge--sm" style="font-size: 10px; height: 18px;">' + esc(u.type) + '</span>' +
+              '</div>'
+            ).join('') +
+          '</div>';
+        }
+        return '<div class="card" style="padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3); background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">' +
+          '<div style="display: flex; align-items: center; gap: var(--space-3);">' +
+            '<div class="metric-icon" style="background: var(--primary-soft); color: var(--primary);"><span class="material-symbols-outlined">' + (a.platform === 'Android' ? 'phone_android' : 'language') + '</span></div>' +
+            '<div style="flex: 1; min-width: 0;">' +
+              '<div style="font-weight: 600; font-size: 13px; color: var(--ink);">' + esc(a.name || '—') + '</div>' +
+              '<div class="text-muted" style="font-family: var(--font-mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + esc(a.appId || '') + '</div>' +
+            '</div>' +
+            '<span class="badge ' + (a.status && a.status.includes('Canlı') ? 'badge--success' : '') + '">' + esc(a.platform || '') + '</span>' +
+          '</div>' +
+          unitsHtml +
+        '</div>';
+      }).join('');
+    } catch (e) {
+      target.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">error</span><div>Uygulamalar yüklenirken hata oluştu</div></div>';
     }
-    const j = await r.json();
-    if (!j.success || !Array.isArray(j.data) || !j.data.length) {
-      target.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">apps</span><div>AdMob hesabında uygulama bulunamadı</div></div>';
-      return;
-    }
-    target.innerHTML = j.data.map((a) =>
-      '<div class="list-row">' +
-        '<div class="metric-icon" style="background: var(--primary-soft); color: var(--primary);"><span class="material-symbols-outlined">phone_android</span></div>' +
-        '<div style="flex: 1; min-width: 0;">' +
-          '<div style="font-weight: 600; font-size: 14px;">' + esc(a.name || '—') + '</div>' +
-          '<div class="text-muted" style="font-family: var(--font-mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + esc(a.appId || '') + '</div>' +
-        '</div>' +
-        '<span class="badge">' + esc(a.platform || '') + '</span>' +
-      '</div>'
-    ).join('');
   }
 
   function showError(msg) {
@@ -266,5 +305,4 @@
   });
 })();
 </script>
-{% endif %}
 {% endblock %}

@@ -826,12 +826,34 @@ def api_ad_watched():
 @bp.route("/api/stats/user-login", methods=["POST"])
 @handle_errors("Giris kaydi alinamadi")
 def api_user_login():
-    """Kullanici giris yapti - son login bilgisini guncelle"""
+    """Kullanici giris yapti - son login ve giris sayisini guncelle"""
     from services.stats_counter import stats_counter
-    data = request.get_json()
+    from services.firebase_service import firebase_service
+    from firebase_admin import firestore
+
+    data = request.get_json(silent=True) or {}
     email = data.get("email", "")
     name = data.get("display_name", email)
+    uid = data.get("uid")
+
     if email:
         stats_counter.on_user_login(email, name)
+
+    if firebase_service.db:
+        try:
+            update_payload = {
+                'lastLogin': firestore.SERVER_TIMESTAMP,
+                'lastSeen': firestore.SERVER_TIMESTAMP,
+                'loginCount': firestore.Increment(1)
+            }
+            if uid:
+                firebase_service.db.collection('users').document(uid).set(update_payload, merge=True)
+            elif email:
+                u_docs = list(firebase_service.db.collection('users').where('email', '==', email).limit(1).stream())
+                for u in u_docs:
+                    u.reference.set(update_payload, merge=True)
+        except Exception as e:
+            logger.warning(f"[API] Error updating user loginCount/lastLogin: {e}")
+
     return jsonify({"success": True})
 

@@ -79,7 +79,8 @@
     var grid = themeColor('border');
     var surface = themeColor('surface');
 
-    var all = series.reduce(function (acc, s) { return acc.concat(s.values); }, []);
+    var all = series.reduce(function (acc, s) { return acc.concat(s.values || []); }, []);
+    if (!all.length) { all = [0]; }
     var minY = Math.min.apply(null, all);
     var maxY = Math.max.apply(null, all);
     if (minY === maxY) { minY -= 1; maxY += 1; }
@@ -111,6 +112,7 @@
     // Series paths
     var seriesSvg = '';
     series.forEach(function (s) {
+      if (!s.values || !s.values.length) return;
       var c = themeColor(s.color) || themeColor('accent');
       var pts = s.values.map(function (v, i) { return [xPos(i), yPos(v)]; });
       var path = pts.map(function (p, i) { return (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');

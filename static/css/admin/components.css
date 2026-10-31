@@ -802,11 +802,13 @@ label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mute
   .grid--12 { grid-template-columns: 1fr; }
 }
 .col-span-4  { grid-column: span 4; }
+.col-span-5  { grid-column: span 5; }
 .col-span-6  { grid-column: span 6; }
+.col-span-7  { grid-column: span 7; }
 .col-span-8  { grid-column: span 8; }
 .col-span-12 { grid-column: span 12; }
 @media (max-width: 1024px) {
-  .col-span-4, .col-span-6, .col-span-8 { grid-column: 1 / -1; }
+  .col-span-4, .col-span-5, .col-span-6, .col-span-7, .col-span-8 { grid-column: 1 / -1; }
 }
 
 /* ─── Stack utilities ────────────────────────────── */

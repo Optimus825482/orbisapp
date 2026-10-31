@@ -12,7 +12,7 @@
     </div>
     <div class="metric-value" data-key="totalUsers">—</div>
     <div class="metric-foot">
-      <span class="trend trend--flat"><span class="material-symbols-outlined">trending_flat</span>—</span>
+      <span class="trend trend--flat"><span class="material-symbols-outlined">how_to_reg</span>Kayıtlı</span>
       <span class="metric-compare">toplam</span>
     </div>
   </div>
@@ -23,7 +23,7 @@
     </div>
     <div class="metric-value" data-key="totalAdsWatched">—</div>
     <div class="metric-foot">
-      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
+      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>Tümü</span>
       <span class="metric-compare">tüm zamanlar</span>
     </div>
   </div>
@@ -34,8 +34,8 @@
     </div>
     <div class="metric-value" data-key="activeToday">—</div>
     <div class="metric-foot">
-      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
-      <span class="metric-compare">bugün</span>
+      <span class="trend trend--up"><span class="material-symbols-outlined">bolt</span>Bugün</span>
+      <span class="metric-compare">aktif</span>
     </div>
   </div>
   <div class="metric">
@@ -45,7 +45,7 @@
     </div>
     <div class="metric-value" data-key="totalAnalyses">—</div>
     <div class="metric-foot">
-      <span class="trend trend--up"><span class="material-symbols-outlined">trending_up</span>—</span>
+      <span class="trend trend--up"><span class="material-symbols-outlined">psychology</span>Üretilen</span>
       <span class="metric-compare">tüm zamanlar</span>
     </div>
   </div>
@@ -267,18 +267,34 @@
     console.error('stats/overview error:', err);
   }
 
-  // Purchases endpoint'i artik sadece event sayisi donduruyor (premium/credit kaldirildi)
-  // Bu yuzden ek istek gerekmez.
-
   try {
     const r = await fetch(`/admin/api/analytics/overview?range=${range}`, { credentials: 'same-origin' });
     if (r.ok) {
       const j = await r.json();
-      if (j.success && j.data && j.data.avgSessionDuration) {
-        const sec = Math.round(j.data.avgSessionDuration);
-        const m = Math.floor(sec / 60);
-        const s2 = sec % 60;
-        document.getElementById('ga-avg-time').textContent = m + 'dk ' + s2 + 'sn';
+      if (j.success && j.data) {
+        if (j.data.avgSessionDuration !== undefined) {
+          let dur = j.data.avgSessionDuration;
+          if (typeof dur === 'number') {
+            const sec = Math.round(dur);
+            const m = Math.floor(sec / 60);
+            const s2 = sec % 60;
+            document.getElementById('ga-avg-time').textContent = m + 'dk ' + s2 + 'sn';
+          } else if (typeof dur === 'string' && dur !== '—') {
+            document.getElementById('ga-avg-time').textContent = dur.replace('m ', 'dk ').replace('s', 'sn');
+          }
+        }
+        if (window.OrbisCharts) {
+          if (Array.isArray(j.data.usersSeries) && j.data.usersSeries.length) {
+            window.OrbisCharts.lineChart(document.getElementById('chart-ga-signups'),
+              [{ name: 'Signups', values: j.data.usersSeries.map(x => x.value), color: 'primary' }],
+              { xLabels: j.data.usersSeries.map(x => x.label), height: 220, label: 'Signups' });
+          }
+          if (Array.isArray(j.data.sessionsSeries) && j.data.sessionsSeries.length) {
+            window.OrbisCharts.lineChart(document.getElementById('chart-ga-sessions'),
+              [{ name: 'Sessions', values: j.data.sessionsSeries.map(x => x.value), color: 'accent' }],
+              { xLabels: j.data.sessionsSeries.map(x => x.label), height: 220, label: 'Sessions' });
+          }
+        }
       }
     }
   } catch (e) { /* silent */ }
@@ -293,7 +309,7 @@
         if (a.impressions !== undefined) document.getElementById('admob-impressions').textContent = fmt(a.impressions);
         if (a.ecpm_usd !== undefined) document.getElementById('admob-ecpm').textContent = fmtUsd(a.ecpm_usd);
         if (Array.isArray(a.rows) && a.rows.length && window.OrbisCharts) {
-          const series = a.rows.map(rw => (rw.estimatedEarningsMicros || 0) / 1e6);
+          const series = a.rows.map(rw => rw.revenue_usd != null ? rw.revenue_usd : ((rw.estimatedEarningsMicros || 0) / 1e6));
           window.OrbisCharts.sparkline(document.getElementById('admob-spark'), series, { height: 80 });
         }
       }

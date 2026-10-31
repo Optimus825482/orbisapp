@@ -18,6 +18,10 @@
           <span class="material-symbols-outlined" style="font-size: 18px;">groups</span>
           <span>Tümü</span>
         </button>
+        <button class="target-option" data-filter="online" type="button">
+          <span class="material-symbols-outlined" style="font-size: 18px; color: var(--success);">bolt</span>
+          <span>Aktif (<span id="online-badge-count">0</span>)</span>
+        </button>
         <button class="target-option" data-filter="admin" type="button">
           <span class="material-symbols-outlined" style="font-size: 18px;">shield_person</span>
           <span>Admin</span>
@@ -36,13 +40,14 @@
         <th>E-posta</th>
         <th>Durum</th>
         <th class="num">Analiz</th>
-        <th class="num">Reklam</th>
-        <th>Son görülme</th>
-        <th></th>
+        <th class="num">Giriş Sayısı</th>
+        <th>Kayıt Tarihi</th>
+        <th>Son Giriş</th>
+        <th style="text-align: right;">İşlem</th>
       </tr>
     </thead>
     <tbody id="users-tbody">
-      <tr><td colspan="7">
+      <tr><td colspan="8">
         <div class="empty" style="padding: var(--space-10) 0;">
           <div class="empty-icon"><span class="material-symbols-outlined">hourglass_empty</span></div>
           <div class="empty-title">Yükleniyor…</div>
@@ -63,27 +68,152 @@
     </header>
     <div class="modal-body">
       <div class="stack-4">
-        <p style="margin: 0; color: var(--ink-muted); font-size: 13px;">
-          Uygulama ucretsiz oldugu icin premium/credit islemi yapilamiyor.
-          Bu alan yalnizca bilgi gosterir.
-        </p>
         <div>
-          <label>Toplam Analiz</label>
-          <div id="detail-analyses" class="input" style="background: var(--bg-2);">—</div>
+          <label>Kullanıcı Adı / E-posta</label>
+          <div id="detail-name" class="input" style="background: var(--bg-2); font-weight: 500;">—</div>
+          <div id="detail-activity-badge" style="margin-top: 6px;"></div>
         </div>
-        <div>
-          <label>İzlenen Reklam (Toplam)</label>
-          <div id="detail-ads" class="input" style="background: var(--bg-2);">—</div>
+        <div class="grid grid--2" style="gap: var(--space-3);">
+          <div>
+            <label>Kayıt Tarihi</label>
+            <div id="detail-created" class="input" style="background: var(--bg-2);">—</div>
+          </div>
+          <div>
+            <label>Son Giriş Tarihi</label>
+            <div id="detail-last-login" class="input" style="background: var(--bg-2);">—</div>
+          </div>
         </div>
-        <div>
-          <label>Rewarded Reklam (Toplam)</label>
-          <div id="detail-rewarded" class="input" style="background: var(--bg-2);">—</div>
+        <div class="grid grid--3" style="gap: var(--space-3);">
+          <div>
+            <label>Giriş Sayısı</label>
+            <div id="detail-logins" class="input" style="background: var(--bg-2); font-weight: 600;">—</div>
+          </div>
+          <div>
+            <label>Toplam Analiz</label>
+            <div id="detail-analyses" class="input" style="background: var(--bg-2);">—</div>
+          </div>
+          <div>
+            <label>İzlenen Reklam</label>
+            <div id="detail-ads" class="input" style="background: var(--bg-2);">—</div>
+          </div>
         </div>
       </div>
     </div>
-    <footer class="modal-foot">
+    <footer class="modal-foot" style="display: flex; justify-content: space-between; align-items: center;">
+      <button id="modal-notif-btn" class="btn btn--outline btn--sm" type="button">
+        <span class="material-symbols-outlined" style="font-size: 16px;">send</span> Bu Kullanıcıya Bildirim Gönder
+      </button>
       <button class="btn btn--ghost" type="button" data-close-modal>Kapat</button>
     </footer>
+  </div>
+</div>
+
+<!-- ═══ Single User Notification Modal ═══ -->
+<div id="user-notif-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kişiye Özel Bildirim Gönder" hidden style="display: none;">
+  <div class="modal" style="max-width: 520px;">
+    <header class="modal-head">
+      <div style="display: flex; align-items: center; gap: var(--space-3);">
+        <div class="metric-icon metric-icon--primary" style="width: 36px; height: 36px;">
+          <span class="material-symbols-outlined" style="font-size: 20px;">send</span>
+        </div>
+        <div>
+          <h2 class="modal-title">Kişiye Özel Bildirim</h2>
+          <p class="text-ink-faint" style="font-size: 12px; margin: 2px 0 0;" id="notif-target-desc">Seçili kullanıcıya push veya uygulama içi mesaj</p>
+        </div>
+      </div>
+      <button class="icon-btn icon-btn--ghost" type="button" data-close-modal aria-label="Kapat">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+    <div class="modal-body">
+      <form id="single-notif-form" class="stack-4">
+        <input type="hidden" id="notif-user-id" />
+        <input type="hidden" id="notif-user-name" />
+        
+        <!-- Kullanıcı Bilgi Kartı -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div id="notif-avatar" class="sidebar-avatar" style="width: 36px; height: 36px; font-size: 14px;">U</div>
+            <div>
+              <div id="notif-display-name" style="font-weight: 600; font-size: 14px; color: var(--ink);">—</div>
+              <div id="notif-email" style="font-size: 12px; color: var(--ink-muted);">—</div>
+            </div>
+          </div>
+          <div id="notif-online-pill"></div>
+        </div>
+
+        <!-- İletim Kanalları -->
+        <div>
+          <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">İletim Kanalları</label>
+          <div class="grid grid--2" style="gap: var(--space-2);">
+            <label class="card" style="padding: var(--space-3); cursor: pointer; display: flex; align-items: center; gap: var(--space-2); margin: 0; background: var(--surface);">
+              <input type="checkbox" id="channel-push" checked />
+              <div>
+                <div style="font-size: 13px; font-weight: 600;">Push Bildirimi</div>
+                <div style="font-size: 11px; color: var(--ink-faint);">Kilit ekranı / bildirim çubuğu</div>
+              </div>
+            </label>
+            <label class="card" style="padding: var(--space-3); cursor: pointer; display: flex; align-items: center; gap: var(--space-2); margin: 0; background: var(--surface);">
+              <input type="checkbox" id="channel-inapp" checked />
+              <div>
+                <div style="font-size: 13px; font-weight: 600;">Uygulama İçi (In-App)</div>
+                <div style="font-size: 11px; color: var(--ink-faint);">Ekran üstü canlı banner</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Hızlı Şablonlar -->
+        <div>
+          <div class="row row--between" style="margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0; font-size: 12px;">Hızlı Şablonlar</label>
+            <span class="text-ink-faint" style="font-size: 11px;">Kişiselleştirilmiş</span>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn btn--xs btn--outline" id="tmpl-greet">👋 Selam / Hatırlatma</button>
+            <button type="button" class="btn btn--xs btn--outline" id="tmpl-transit">✨ Günlük Enerjin Hazır</button>
+            <button type="button" class="btn btn--xs btn--outline" id="tmpl-analysis">🔮 Yeni Harita Yorumu</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="row row--between" style="margin-bottom: 4px;">
+            <label for="notif-title-input" class="form-label" style="margin: 0;">Başlık</label>
+            <span style="font-size: 11px; color: var(--primary); cursor: pointer;" id="add-tag-title">+ {name} etiketi ekle</span>
+          </div>
+          <input type="text" id="notif-title-input" class="input" placeholder="Örn: Merhaba {name}! ✨" required />
+        </div>
+
+        <div>
+          <div class="row row--between" style="margin-bottom: 4px;">
+            <label for="notif-body-input" class="form-label" style="margin: 0;">Mesaj</label>
+            <span style="font-size: 11px; color: var(--primary); cursor: pointer;" id="add-tag-body">+ {name} etiketi ekle</span>
+          </div>
+          <textarea id="notif-body-input" class="textarea" rows="3" placeholder="Örn: Sevgili {name}, bugünkü gökyüzü transitleri ve astrolojik rehberin güncellendi." required></textarea>
+        </div>
+
+        <!-- Canlı Önizleme -->
+        <div>
+          <div class="eyebrow" style="margin-bottom: 4px; font-size: 11px;">Kullanıcı Cihazında Önizleme</div>
+          <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; gap: var(--space-3); align-items: center;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--grad-primary); display: grid; place-items: center; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">notifications</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div id="preview-user-title" style="font-size: 13px; font-weight: 600; color: #fff;">Merhaba!</div>
+              <div id="preview-user-body" style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Mesajınız burada görünecek.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-3);">
+          <button type="button" class="btn btn--ghost" data-close-modal>Vazgeç</button>
+          <button type="submit" id="btn-submit-single-notif" class="btn btn--primary">
+            <span class="material-symbols-outlined">send</span> Bildirimi Gönder
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -114,12 +244,19 @@
     if (!tbody) return;
     let filtered = allUsers.slice();
     if (currentFilter === 'admin') filtered = filtered.filter(u => u.isAdmin);
+    if (currentFilter === 'online') filtered = filtered.filter(u => Boolean(u.isOnline));
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(u => (u.email || '').toLowerCase().includes(q) || (u.displayName || u.name || '').toLowerCase().includes(q));
     }
+
+    // Aktif sayısını filtre butonunda güncelle
+    const onlineCount = allUsers.filter(u => Boolean(u.isOnline)).length;
+    const onlineBadgeEl = document.getElementById('online-badge-count');
+    if (onlineBadgeEl) onlineBadgeEl.textContent = onlineCount;
+
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty" style="padding: var(--space-10) 0;">' +
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty" style="padding: var(--space-10) 0;">' +
         '<div class="empty-icon"><span class="material-symbols-outlined">search_off</span></div>' +
         '<div class="empty-title">Eşleşen kullanıcı yok</div>' +
         '<div class="empty-desc">Farklı bir filtre veya arama terimi deneyin.</div>' +
@@ -127,41 +264,197 @@
       return;
     }
     tbody.innerHTML = filtered.map(u => {
-      // Premium kaldirildi: sadece admin rozeti goster, yoksa ucretsiz
-      const status = u.isAdmin
-        ? '<span class="badge badge--dot badge--primary">Admin</span>'
-        : '<span class="badge">Ücretsiz</span>';
       const initial = (u.displayName || u.name || u.email || '?').charAt(0).toUpperCase();
+      const loginCount = u.loginCount || (u.lastLogin ? 1 : 0);
+      const isOnline = Boolean(u.isOnline);
+      const isActiveToday = Boolean(u.isActiveToday);
+
+      // Durum rozetleri
+      let statusBadges = [];
+      if (isOnline) {
+        statusBadges.push('<span class="badge badge--dot badge--success" style="font-weight: 600;"><span class="badge-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>Aktif</span>');
+      }
+      if (u.isAdmin) {
+        statusBadges.push('<span class="badge badge--dot badge--primary">Admin</span>');
+      } else if (!isOnline) {
+        statusBadges.push('<span class="badge">Ücretsiz</span>');
+      }
+
+      // Avatar üzeri online noktası
+      const avatarDot = isOnline
+        ? '<span style="position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; background: #10b981; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 6px #10b981;"></span>'
+        : '';
+
+      // İsim yanında dinamik Aktif rozeti
+      const activePill = isOnline
+        ? '<span class="badge badge--dot badge--success" style="font-size: 10px; height: 18px; padding: 0 6px; font-weight: 600; margin-left: 6px; vertical-align: middle;"><span class="badge-dot" style="background: #10b981; width: 6px; height: 6px; box-shadow: 0 0 4px #10b981;"></span>Aktif</span>'
+        : (isActiveToday
+            ? '<span class="badge badge--sm" style="font-size: 10px; height: 18px; padding: 0 6px; opacity: 0.85; margin-left: 6px; vertical-align: middle;" title="Bugün sisteme giriş yaptı">Bugün</span>'
+            : '');
+
       return '<tr>' +
-        '<td><div class="row" style="gap: var(--space-3);">' +
-          '<div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 12px;">' + escapeHtml(initial) + '</div>' +
-          '<span style="font-weight: 500;">' + escapeHtml(u.displayName || u.name || '—') + '</span>' +
+        '<td><div class="row" style="gap: var(--space-3); align-items: center;">' +
+          '<div class="sidebar-avatar" style="position: relative; width: 32px; height: 32px; font-size: 12px; flex-shrink: 0;">' + escapeHtml(initial) + avatarDot + '</div>' +
+          '<div style="display: flex; align-items: center; min-width: 0; flex-wrap: wrap; gap: 2px;">' +
+            '<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + escapeHtml(u.displayName || u.name || '—') + '</span>' +
+            activePill +
+          '</div>' +
         '</div></td>' +
         '<td style="color: var(--ink-muted);">' + escapeHtml(u.email || '—') + '</td>' +
-        '<td>' + status + '</td>' +
+        '<td><div style="display: flex; gap: 4px; flex-wrap: wrap;">' + statusBadges.join(' ') + '</div></td>' +
         '<td class="num">' + formatNumber(u.totalAnalyses || 0) + '</td>' +
-        '<td class="num">' + formatNumber(u.adsWatched || 0) + '</td>' +
-        '<td style="color: var(--ink-muted); font-size: 12px;">' + formatDate(u.lastSeen || u.lastLogin) + '</td>' +
-        '<td style="text-align: right;"><button class="btn btn--ghost btn--sm" data-edit="' + escapeHtml(u.id || u.uid) + '">' +
-          '<span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> Detay' +
-        '</button></td>' +
+        '<td class="num"><span class="badge badge--sm" style="font-weight: 600; font-family: var(--font-mono);">' + formatNumber(loginCount) + ' giriş</span></td>' +
+        '<td style="color: var(--ink-muted); font-size: 12px; white-space: nowrap;">' + formatDate(u.createdAt) + '</td>' +
+        '<td style="font-size: 12px; white-space: nowrap; font-weight: 500;">' +
+          (isOnline
+            ? '<span style="color: var(--success); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 5px #10b981;"></span>Şu an aktif</span>'
+            : formatDate(u.lastLogin || u.lastSeen)) +
+        '</td>' +
+        '<td style="text-align: right; white-space: nowrap;">' +
+          '<button class="btn btn--outline btn--sm" data-notify="' + escapeHtml(u.id || u.uid) + '" style="margin-right: 6px;">' +
+            '<span class="material-symbols-outlined" style="font-size: 15px;">send</span> Bildirim' +
+          '</button>' +
+          '<button class="btn btn--ghost btn--sm" data-edit="' + escapeHtml(u.id || u.uid) + '">' +
+            '<span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> Detay' +
+          '</button>' +
+        '</td>' +
       '</tr>';
     }).join('');
+  }
+
+  // Dinamik olarak online kullanıcıları arka planda güncelle (15 sn)
+  async function refreshOnlineStatus() {
+    try {
+      const res = await fetch('/admin/api/stats/online', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (!json.success || !json.data || !Array.isArray(json.data.users)) return;
+      const onlineEmails = new Set(json.data.users.map(u => (u.email || '').toLowerCase()));
+
+      let changed = false;
+      allUsers.forEach(u => {
+        const email = (u.email || '').toLowerCase();
+        const wasOnline = Boolean(u.isOnline);
+        const nowOnline = onlineEmails.has(email);
+        if (wasOnline !== nowOnline) {
+          u.isOnline = nowOnline;
+          changed = true;
+        }
+      });
+      if (changed) {
+        renderUsers();
+      }
+    } catch (e) {
+      /* silent */
+    }
   }
 
   function openEditModal(userId) {
     const u = allUsers.find(x => (x.id || x.uid) === userId);
     if (!u) return;
+    document.getElementById('detail-name').textContent = (u.displayName || 'İsimsiz') + ' (' + (u.email || 'E-posta yok') + ')';
+    document.getElementById('detail-created').textContent = formatDate(u.createdAt);
+    document.getElementById('detail-last-login').textContent = formatDate(u.lastLogin || u.lastSeen);
+    document.getElementById('detail-logins').textContent = formatNumber(u.loginCount || 1) + ' kez giriş yaptı';
     document.getElementById('detail-analyses').textContent = formatNumber(u.totalAnalyses || 0);
     document.getElementById('detail-ads').textContent = formatNumber(u.adsWatched || 0);
-    document.getElementById('detail-rewarded').textContent = formatNumber(u.rewardedAdsWatched || 0);
+
+    const actBadge = document.getElementById('detail-activity-badge');
+    if (actBadge) {
+      if (u.isOnline) {
+        actBadge.innerHTML = '<span class="badge badge--dot badge--success" style="font-weight: 600;"><span class="badge-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>Şu an uygulamada aktif</span>';
+      } else if (u.isActiveToday) {
+        actBadge.innerHTML = '<span class="badge badge--sm" style="opacity: 0.85;">Bugün sisteme giriş yaptı</span>';
+      } else {
+        actBadge.innerHTML = '<span class="badge" style="color: var(--ink-muted);">Çevrimdışı</span>';
+      }
+    }
+
     const modal = document.getElementById('edit-modal');
     if (modal) { modal.hidden = false; modal.style.display = ''; }
+
+    // Modal içindeki bildirim butonu
+    const notifBtn = document.getElementById('modal-notif-btn');
+    if (notifBtn) {
+      notifBtn.onclick = function () {
+        closeEditModal();
+        openNotifyModal(userId);
+      };
+    }
   }
 
   function closeEditModal() {
     const modal = document.getElementById('edit-modal');
     if (modal) { modal.hidden = true; modal.style.display = 'none'; }
+  }
+
+  let activeNotifyUserId = null;
+
+  function openNotifyModal(userId) {
+    const u = allUsers.find(x => (x.id || x.uid) === userId);
+    if (!u) return;
+    activeNotifyUserId = userId;
+
+    const initial = (u.displayName || u.name || u.email || '?').charAt(0).toUpperCase();
+    const firstName = (u.displayName || u.name || '').trim().split(' ')[0] || (u.email ? u.email.split('@')[0] : 'Kullanıcımız');
+
+    document.getElementById('notif-user-id').value = u.id || u.uid;
+    document.getElementById('notif-user-name').value = firstName;
+    document.getElementById('notif-avatar').textContent = initial;
+    document.getElementById('notif-display-name').textContent = u.displayName || u.name || 'İsimsiz Kullanıcı';
+    document.getElementById('notif-email').textContent = u.email || 'E-posta yok';
+
+    const pill = document.getElementById('notif-online-pill');
+    if (pill) {
+      if (u.isOnline) {
+        pill.innerHTML = '<span class="badge badge--dot badge--success" style="font-weight: 600;"><span class="badge-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>Şu an Aktif</span>';
+      } else {
+        pill.innerHTML = '<span class="badge" style="color: var(--ink-muted);">Çevrimdışı</span>';
+      }
+    }
+
+    // Varsayılan kişiselleştirilmiş şablon
+    document.getElementById('notif-title-input').value = 'Merhaba {name}! ✨';
+    document.getElementById('notif-body-input').value = 'Sevgili {name}, bugünkü gökyüzü transitleri ve astrolojik rehberin güncellendi.';
+    updateSinglePreview();
+
+    const m = document.getElementById('user-notif-modal');
+    if (m) { m.hidden = false; m.style.display = ''; }
+  }
+
+  function closeNotifyModal() {
+    const m = document.getElementById('user-notif-modal');
+    if (m) { m.hidden = true; m.style.display = 'none'; }
+    activeNotifyUserId = null;
+  }
+
+  function updateSinglePreview() {
+    const title = document.getElementById('notif-title-input')?.value || 'Başlık';
+    const body = document.getElementById('notif-body-input')?.value || 'Mesaj içeriği';
+    const name = document.getElementById('notif-user-name')?.value || 'Kullanıcımız';
+
+    const pTitle = title.replace(/{name}|{isim}|{ad}/gi, name);
+    const pBody = body.replace(/{name}|{isim}|{ad}/gi, name);
+
+    const prevT = document.getElementById('preview-user-title');
+    const prevB = document.getElementById('preview-user-body');
+    if (prevT) prevT.textContent = pTitle;
+    if (prevB) prevB.textContent = pBody;
+  }
+
+  function applySingleTemplate(type) {
+    const name = document.getElementById('notif-user-name')?.value || 'Kullanıcımız';
+    if (type === 'greet') {
+      document.getElementById('notif-title-input').value = 'Selam {name}! 🔮';
+      document.getElementById('notif-body-input').value = 'Sevgili {name}, seni tekrar aramızda görmek çok güzel. Günlük transit analizine göz atmayı unutma!';
+    } else if (type === 'transit') {
+      document.getElementById('notif-title-input').value = '✨ Günlük Enerjin Hazır {name}';
+      document.getElementById('notif-body-input').value = 'Sevgili {name}, bugünün gezegen etkileşimleri ve sana özel tavsiyeler sisteme yüklendi.';
+    } else if (type === 'analysis') {
+      document.getElementById('notif-title-input').value = 'Yeni Harita Analizin Tamamlandı 🌟';
+      document.getElementById('notif-body-input').value = '{name}, doğum haritan üzerindeki en son kozmik hareketler incelendi. Raporunu hemen inceleyebilirsin.';
+    }
+    updateSinglePreview();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -174,11 +467,94 @@
         renderUsers();
       });
     });
-    document.querySelectorAll('[data-close-modal]').forEach(function (el) { el.addEventListener('click', closeEditModal); });
-    document.getElementById('users-tbody')?.addEventListener('click', function (e) {
-      const btn = e.target.closest('[data-edit]');
-      if (btn) openEditModal(btn.getAttribute('data-edit'));
+
+    document.querySelectorAll('[data-close-modal]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        closeEditModal();
+        closeNotifyModal();
+      });
     });
+
+    document.getElementById('users-tbody')?.addEventListener('click', function (e) {
+      const editBtn = e.target.closest('[data-edit]');
+      if (editBtn) {
+        openEditModal(editBtn.getAttribute('data-edit'));
+        return;
+      }
+      const notifBtn = e.target.closest('[data-notify]');
+      if (notifBtn) {
+        openNotifyModal(notifBtn.getAttribute('data-notify'));
+      }
+    });
+
+    // Canlı önizleme dinleyicileri
+    document.getElementById('notif-title-input')?.addEventListener('input', updateSinglePreview);
+    document.getElementById('notif-body-input')?.addEventListener('input', updateSinglePreview);
+
+    // Şablon butonları
+    document.getElementById('tmpl-greet')?.addEventListener('click', () => applySingleTemplate('greet'));
+    document.getElementById('tmpl-transit')?.addEventListener('click', () => applySingleTemplate('transit'));
+    document.getElementById('tmpl-analysis')?.addEventListener('click', () => applySingleTemplate('analysis'));
+
+    // Tag ekleme butonları
+    document.getElementById('add-tag-title')?.addEventListener('click', function () {
+      const input = document.getElementById('notif-title-input');
+      if (input) { input.value += ' {name}'; updateSinglePreview(); }
+    });
+    document.getElementById('add-tag-body')?.addEventListener('click', function () {
+      const input = document.getElementById('notif-body-input');
+      if (input) { input.value += ' {name}'; updateSinglePreview(); }
+    });
+
+    // Kişiye özel bildirim form submit
+    document.getElementById('single-notif-form')?.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const userId = document.getElementById('notif-user-id').value;
+      const userName = document.getElementById('notif-user-name').value;
+      const title = document.getElementById('notif-title-input').value;
+      const body = document.getElementById('notif-body-input').value;
+      const sendPush = document.getElementById('channel-push').checked;
+      const sendInApp = document.getElementById('channel-inapp').checked;
+      const submitBtn = document.getElementById('btn-submit-single-notif');
+
+      if (!sendPush && !sendInApp) {
+        alert('Lütfen en az bir iletim kanalı (Push veya Uygulama İçi) seçin.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="login-spinner" style="width: 14px; height: 14px;"></span> Gönderiliyor…';
+
+      try {
+        const res = await fetch('/admin/api/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            targetType: 'user',
+            target: userId,
+            userName: userName,
+            title: title,
+            body: body,
+            sendInApp: sendInApp
+          })
+        });
+
+        const j = await res.json();
+        if (j.success) {
+          alert('✅ ' + userName + ' kullanıcısına bildirim başarıyla iletildi!');
+          closeNotifyModal();
+        } else {
+          alert('❌ Hata: ' + (j.message || 'Bildirim gönderilemedi'));
+        }
+      } catch (err) {
+        alert('❌ Bağlantı hatası oluştu');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined">send</span> Bildirimi Gönder';
+      }
+    });
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('filter')) {
       const f = urlParams.get('filter');
@@ -186,6 +562,7 @@
       document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('is-active', b.getAttribute('data-filter') === f));
     }
     loadUsers();
+    setInterval(refreshOnlineStatus, 15000);
   });
 </script>
 {% endblock %}
