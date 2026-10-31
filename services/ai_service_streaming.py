@@ -13,23 +13,27 @@ class AIServiceStreaming:
     """AI Service with streaming support for faster responses"""
 
     @staticmethod
-    def _build_system_prompt(interpretation_type: str) -> str:
-        """Yorum türüne göre system prompt döndür"""
+    def _build_system_prompt(interpretation_type: str = "") -> str:
+        """Sıfır astrolojik terim, tamamen hesaplama verilerine dayalı profesyonel uzman promptu"""
         base = (
-            "Sen bir astroloji yorumlama motorusun. "
-            "Verilen hesaplama verisini yorumlarsın. "
-            "KESİN KURAL: Gezegen isimleri (Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton, Ay, Güneş), "
-            "burç isimleri (Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık), "
-            "ev numaraları (1. ev, 7. ev vb.), açı adları (kare, karşıt, üçgen, kavuşum), "
-            "ve teknik terimler (transit, natal, ascendant, Chiron, Dasha, Navamsa, Firdaria, retrograd) "
-            "çıktıda HİÇBİR KOŞULDA geçmez. "
-            "Tavsiye vermezsin. Yönlendirmezsin. Sadece enerjiyi ve etkiyi tanımlarsın."
+            "Sen analitik psikoloji, davranışsal dinamikler ve geometrik rezonans alanında uzman bir analiz motorusun.\n"
+            "GÖREVİN: Sana aktarılan matematiksel ve geometrik hesaplama sonuçlarını, kişinin gerçek yaşam dinamiklerine, "
+            "zihinsel modellerine, bilinçaltı örüntülerine ve yeteneklerine dönüştürerek derinlemesine yorumlamaktır.\n\n"
+            "## KESİN KURALLAR — SIFIR ASTROLOJİK TERİM:\n"
+            "1. GEZEGEN ADLARI ASLA GEÇMEYECEK: Güneş, Ay, Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton adları KESİNLİKLE YASAKTIR. "
+            "Bunlar yerine; yaşam enerjisi, duygusal güvenlik ihtiyacı, zihinsel işlemleme hızı, bağ kurma dinamiği, yapısal sorumluluk baskısı, dönüştürücü iç güç de.\n"
+            "2. BURÇ, ELEMENT VE NİTELİK ADLARI ASLA GEÇMEYECEK: Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık isimleri KESİNLİKLE YASAK. "
+            "'Hava ağırlıklı', 'su grubu', 'ateş elementi', 'toprak enerjisi', 'değişken nitelik', 'öncü yapı', 'sabit dinamik' veya 'nitelik dağılımı' gibi sınıflandırmalar ASLA KULLANILAMAZ.\n"
+            "3. EV VE AÇI ADLARI ASLA GEÇMEYECEK: '1. ev', '7. ev', '10. ev' gibi ev numaraları; 'kavuşum', 'kare', 'karşıt', 'üçgen', 'sekstil' gibi açı isimleri ASLA KULLANILMAYACAKTIR.\n"
+            "4. DİĞER TEKNİK TERİMLER YASAK: Transit, natal, ascendant, yükselen, alçalan, MC, IC, orb, cusp, retrograd, dasha, firdaria, navamsa, harmonik, deklinasyon, antiscia, midpoint terimleri çıktıda ASLA YER ALMAYACAKTIR.\n"
+            "5. TAMAMEN HESAPLAMA SONUÇLARINA BAĞLI (ASLA HAYALİ DEĞİL): Veride bulunmayan hiçbir genel geçer kehanet veya kurgu üretme. Tüm tespitlerin sana verilen hesaplama verilerinin somut karşılığı olsun.\n"
+            "6. TAVSİYE YASAĞI: 'Yapmalısın, etmelisin, kaçınmalısın' gibi tavsiyeler YASAKTIR. Yalnızca tabloyu ve etkileşimleri tanımla.\n"
+            "7. EKSİKSİZ VE BÜTÜN YANIT: Analizi başından sonuna kadar tüm başlıklarıyla eksiksiz tamamla. Cümleleri veya metni asla yarım bırakma. Son cümleyi tamamlanmış bir nokta ile bitir."
         )
         if interpretation_type == "daily":
             return (
-                base + " "
-                "EKLEME KISITLAMA: YALNIZCA bugünkü gezegen pozisyonları ile doğum haritası arasındaki "
-                "aktif etkileşimleri yorumlarsın. Dönem analizi, karakter yorumu, uzun vade YASAK."
+                base + "\n"
+                "EK KISITLAMA: YALNIZCA bugünün aktif etkileşimlerini yorumlarsın. Uzun vade veya karakter analizi YASAKTIR."
             )
         return base
 
@@ -38,8 +42,8 @@ class AIServiceStreaming:
         session: aiohttp.ClientSession,
         provider: dict,
         prompt: str,
-        max_tokens: int = 2048,
-        timeout: int = 60,
+        max_tokens: int = 4096,
+        timeout: int = 120,
         temperature: float = 0.3,
         interpretation_type: str = ""
     ) -> AsyncGenerator[str, None]:
@@ -87,31 +91,40 @@ class AIServiceStreaming:
                 logger.info(f"[AI] 🚀 {name} streaming başladı")
 
                 # Server-Sent Events (SSE) formatında gelir
-                async for line in resp.content:
-                    line = line.decode('utf-8').strip()
+                async for raw_line in resp.content:
+                    line = raw_line.decode('utf-8', errors='replace').strip()
 
                     if not line:
                         continue
 
-                    # SSE format: "data: {...}"
-                    if line.startswith("data: "):
-                        line = line[6:]  # "data: " prefix'ini kaldır
+                    # SSE format: "data: {...}" veya "data:{...}"
+                    if line.startswith("data:"):
+                        line = line[5:].strip()
 
                     # Stream bitiş sinyali
                     if line == "[DONE]":
-                        logger.info(f"[AI] ✅ {name} streaming tamamlandı")
+                        logger.info(f"[AI] ✅ {name} streaming tamamlandı ([DONE])")
                         break
 
                     try:
                         chunk_data = json.loads(line)
-                        delta = chunk_data.get("choices", [{}])[0].get("delta", {})
+                        choices = chunk_data.get("choices", [])
+                        if not choices:
+                            continue
+                        choice = choices[0]
+                        finish_reason = choice.get("finish_reason")
+                        if finish_reason:
+                            logger.info(f"[AI Stream] {name} finish_reason: {finish_reason}")
+                            if finish_reason == "length":
+                                logger.warning(f"[AI Stream] ⚠️ {name} max_tokens sınırına ulaştı!")
+
+                        delta = choice.get("delta", {})
                         content = delta.get("content", "")
 
                         if content:
                             yield content
 
                     except json.JSONDecodeError:
-                        # Bazen boş veya hatalı line'lar olabilir
                         continue
 
         except asyncio.TimeoutError:
@@ -126,8 +139,8 @@ class AIServiceStreaming:
         session: aiohttp.ClientSession,
         provider: dict,
         prompt: str,
-        max_tokens: int = 2048,
-        timeout: int = 60,
+        max_tokens: int = 4096,
+        timeout: int = 120,
         temperature: float = 0.3
     ) -> dict:
         """

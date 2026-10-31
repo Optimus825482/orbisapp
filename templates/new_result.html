@@ -2851,10 +2851,15 @@ super() }}
                   console.log( '[ORBIS] Streaming tamamlandi (' + chunkCount + ' chunks, ' + totalTime + 'ms)' );
 
                   currentInterpretationText = streamingContent;
+                  $body.find( '.animate-spin' ).parent().remove();
                   $( '#ai-modal-footer' ).removeClass( 'hidden' );
 
                 } else if ( data.type === 'error' ) {
-                  throw new Error( data.message );
+                  console.error( '[ORBIS] AI Streaming error event:', data.message );
+                  if ( !streamingContent ) {
+                    $body.html( '<div class="text-center py-8"><p class="text-red-400 text-xs mb-2">Hata Oluştu</p><p class="text-slate-400 text-[10px]">' + ( data.message || 'Bilinmeyen hata' ) + '</p></div>' );
+                    return;
+                  }
                 }
 
               } catch ( parseError ) {
@@ -2863,8 +2868,24 @@ super() }}
             }
           }
 
+          if ( buffer && buffer.trim() ) {
+            var trailingLines = buffer.split( '\n' );
+            for ( var k = 0; k < trailingLines.length; k++ ) {
+              var trLine = trailingLines[k].trim();
+              if ( trLine.startsWith( 'data: ' ) || trLine.startsWith( 'data:' ) ) {
+                try {
+                  var trJson = JSON.parse( trLine.replace( /^data:\s*/, '' ) );
+                  if ( trJson.type === 'chunk' && trJson.content ) {
+                    streamingContent += trJson.content;
+                  }
+                } catch ( e ) {}
+              }
+            }
+          }
+
           if ( streamingContent ) {
             currentInterpretationText = streamingContent;
+            $body.find( '.animate-spin' ).parent().remove();
             $( '#streaming-content' ).html( marked.parse( streamingContent ) );
             $( '#ai-modal-footer' ).removeClass( 'hidden' );
           }

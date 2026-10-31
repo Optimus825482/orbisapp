@@ -13,7 +13,10 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 
 import aiohttp
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 from extensions import cache
 from utils import Constants
@@ -22,42 +25,60 @@ logger = logging.getLogger(__name__)
 
 
 class AIService:
+    TYPE_ALIASES = {
+        "financial": "finance",
+        "eclipse": "eclipses",
+        "character": "birth_chart",
+        "health_energy": "health",
+    }
+
+    @classmethod
+    def normalize_type(cls, interpretation_type: str) -> str:
+        if not interpretation_type:
+            return "birth_chart"
+        return cls.TYPE_ALIASES.get(interpretation_type, interpretation_type)
+
     BASE_RULES = """
-## KESİN KURALLAR — TÜM YORUMLAR İÇİN BAĞLAYICI
+## KESİN KURALLAR — TÜM YORUMLAR İÇİN İSTİSNASIZ BAĞLAYICIDIR
 
-### 1. YASAK TERİMLER (ASLA KULLANMA — TEKNİK TERIM SIFIR TOLERANS)
-Aşağıdaki terimler çıktıda HİÇBİR KOŞULDA geçmeyecek:
-- Gezegen adları: Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton
-  (Ay ve Güneş de dahil — bunlar yerine "duygusal enerji", "yaşam enerjisi" gibi ifadeler kullan)
-- Burç adları: Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık
-- Ev numaraları: "1. ev", "7. ev", "10. ev" vb.
-- Açı adları: kavuşum, karşıt, üçgen, kare, altmışlık, sextile, trine, opposition, conjunction
-- Teknik terimler: transit, natal, ascendant, midheaven, Chiron, Lilith, Dasha, Antardasha,
-  Mahadasha, Nakshatra, Navamsa, Firdaria, Kronokrator, antiscia, midpoint, dignity,
-  declination, progresyon, düğüm, retrograd, harmonic, orb, cusp, yükselen, alçalan
+### 1. YASAK TERİMLER (SIFIR TOLERANS — HİÇBİR ŞEKİLDE ÇIKTIDA YER ALAMAZ)
+Aşağıdaki terimler çıktıda HİÇBİR KOŞULDA KULLANILMAYACAKTIR:
+- GEZEGEN ADLARI: Güneş, Ay, Mars, Venüs, Satürn, Jüpiter, Merkür, Uranüs, Neptün, Plüton
+  (Bunlar yerine; yaşam enerjisi, duygusal ritim/ihtiyaç, yapısal disiplin baskısı, genişleme/fırsat dinamiği, zihinsel işlem hızı, dönüştürücü içsel güç gibi psikolojik/enerjetik kavramlar kullan)
+- BURÇ ADLARI: Koç, Boğa, İkizler, Yengeç, Aslan, Başak, Terazi, Akrep, Yay, Oğlak, Kova, Balık
+- ELEMENT ADLARI: Hava, su, ateş, toprak — "hava ağırlıklı", "su enerjisi", "ateş elementi", "toprak teması" gibi element sınıflandırmaları KESİNLİKLE YASAKTIR.
+- NİTELİK ADLARI: Değişken, öncü, sabit — "nitelik dağılımı", "değişkenlikte toplanmış", "öncü enerji" gibi sınıflandırmalar KESİNLİKLE YASAKTIR.
+- EV NUMARALARI: "1. ev", "2. ev", "7. ev", "10. ev" vb. (Bunun yerine; dış görünürlük, ortaklık alanı, mesleki zirve, kaynak yönetimi gibi yaşam alanlarını tanımla)
+- AÇI ADLARI: Kavuşum, karşıt, üçgen, kare, altmışlık, sekstil, trine, square, opposition, conjunction (Bunun yerine; iç gerilim, büyüme tetikleyicisi, akıcı destek, bütünleşme dinamiği gibi ifadeler kullan)
+- DİĞER TEKNİK TERİMLER: Transit, natal, ascendant, yükselen, alçalan, tepe noktası, MC, IC, Chiron, Kiron, Lilith, Dasha, Antardasha, Mahadasha, Nakshatra, Navamsa, Firdaria, Kronokrator, antiscia, midpoint, orta nokta, dignity, declination, deklinasyon, progresyon, düğüm, ay düğümü, retrograd, geri hareket, harmonic, harmonik, orb, cusp, zodyak, horoskop, astroloji.
 
-### 2. ÇEVRESEL DÖNÜŞÜM KURALI
-Yukarıdaki terimleri DOĞRUDAN kullanma; bunun yerine etkiyi ve enerjiyi ANLAT:
-- "Satürn" → "yapısal baskı", "sorumluluk enerjisi", "olgunlaştırıcı güç"
-- "Venüs transiti" → "ilişki alanındaki aktif enerji"
-- "kare açısı" → "gerilim ve zorlayıcı dinamik"
-- "12. ev" → "bilinçaltı alanı", "içe dönük enerji bölgesi"
-- "Dasha dönemi" → "aktif dönem enerjisi", "yaşam döngüsünün şu anki tonu"
+### 2. ÇEVRESEL VE PSİKOLOJİK DÖNÜŞÜM KURALI
+Teknik göstergeleri doğrudan aktarma; bunun yerine somut psikolojik, zihinsel, duygusal ve davranışsal dinamiklerini anlat:
+- Yapısal zorluk göstergeleri → "kişisel disiplin baskısı", "olgunlaştırıcı sınavlar", "sınır koyma kapasitesi"
+- İlişki göstergeleri → "bağ kurma ihtiyacı", "ortaklık alanındaki çekim frekansı", "güven arayışı"
+- Zihinsel göstergeler → "odaklanma hızı", "kavramsal sentez yeteneği", "bağlantı kurma becerisi"
+- Bilinçaltı göstergeleri → "bastırılmış itici güçler", "görünmeyen motivasyonlar", "içsel gölge temalar"
 
-### 3. DİL VE ÜSLUP
-- Sade, anlaşılır Türkçe — teknik bilgisi olmayan biri okuyup anlayabilmeli
-- Doğrudan ve somut ifadeler — soyut ezoterik dil YASAK
-- Kişiye adıyla hitap et, samimi ama profesyonel
+### 3. DİL, ÜSLUP VE UZMANLIK DERİNLİĞİ
+- Alanında en üst düzey analitik psikolog, sistem analisti ve davranış bilimci üslubu kullan.
+- Sade, kristal netliğinde, akıcı ve son derece profesyonel Türkçe.
+- Doğrudan ve somut ifadeler; soyut ezoterik laf kalabalığı, fal veya kehanet dili KESİNLİKLE YASAKTIR.
+- Kişiye ismiyle samimi ama saygın bir uzman ciddiyetiyle hitap et.
 
-### 4. UZUNLUK
-- 500-800 kelime arası; ne daha uzun ne daha kısa
-- Her başlık 1-2 paragraf — tekrar ve dolgu yok
+### 4. TAMAMEN HESAPLAMA SONUÇLARINA BAĞLI ANALİZ (ASLA HAYALİ DEĞİL)
+- Metindeki her tespit, sana aktarılan hesaplama verilerindeki somut matematiksel ve geometrik değerlerin gerçek bir psikolojik/davranışsal karşılığı olmalıdır.
+- Veride olmayan hayali kehanetler, uydurma genel geçer burç falları KESİNLİKLE YASAKTIR.
+- Her başlık altında, hesaplanan enerji kombinasyonunun kişinin hayatındaki gerçek izdüşümünü netleştir.
 
-### 5. TAVSİYE YASAĞI (İSTİSNASIZ)
-- "yapmalısın", "kaçınmalısın", "odaklanmalısın", "dikkat et", "önerim şu" YASAK
-- Görev: tabloyu TANIMLA ve YORUMLA, yönlendirme YAPMA
-- Doğru → "Bu alanda yoğun ve zorlayıcı bir enerji aktif."
-- Yanlış → "Bu alanda dikkatli olmalısın." (TAVSİYE — YASAK)
+### 5. YANITI EKSİKSİZ TAMAMLAMA (ASLA YARIM BIRAKILAMAZ)
+- Analizini başından sonuna kadar tam bir bütünlük içinde planla.
+- Verilen tüm başlıkları sırasıyla, doyurucu ve derinlikli (her başlık 1-2 akıcı paragraf) olarak yaz.
+- Metin asla yarım, kesik veya havada bırakılmış cümlelerle bitmemelidir. Son cümle mutlaka anlamı tamamlayan bir nokta ile bitmelidir.
+- Hedef uzunluk: 550 - 800 kelime arası eksiksiz uzman değerlendirmesi.
+
+### 6. TAVSİYE YASAĞI (İSTİSNASIZ)
+- "Yapmalısın, etmelisin, kaçınmalısın, dikkat et, önerim şu" gibi yönlendirmeler YASAK.
+- Senin görevin reçete yazmak değil; hesaplama matrisinin ortaya koyduğu tabloyu, potansiyelleri ve sürtünme noktalarını en yetkin şekilde betimlemektir.
 """
 
     # ════════════════════════════════════════════════════════════════════
@@ -203,6 +224,29 @@ Yukarıdaki terimleri DOĞRUDAN kullanma; bunun yerine etkiyi ve enerjiyi ANLAT:
             "natal_dignity_scores", "natal_lunation_cycle",
             "solar_return_chart", "transit_positions",
             "transit_to_natal_aspects", "natal_midpoint_analysis",
+        ],
+        "financial": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_arabic_parts",
+            "natal_part_of_fortune", "natal_dignity_scores",
+            "solar_return_chart", "transit_positions",
+            "transit_to_natal_aspects",
+        ],
+        "eclipse": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "eclipses_nearby_birth", "eclipses_nearby_current",
+            "transit_positions", "transit_to_natal_aspects",
+            "natal_lunation_cycle",
+        ],
+        "character": [
+            "natal_planet_positions", "natal_houses", "natal_ascendant",
+            "natal_aspects", "natal_additional_points",
+            "natal_dignity_scores", "natal_declinations",
+            "natal_midpoint_analysis", "navamsa_chart",
+            "vimshottari_dasa", "firdaria_periods",
+            "eclipses_nearby_birth", "natal_lunation_cycle",
+            "natal_fixed_stars",
         ],
     }
 
@@ -405,18 +449,18 @@ Teknik terim kullanma:
 7. DÖNEM ENERJİSİ — Bu tutulma döneminin genel tonu ve yaşam üzerindeki temaları
 """,
         "harmonic": """
-## DERİN ENERJİ VE REZONANS ANALİZİ
-Verilen derin harmonik verileri kullanarak gizli potansiyelleri yorumla.
-Teknik terim kullanma:
+## HARMONİK REZONANS VE ÇOK KATMANLI POTANSİYEL ANALİZİ
+Sana sunulan derin harmonik hesaplama matrisini (H1'den H60'a kadar olan frekans katmanları, orta nokta titreşimleri ve geometrik rezonanslar) kullanarak kişinin gizli yetenek, zihinsel derinlik ve içsel potansiyelini yorumla.
+KESİN KURAL: Hiçbir astrolojik, gezegensel veya teknik terim kullanmadan, doğrudan hesaplama sonuçlarının yansıttığı dinamikleri anlat:
 
-1. YARATICI İFADE ALANI — Sanat, yaratıcılık ve kendini ifade etme kapasitesinin enerji yapısı
-2. MANEVİ BAĞLANTI — Spiritüel yetenek, ilham kapasitesi ve yüksek frekans bağlantısı
-3. RUHSAL ORTAKLIK DERİNLİĞİ — Ruhsal amaç ve derin ilişki bağının rezonansı
-4. GİZLİ BİLİNÇALTI ÖRÜNTÜLER — Bilinçdışı enerji kalıpları ve gizli güçler
-5. GİZLİ YAPISAL GÖSTERGELER — Gezegen orta noktalarındaki derin enerji yapılandırıcıları
-6. GÖLGE VE DENGE ENERJİLERİ — Yansıma enerjileri ve dengelenmesi gereken alanlar
-7. GİZLİ BAĞLANTILAR — Görünmez enerji köprüleri ve fark edilmemiş örüntüler
-8. PRATİK YANSIMA — Bu derin haritanın günlük yaşama ve ilişkilere somut yansıması
+1. YARATICI VE ÖZGÜN İFADE REZONANSI — Kavram üretme, sanatsal sezgi, özgün vizyon ve kendini ifade etme kapasitesinin enerjisi.
+2. DERİN KAVRAYIŞ VE İÇSEL BÜTÜNLÜK — Yüksek algı frekansı, zihinsel sınırların ötesine geçen ilham kapasitesi ve içsel merkezlenme gücü.
+3. İLİŞKİ VE ORTAKLIK DERİNLİĞİ — Bireysel temasların ötesinde, ruhsal ve zihinsel rezonans yaratan güçlü ortaklık ve bağ kurma kalıpları.
+4. BİLİNÇALTI İTİCİ GÜÇLER VE İRADE MOTORU — Kişinin görünür davranışlarının arkasındaki derin bilinçdışı motivasyonlar, tutkular ve irade odağı.
+5. ZORLUKLARI AŞMA VE KRİZ DİRENCİ — Baskı ve kriz anlarında açığa çıkan dayanıklılık, sınavları avantaja dönüştürme ve toparlanma potansiyeli.
+6. MESLEKİ USTALIK VE TOPLUMSAL ETKİ — Kişinin ürettiği değerle toplumda bıraktığı kalıcı etki, saygınlık ve alanda otorite kurma frekansı.
+7. GÖLGE DİNAMİKLER VE ENERJİ DENGELEME — İçsel gerilim noktaları, dengelenmesi gereken kutuplar ve gizli kalmış yeteneklerin entegrasyonu.
+8. SOMUT VE GÜNLÜK YAŞAM YANSIMASI — Bu derin geometrik rezonansın günlük kararlara, üretkenliğe ve pratik hayata net yansıması.
 """,
         "esoteric": """
 ## EZOTERİK ENERJİ ANALİZİ
@@ -464,6 +508,11 @@ Teknik terim kullanma:
 """,
     }
 
+    # Alias tanımlamaları
+    TYPE_PROMPTS["financial"] = TYPE_PROMPTS["finance"]
+    TYPE_PROMPTS["eclipse"] = TYPE_PROMPTS["eclipses"]
+    TYPE_PROMPTS["character"] = TYPE_PROMPTS["birth_chart"]
+
     # Provider ayarlarını cache'le
     _providers_cache = None
     _fallback_order = []
@@ -474,7 +523,7 @@ Teknik terim kullanma:
         self.sync_client = None
         # Fallback: env'den oku (Firestore yoksa)
         deepseek_key = os.getenv("DEEPSEEK_API_KEY")
-        if deepseek_key:
+        if deepseek_key and OpenAI is not None:
             self.sync_client = OpenAI(
                 api_key=deepseek_key,
                 base_url="https://api.deepseek.com/v1"
@@ -648,19 +697,19 @@ Teknik terim kullanma:
         if not astro_data or not isinstance(astro_data, dict):
             logger.warning(f"[AI] astro_data None veya geçersiz, boş dict dönülüyor.")
             return {}
-        allowed_keys = self.DATA_FILTER.get(analysis_type)
+        norm_type = self.normalize_type(analysis_type)
+        allowed_keys = self.DATA_FILTER.get(norm_type) or self.DATA_FILTER.get(analysis_type)
         if not allowed_keys:
             logger.warning(f"[AI] {analysis_type} için filtre tanımı yok, tüm veri gönderiliyor.")
             return astro_data
         filtered = {}
-        skipped_count = 0
         for key in allowed_keys:
             if key in astro_data:
                 filtered[key] = astro_data[key]
         # Hangi hesaplamalar atlandı logla
         skipped = [k for k in astro_data if k not in allowed_keys]
         if skipped:
-            logger.info(f"[AI] Filtre '{analysis_type}': {len(filtered)}/{len(astro_data)} key gönderildi, {len(skipped)} atlandı: {skipped}")
+            logger.info(f"[AI] Filtre '{analysis_type}' (norm: '{norm_type}'): {len(filtered)}/{len(astro_data)} key gönderildi, {len(skipped)} atlandı: {skipped}")
         else:
             logger.info(f"[AI] Filtre '{analysis_type}': Tüm {len(filtered)} key gönderildi.")
         return filtered
@@ -727,8 +776,9 @@ Teknik terim kullanma:
 
     async def get_ai_interpretation_async(self, astro_data: dict, interpretation_type: str, user_name: str, **kwargs) -> dict:
         """Sıralı yedekleme ile AI yorumu al — analiz türüne özel veri + prompt"""
+        norm_type = self.normalize_type(interpretation_type)
         # Veriyi filtrele
-        filtered_data = self._filter_astro_data(astro_data, interpretation_type)
+        filtered_data = self._filter_astro_data(astro_data, norm_type)
         # Derinlemesine kırp: major açılar, top N
         filtered_data = self._deep_trim(filtered_data)
         data_json = json.dumps(filtered_data, default=str)
@@ -736,7 +786,7 @@ Teknik terim kullanma:
         logger.info(f"[AI] Prompt data boyutu: {data_size:,} bytes (~{data_size//4:,} token)")
 
         # Analiz türüne özel prompt veya genel prompt
-        type_prompt = self.TYPE_PROMPTS.get(interpretation_type)
+        type_prompt = self.TYPE_PROMPTS.get(norm_type) or self.TYPE_PROMPTS.get(interpretation_type)
         if type_prompt:
             prompt = f"User: {user_name}\n{type_prompt}\nData: {data_json}\n{self.BASE_RULES}"
         else:

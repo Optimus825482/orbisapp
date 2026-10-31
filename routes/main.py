@@ -360,7 +360,8 @@ def api_get_ai_interpretation():
     Sadece native (Android) için reklam zorunluluğu var.
     PWA istemcilerde limitsiz erişim sağlanır."""
     data = request.get_json() or {}
-    interpretation_type = data.get("interpretation_type", "daily")
+    raw_type = data.get("interpretation_type", "daily")
+    interpretation_type = AIService.normalize_type(raw_type)
     astro_data = data.get("astro_data", {})
     user_name = data.get("user_name", "Değerli Danışanım")
     use_stream = data.get("stream", False)
