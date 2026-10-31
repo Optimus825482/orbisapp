@@ -28,11 +28,11 @@
     href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200"
     rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20260624-2" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20260624-2" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=20260624-2" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20260624-4" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/motion.css') }}?v=20260624-2" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/tokens.css') }}?v=20261031-compact" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}?v=20261031-compact" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/layout.css') }}?v=20261031-compact" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/components.css') }}?v=20261031-compact" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/motion.css') }}?v=20261031-compact" />
 
   {% block head %}{% endblock %}
 </head>
@@ -102,7 +102,7 @@
             <li>
               <a href="{{ url_for('admin.pricing') }}" class="sidebar-link{% if request.endpoint == 'admin.pricing' %} is-active{% endif %}">
                 <span class="sidebar-link-icon"><span class="material-symbols-outlined">payments</span></span>
-                <span class="sidebar-link-label">Fiyat Yönetimi</span>
+                <span class="sidebar-link-label">Monetizasyon</span>
               </a>
             </li>
             <li>

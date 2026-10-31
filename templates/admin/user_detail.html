@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="grid" style="grid-template-columns: 1fr 2fr; gap: var(--space-5);">
-  <aside class="card stagger" style="position: sticky; top: 92px; align-self: start;">
+<div class="grid--detail stagger">
+  <aside class="card stagger" style="position: sticky; top: 76px; align-self: start;">
     <div class="card-body">
       <div id="profile-loading" class="empty">
         <div class="login-spinner"></div>
@@ -20,26 +20,26 @@
       </div>
 
       <div id="profile-content" hidden>
-        <div style="text-align: center; margin-bottom: var(--space-5);">
-          <div class="sidebar-avatar" id="user-avatar-letter" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto var(--space-3);">U</div>
-          <h2 id="user-name" style="font-size: 18px; font-weight: 600; margin: 0;">—</h2>
-          <p id="user-email" style="font-size: 13px; color: var(--ink-muted); margin: 4px 0 0;">—</p>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <div class="sidebar-avatar" id="user-avatar-letter" style="width: 52px; height: 52px; font-size: 22px; margin: 0 auto 8px;">U</div>
+          <h2 id="user-name" style="font-size: 15px; font-weight: 600; margin: 0;">—</h2>
+          <p id="user-email" style="font-size: 12px; color: var(--ink-muted); margin: 2px 0 0;">—</p>
         </div>
 
-        <div id="status-badge" style="text-align: center; margin-bottom: var(--space-5);"></div>
+        <div id="status-badge" style="text-align: center; margin-bottom: 12px;"></div>
 
-        <div class="grid grid--2 stagger" style="margin-bottom: var(--space-5);">
-          <div style="padding: var(--space-4); background: var(--glass-bg-2); border-radius: var(--radius-md); text-align: center;">
-            <div id="user-analyses" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
-            <div class="eyebrow" style="margin-top: 4px;">Analiz</div>
+        <div class="grid grid--2 stagger" style="margin-bottom: 12px;">
+          <div style="padding: 10px 12px; background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); text-align: center;">
+            <div id="user-analyses" class="metric-value metric-value--sm" style="font-size: 20px;">0</div>
+            <div class="eyebrow" style="margin-top: 2px; font-size: 10px;">Analiz</div>
           </div>
-          <div style="padding: var(--space-4); background: var(--glass-bg-2); border-radius: var(--radius-md); text-align: center;">
-            <div id="user-ads" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
-            <div class="eyebrow" style="margin-top: 4px;">Reklam</div>
+          <div style="padding: 10px 12px; background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); text-align: center;">
+            <div id="user-ads" class="metric-value metric-value--sm" style="font-size: 20px;">0</div>
+            <div class="eyebrow" style="margin-top: 2px; font-size: 10px;">Reklam</div>
           </div>
         </div>
 
-        <div class="stack-3" style="font-size: 13px;">
+        <div class="stack-2" style="font-size: 12px;">
           <div class="info-row">
             <span class="info-label">Toplam Giriş</span>
             <span id="user-login-count" class="info-value" style="font-weight: 600; font-family: var(--font-mono);">1 kez</span>
@@ -58,12 +58,9 @@
           </div>
         </div>
 
-        <div class="stack-3" style="margin-top: var(--space-5);">
-          <p style="font-size: 12px; color: var(--ink-faint); margin: 0;">
-            Uygulama ucretsiz oldugu icin premium/credit islemi yapilamiyor.
-          </p>
+        <div class="stack-2" style="margin-top: 14px;">
           <button class="action-btn action-btn--info" type="button" onclick="sendPushToUser()">
-            <span class="material-symbols-outlined">notifications</span>
+            <span class="material-symbols-outlined" style="font-size: 16px;">notifications</span>
             Push Gönder
           </button>
         </div>
@@ -82,17 +79,17 @@
       </header>
       <div class="card-body">
         <div class="grid grid--3">
-          <div>
-            <div class="eyebrow" style="margin-bottom: 4px;">Tarih</div>
-            <div id="daily-date" style="font-size: 18px; font-weight: 600;">—</div>
+          <div style="background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 8px 12px;">
+            <div class="eyebrow" style="margin-bottom: 2px; font-size: 10px;">Tarih</div>
+            <div id="daily-date" style="font-size: 13px; font-weight: 600;">—</div>
           </div>
-          <div>
-            <div class="eyebrow" style="margin-bottom: 4px;">Analiz</div>
-            <div id="daily-count" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
+          <div style="background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 8px 12px;">
+            <div class="eyebrow" style="margin-bottom: 2px; font-size: 10px;">Analiz</div>
+            <div id="daily-count" class="metric-value metric-value--sm" style="font-size: 1.25rem;">0</div>
           </div>
-          <div>
-            <div class="eyebrow" style="margin-bottom: 4px;">Reklam İzlendi</div>
-            <div id="daily-ads" class="metric-value metric-value--sm" style="font-size: 24px;">0</div>
+          <div style="background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 8px 12px;">
+            <div class="eyebrow" style="margin-bottom: 2px; font-size: 10px;">Reklam İzlendi</div>
+            <div id="daily-ads" class="metric-value metric-value--sm" style="font-size: 1.25rem;">0</div>
           </div>
         </div>
       </div>

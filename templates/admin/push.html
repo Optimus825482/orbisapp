@@ -4,7 +4,7 @@
 {% block page_subtitle %}Kullanıcılara toplu veya hedefli bildirim gönder{% endblock %}
 
 {% block content %}
-<div class="grid stagger" style="grid-template-columns: 1fr 1fr; gap: var(--space-5); align-items: start;">
+<div class="grid grid--2 stagger" style="align-items: start;">
   <section class="card" id="push-form-card">
     <header class="card-head">
       <div>
@@ -111,38 +111,38 @@
         <span class="badge badge--dot badge--primary">×4</span>
       </header>
       <div class="card-body">
-        <div class="stack-3">
+        <div class="stack-2">
           <button class="template-row" type="button" onclick="useTemplate('daily')">
-            <span class="metric-icon metric-icon--warning" style="width: 40px; height: 40px;"><span class="material-symbols-outlined">wb_sunny</span></span>
-            <div style="flex: 1; text-align: left;">
-              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Günlük Burç Yorumu</div>
-              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Günlük burç yorumunuz hazır!</div>
+            <span class="metric-icon metric-icon--warning" style="width: 28px; height: 28px; border-radius: 6px;"><span class="material-symbols-outlined" style="font-size: 15px;">wb_sunny</span></span>
+            <div style="flex: 1; text-align: left; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Günlük Burç Yorumu</div>
+              <div style="font-size: 11px; color: var(--ink-muted); margin-top: 1px;">Günlük burç yorumunuz hazır!</div>
             </div>
-            <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
+            <span class="material-symbols-outlined" style="color: var(--ink-faint); font-size: 16px;">arrow_forward</span>
           </button>
           <button class="template-row" type="button" onclick="useTemplate('weekly')">
-            <span class="metric-icon metric-icon--info" style="width: 40px; height: 40px;"><span class="material-symbols-outlined">date_range</span></span>
-            <div style="flex: 1; text-align: left;">
-              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Haftalık Analiz</div>
-              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Bu haftanın kozmik enerjileri...</div>
+            <span class="metric-icon metric-icon--info" style="width: 28px; height: 28px; border-radius: 6px;"><span class="material-symbols-outlined" style="font-size: 15px;">date_range</span></span>
+            <div style="flex: 1; text-align: left; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Haftalık Analiz</div>
+              <div style="font-size: 11px; color: var(--ink-muted); margin-top: 1px;">Bu haftanın kozmik enerjileri...</div>
             </div>
-            <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
+            <span class="material-symbols-outlined" style="color: var(--ink-faint); font-size: 16px;">arrow_forward</span>
           </button>
           <button class="template-row" type="button" onclick="useTemplate('engagement')">
-            <span class="metric-icon metric-icon--success" style="width: 40px; height: 40px;"><span class="material-symbols-outlined">auto_awesome</span></span>
-            <div style="flex: 1; text-align: left;">
-              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Yeni Analiz Hatırlatma</div>
-              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Bugün yıldızlar sizi bekliyor!</div>
+            <span class="metric-icon metric-icon--success" style="width: 28px; height: 28px; border-radius: 6px;"><span class="material-symbols-outlined" style="font-size: 15px;">auto_awesome</span></span>
+            <div style="flex: 1; text-align: left; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Yeni Analiz Hatırlatma</div>
+              <div style="font-size: 11px; color: var(--ink-muted); margin-top: 1px;">Bugün yıldızlar sizi bekliyor!</div>
             </div>
-            <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
+            <span class="material-symbols-outlined" style="color: var(--ink-faint); font-size: 16px;">arrow_forward</span>
           </button>
           <button class="template-row" type="button" onclick="useTemplate('update')">
-            <span class="metric-icon" style="background: var(--grad-danger); width: 40px; height: 40px;"><span class="material-symbols-outlined" style="color: var(--primary-ink);">system_update</span></span>
-            <div style="flex: 1; text-align: left;">
-              <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Güncelleme Duyurusu</div>
-              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Yeni özellikler eklendi!</div>
+            <span class="metric-icon" style="background: var(--grad-danger); width: 28px; height: 28px; border-radius: 6px;"><span class="material-symbols-outlined" style="color: var(--primary-ink); font-size: 15px;">system_update</span></span>
+            <div style="flex: 1; text-align: left; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Güncelleme Duyurusu</div>
+              <div style="font-size: 11px; color: var(--ink-muted); margin-top: 1px;">Yeni özellikler eklendi!</div>
             </div>
-            <span class="material-symbols-outlined" style="color: var(--ink-faint);">arrow_forward</span>
+            <span class="material-symbols-outlined" style="color: var(--ink-faint); font-size: 16px;">arrow_forward</span>
           </button>
         </div>
       </div>

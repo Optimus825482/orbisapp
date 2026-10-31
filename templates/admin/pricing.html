@@ -1,43 +1,132 @@
 {% extends "admin/layout.html" %}
-{% block title %}Fiyat Yönetimi{% endblock %}
-{% block page_title %}Fiyat Yönetimi{% endblock %}
-{% block page_subtitle %}Premium kaldirildi · Bu sayfa artik kullanilmiyor{% endblock %}
+{% block title %}Monetizasyon & Gelir Modeli{% endblock %}
+{% block page_title %}Monetizasyon & Reklam Modeli{% endblock %}
+{% block page_subtitle %}Kozmik Krediler, 24 Saatlik Pasaport, Story Export, Unity & AdMob Mediation Mimarisi{% endblock %}
 
 {% block content %}
-<div class="stack-6 stagger" style="max-width: 720px;">
-  <div class="card">
+<!-- ═══ 5 Monetization Pillars ═══ -->
+<div class="grid grid--kpi stagger" style="margin-bottom: 14px;">
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Faz 1 · Rewarded Analiz</span>
+      <span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">smart_display</span></span>
+    </div>
+    <div class="metric-value metric-value--sm" style="font-size: 1.15rem; color: var(--success);">Aktif / Zorunlu</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">check_circle</span>Canlı</span>
+      <span class="metric-compare">Analiz öncesi</span>
+    </div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Faz 2 · Kredi Cüzdanı</span>
+      <span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">token</span></span>
+    </div>
+    <div class="metric-value metric-value--sm" style="font-size: 1.15rem; color: var(--accent);">+5 Kredi / Video</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">wallet</span>Global Pill</span>
+      <span class="metric-compare">Header entegre</span>
+    </div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Faz 3 · 24h Pasaport</span>
+      <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">hourglass_top</span></span>
+    </div>
+    <div class="metric-value metric-value--sm" style="font-size: 1.15rem; color: var(--warning);">3 Video = 24 Saat</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">bolt</span>Limitsiz</span>
+      <span class="metric-compare">Reklamsız analiz</span>
+    </div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head">
+      <span class="metric-label">Faz 4 · Story Export</span>
+      <span class="metric-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899; border-color: rgba(236, 72, 153, 0.25);"><span class="material-symbols-outlined">photo_camera</span></span>
+    </div>
+    <div class="metric-value metric-value--sm" style="font-size: 1.15rem; color: #ec4899;">9:16 Canvas Kart</div>
+    <div class="metric-foot">
+      <span class="trend trend--up"><span class="material-symbols-outlined">share</span>Viral</span>
+      <span class="metric-compare">1 Reklam / Kredi</span>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid--2 stagger" style="align-items: start; margin-bottom: 14px;">
+  <!-- Mediation Networks Card -->
+  <section class="card">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Premium Kaldırıldı</h2>
-        <p class="card-subtitle">Uygulama artık tamamen ücretsiz ve sadece reklam destekli</p>
+        <h2 class="card-title">Mediation (Uyumlulaştırma) Ağları</h2>
+        <p class="card-subtitle">En yüksek eCPM getiren açık artırma ağları</p>
       </div>
-      <span class="badge badge--dot badge--success">ÜCRETSİZ</span>
+      <span class="badge badge--dot badge--primary">Bidding</span>
     </header>
-    <div class="card-body">
-      <p style="margin: 0 0 var(--space-3); color: var(--ink); font-size: 14px;">
-        Bu yönetim sayfası artık kullanılmıyor. Premium üyelik ve kredi satışı kaldırıldı.
-      </p>
-      <p style="margin: 0; color: var(--ink-muted); font-size: 13px;">
-        Kullanıcılar tüm analiz özelliklerine <strong>ücretsiz</strong> olarak erişir.
-        Analiz yapmak için tek gereksinim, kısa bir <strong>Rewarded reklam</strong> izlemektir.
-      </p>
+    <div class="card-body stack-2">
+      <div class="list-row" style="background: var(--glass-bg-2);">
+        <span class="metric-icon metric-icon--success"><span class="material-symbols-outlined">check_circle</span></span>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Google AdMob (Ana Ağ)</div>
+          <div class="text-ink-faint" style="font-size: 11px;">Rewarded, Interstitial, Collapsible Banner birimleri aktif</div>
+        </div>
+        <span class="badge badge--success">Aktif</span>
+      </div>
 
-      <div style="margin-top: var(--space-5); padding: var(--space-4); background: var(--glass-bg-2); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
-        <h3 style="font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 var(--space-3);">📊 Gelir Modeli</h3>
-        <ul style="margin: 0; padding-left: var(--space-4); color: var(--ink-muted); font-size: 13px; line-height: 1.8;">
-          <li><strong>Banner:</strong> Ana ekranda sürekli (pasif gelir)</li>
-          <li><strong>Rewarded:</strong> Her analiz öncesi zorunlu (yüksek CPM)</li>
-          <li><strong>Interstitial:</strong> Analizler arası (agresif olmayan sıklıkta)</li>
-        </ul>
+      <div class="list-row" style="background: var(--glass-bg-2);">
+        <span class="metric-icon metric-icon--warning"><span class="material-symbols-outlined">view_in_ar</span></span>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Unity Ads Mediation</div>
+          <div class="text-ink-faint" style="font-size: 11px;">Game ID: 800419261 · BP_Rewarded_Android / BP_Interstitial_Android / BP_Banner_Android</div>
+        </div>
+        <span class="badge badge--warning">Hazır</span>
+      </div>
+
+      <div class="list-row" style="background: var(--glass-bg-2);">
+        <span class="metric-icon metric-icon--info"><span class="material-symbols-outlined">hub</span></span>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--ink);">Mintegral / InMobi / Pangle</div>
+          <div class="text-ink-faint" style="font-size: 11px;">Global gerçek zamanlı bidding partnerleri</div>
+        </div>
+        <span class="badge badge--neutral">Opsiyonel</span>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="alert alert--info">
-    <span class="material-symbols-outlined">info</span>
-    <div style="font-size: 13px;">
-      <strong>Geçmiş:</strong> Daha önce burada <code style="background: var(--glass-bg-3); padding: 2px 6px; border-radius: 4px; color: var(--primary); font-size: 12px;">config/pricing</code> Firestore dokümanı kullanılarak premium fiyatları yönetiliyordu. Bu özellik tamamen kaldırıldı.
+  <!-- Self-Click Protection & Whitelist Card -->
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2 class="card-title">AdSense / AdMob Ceza Koruması</h2>
+        <p class="card-subtitle">Kendi reklamlarına tıklama cezasını önleyen Whitelist</p>
+      </div>
+      <span class="badge badge--dot badge--success">Korumalı</span>
+    </header>
+    <div class="card-body stack-2">
+      <div class="alert alert--success" style="padding: 10px 14px; font-size: 12px; margin-bottom: 6px;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">verified_user</span>
+        <div>
+          <strong>Geliştirici Muafiyeti Devrede:</strong> Belirtilen e-posta adresleri uygulamayı açtığında hiçbir reklam yüklenmez ve sayılmaz. AdSense self-click ve geçersiz trafik cezaları %100 engellenir.
+        </div>
+      </div>
+
+      <div class="stack-2" style="font-size: 12px;">
+        <div class="info-row">
+          <span class="info-label">ikinciyenikitap54@gmail.com</span>
+          <span class="badge badge--dot badge--success">Reklamsız / Muaf</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">erkanerdem8254@gmail.com</span>
+          <span class="badge badge--dot badge--success">Reklamsız / Muaf</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">djerkan8254@gmail.com</span>
+          <span class="badge badge--dot badge--success">Reklamsız / Muaf</span>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

@@ -5,25 +5,25 @@
 
 {% block content %}
 <!-- ═══ Filter Bar ═══ -->
-<div class="card stagger" style="margin-bottom: var(--space-5);">
-  <div class="card-body">
+<div class="card stagger" style="margin-bottom: 14px;">
+  <div class="card-body" style="padding: 10px 14px;">
     <div class="row row--wrap" style="gap: var(--space-3);">
       <div class="input-group" style="flex: 1; min-width: 240px;">
         <span class="input-group-icon material-symbols-outlined">search</span>
         <input id="user-search" class="input" type="search" placeholder="E-posta veya ad ile ara…" />
       </div>
 
-      <div class="row" role="tablist" aria-label="Kullanıcı filtresi" style="gap: var(--space-2);">
+      <div class="row" role="tablist" aria-label="Kullanıcı filtresi" style="gap: 6px;">
         <button class="target-option is-active" data-filter="all" type="button">
-          <span class="material-symbols-outlined" style="font-size: 18px;">groups</span>
+          <span class="material-symbols-outlined" style="font-size: 16px;">groups</span>
           <span>Tümü</span>
         </button>
         <button class="target-option" data-filter="online" type="button">
-          <span class="material-symbols-outlined" style="font-size: 18px; color: var(--success);">bolt</span>
+          <span class="material-symbols-outlined" style="font-size: 16px; color: var(--success);">bolt</span>
           <span>Aktif (<span id="online-badge-count">0</span>)</span>
         </button>
         <button class="target-option" data-filter="admin" type="button">
-          <span class="material-symbols-outlined" style="font-size: 18px;">shield_person</span>
+          <span class="material-symbols-outlined" style="font-size: 16px;">shield_person</span>
           <span>Admin</span>
         </button>
       </div>
