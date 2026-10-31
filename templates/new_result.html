@@ -1634,7 +1634,7 @@ super() }}
     class="relative bg-surface-dark rounded-t-[3rem] border-t border-white/10 p-8 shadow-2xl max-h-[85vh] overflow-y-auto transform transition-transform duration-500 translate-y-0 no-scrollbar">
     <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-8"></div>
 
-    <header class="flex items-center justify-between mb-8">
+    <header class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-4">
         <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
           <span class="material-icons-round text-primary text-xl">auto_stories</span>
@@ -1644,70 +1644,71 @@ super() }}
         </h4>
       </div>
       <button onclick="closeAIModal()"
-        class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+        class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
         <span class="material-icons-round">close</span>
       </button>
     </header>
 
-    <div id="ai-modal-body" class="prose prose-invert prose-sm max-w-none text-slate-300 font-light leading-relaxed">
-      <!-- Content Injected -->
-    </div>
-
-    <footer id="ai-modal-footer"
-      class="sticky bottom-0 mt-8 bg-surface-dark/95 backdrop-blur-xl p-3 -mx-4 mb-[-2rem] rounded-b-[3rem] border-t border-white/5 z-20 hidden">
+    <!-- 🌟 ÜST ARAÇ ÇUBUĞU (SESLİ DİNLE, HIZ, YAZI BOYUTU, KOPYALA) -->
+    <div id="ai-modal-footer"
+      class="sticky top-0 z-30 bg-surface-dark/95 backdrop-blur-xl py-2.5 px-3 -mx-2 mb-6 border-y border-white/10 flex flex-wrap items-center justify-between gap-2 rounded-2xl shadow-lg hidden">
       
-      <!-- Row 1: TTS + Speed + Copy -->
-      <div class="flex items-center gap-2 mb-2">
+      <!-- Sol Taraf: Dinle ve Okuma Hızı -->
+      <div class="flex items-center gap-2">
         <button id="modal-read-aloud"
-          class="px-3 py-2 bg-primary rounded-xl text-[10px] font-bold uppercase tracking-widest text-white flex items-center justify-center gap-1.5 shadow-md shadow-primary/20 active:scale-95 transition-all">
-          <span class="material-icons-round text-sm" id="listen-icon">volume_up</span>
+          class="px-3.5 py-2 bg-gradient-to-r from-primary to-accent hover:opacity-95 rounded-xl text-[11px] font-bold uppercase tracking-wider text-white flex items-center justify-center gap-1.5 shadow-md shadow-primary/25 active:scale-95 transition-all cursor-pointer">
+          <span class="material-icons-round text-base" id="listen-icon">volume_up</span>
           <span id="listen-text">Dinle</span>
         </button>
 
         <!-- Speed Controls -->
         <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10">
           <button onclick="TTS.changeSpeed(-0.1)"
-            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90 cursor-pointer"
             title="Yavaşlat">
             <span class="material-icons-round text-xs">remove</span>
           </button>
-          <span class="speed-display-value text-[10px] font-bold text-white min-w-[32px] text-center font-mono">1.5x</span>
+          <span class="speed-display-value text-[10px] font-bold text-white min-w-[34px] text-center font-mono select-none">1.5x</span>
           <button onclick="TTS.changeSpeed(0.1)"
-            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90 cursor-pointer"
             title="Hızlandır">
             <span class="material-icons-round text-xs">add</span>
-            </button>
-            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sağ Taraf: Yazı Boyutu ve Kopyala -->
+      <div class="flex items-center gap-2 ml-auto">
+        <div class="flex items-center gap-1.5 bg-white/5 rounded-xl px-2.5 py-1 border border-white/10">
+          <span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold select-none">Yazı:</span>
+          <button type="button" onclick="changeModalFontSize(-2)"
+            class="w-6 h-6 rounded hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90 cursor-pointer"
+            title="Küçült">
+            <span class="text-xs font-bold pointer-events-none">A-</span>
+          </button>
+          <span id="font-size-display" class="text-[10px] font-bold text-amber-300 min-w-[34px] text-center font-mono select-none">16px</span>
+          <button type="button" onclick="changeModalFontSize(2)"
+            class="w-6 h-6 rounded hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90 cursor-pointer"
+            title="Büyüt">
+            <span class="text-xs font-bold pointer-events-none">A+</span>
+          </button>
+          <button type="button" onclick="resetModalFontSize()"
+            class="text-slate-400 hover:text-slate-200 transition-colors ml-0.5 cursor-pointer" title="Sıfırla">
+            <span class="material-icons-round text-xs pointer-events-none">restart_alt</span>
+          </button>
+        </div>
 
         <button id="modal-copy"
-          class="ml-auto w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white border border-white/5 active:scale-95 transition-all"
+          class="w-8 h-8 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white border border-white/10 active:scale-95 transition-all cursor-pointer"
           title="Metni Kopyala">
           <span class="material-icons-round text-base">content_copy</span>
-          </button>
-          </div>
-          
-          <!-- Row 2: Font Size Controls -->
-          <div class="flex items-center gap-2">
-            <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Yazı:</span>
-            <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10">
-              <button type="button" onclick="changeModalFontSize(-2)"
-                class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
-                title="Küçült">
-                <span class="text-xs font-bold pointer-events-none">A-</span>
-              </button>
-              <span id="font-size-display" class="text-[10px] font-bold text-white min-w-[36px] text-center font-mono select-none">16px</span>
-              <button type="button" onclick="changeModalFontSize(2)"
-                class="w-8 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
-                title="Büyüt">
-                <span class="text-sm font-bold pointer-events-none">A+</span>
-              </button>
-            </div>
-            <button type="button" onclick="resetModalFontSize()"
-              class="text-[9px] text-slate-500 hover:text-slate-300 transition-colors ml-1" title="Sıfırla">
-              <span class="material-icons-round text-xs pointer-events-none">restart_alt</span>
-            </button>
-          </div>
-    </footer>
+        </button>
+      </div>
+    </div>
+
+    <div id="ai-modal-body" class="prose prose-invert prose-sm max-w-none text-slate-300 font-light leading-relaxed">
+      <!-- Content Injected -->
+    </div>
   </div>
 </div>
 
@@ -2858,9 +2859,9 @@ super() }}
 
     $( '#ai-modal-title' ).text( topicName );
 
-    // Yeni loading state - AI Avatar ve kişiselleştirilmiş mesaj
+    // Yeni loading state - AI Avatar ve kişiselleştirilmiş mesaj (sabit yükseklik, katlanmayı önler)
     $body.html( `
-            <div class="flex flex-col items-center justify-center py-8 px-4">
+            <div id="ai-loading-avatar" class="flex flex-col items-center justify-center py-8 px-4 transition-all duration-300">
                 <!-- AI Avatar - Büyük ve Animasyonlu -->
                 <div class="relative mb-8">
                     <!-- Dış halka - yavaş dönen -->
@@ -2894,8 +2895,9 @@ super() }}
                     <div class="w-3 h-3 bg-accent rounded-full animate-bounce" style="animation-delay: 0.15s;"></div>
                     <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0.3s;"></div>
                 </div>
-                <p class="text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-medium">Senin için hazırlıyorum...</p>
+                <p id="ai-loading-status" class="text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-medium">Senin için hazırlıyorum...</p>
             </div>
+            <div id="streaming-content" class="leading-relaxed hidden"></div>
         `);
 
     openAIModal();
@@ -3035,7 +3037,8 @@ super() }}
 // STREAMING AI YORUMU
       console.log( '[ORBIS] Streaming AI yorumu baslatiliyor...' );
 
-      $body.html( '<div class="flex items-center gap-3 mb-4 p-3 bg-white/5 rounded-lg"><div class="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div><span class="text-[11px] text-slate-300">AI yanıt hazırlıyor...</span></div><div id="streaming-content" class="leading-relaxed"></div>' );
+      // ORBIS Avatar ekranı ilk yanıt gelene kadar sabit kalır (katlanmayı önler)
+      $( '#ai-loading-status' ).text( 'Yıldızlar hesaplanıyor, yorum hazırlanıyor...' );
       applyModalFontSize();
 
       var streamingContent = '';
@@ -3086,7 +3089,10 @@ super() }}
                   if ( firstChunkTime === null ) {
                     firstChunkTime = Date.now() - startTime;
                     console.log( '[ORBIS] Ilk chunk ' + firstChunkTime + 'ms de geldi' );
-                    $body.find( '.animate-spin' ).parent().remove();
+                    $( '#ai-loading-avatar' ).remove();
+                    $( '#streaming-content' ).removeClass( 'hidden' );
+                    $( '#ai-modal-footer' ).removeClass( 'hidden' );
+                    applyModalFontSize();
                   }
 
                   streamingContent += data.content;
@@ -3138,7 +3144,8 @@ super() }}
 
           if ( streamingContent ) {
             currentInterpretationText = streamingContent;
-            $body.find( '.animate-spin' ).parent().remove();
+            $( '#ai-loading-avatar' ).remove();
+            $( '#streaming-content' ).removeClass( 'hidden' );
             $( '#streaming-content' ).html( marked.parse( streamingContent ) );
             appendTeaserIfEligible(tabId);
             $( '#ai-modal-footer' ).removeClass( 'hidden' );
