@@ -18,7 +18,6 @@
       </span>
       <span class="metric-compare">vs önceki dönem</span>
     </div>
-    <div class="metric-spark" id="spark-totalUsers" data-chart='{"type":"sparkline","values":[10,14,12,18,22,28,35,42]}'></div>
   </div>
 
   <div class="metric">
@@ -33,7 +32,6 @@
       </span>
       <span class="metric-compare">vs önceki dönem</span>
     </div>
-    <div class="metric-spark" id="spark-activeToday" data-chart='{"type":"sparkline","values":[120,135,142,158,165,180,195,210]}'></div>
   </div>
 
   <div class="metric">
@@ -48,7 +46,6 @@
       </span>
       <span class="metric-compare">vs önceki dönem</span>
     </div>
-    <div class="metric-spark" id="spark-totalAdsWatched" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}'></div>
   </div>
 
   <div class="metric">
@@ -63,12 +60,11 @@
       </span>
       <span class="metric-compare">vs önceki dönem</span>
     </div>
-    <div class="metric-spark" id="spark-analysesToday" data-chart='{"type":"sparkline","values":[450,820,1200,1850,2400,3100,4200,5800]}'></div>
   </div>
 </div>
 
 <!-- ═══ AdMob performance + Activity ═══ -->
-<div class="grid grid--12 stagger" style="margin-top: var(--space-6);">
+<div class="grid grid--12 stagger" style="margin-top: 16px;">
   <section class="card col-span-8">
     <header class="card-head">
       <div>
@@ -84,21 +80,21 @@
       </div>
     </header>
     <div class="card-body">
-      <div class="grid grid--3" style="margin-bottom: var(--space-5);">
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Bugün Gelir</div>
-          <div class="metric-value metric-value--sm tabular" data-admob="revenue_today">—</div>
+      <div class="admob-metrics-strip">
+        <div class="admob-metric-cell">
+          <div class="eyebrow">Bugün Gelir</div>
+          <div class="metric-value metric-value--sm tabular" style="color: var(--success);" data-admob="revenue_today">—</div>
         </div>
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">Impression</div>
+        <div class="admob-metric-cell">
+          <div class="eyebrow">Impression</div>
           <div class="metric-value metric-value--sm tabular" data-admob="impressions_today">—</div>
         </div>
-        <div>
-          <div class="eyebrow" style="margin-bottom: 4px;">eCPM</div>
-          <div class="metric-value metric-value--sm tabular" data-admob="ecpm_today">—</div>
+        <div class="admob-metric-cell">
+          <div class="eyebrow">eCPM</div>
+          <div class="metric-value metric-value--sm tabular" style="color: var(--primary);" data-admob="ecpm_today">—</div>
         </div>
       </div>
-      <div class="metric-spark" id="admob-spark" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}' style="height: 60px;"></div>
+      <div class="metric-spark" id="admob-spark" data-chart='{"type":"sparkline","values":[12,18,25,32,28,40,55,68]}' style="height: 52px;"></div>
     </div>
   </section>
 
@@ -111,7 +107,7 @@
       <a href="{{ url_for('admin.users') }}" class="btn btn--ghost btn--sm">Tümü <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span></a>
     </header>
     <div class="card-body" style="padding: 0;">
-      <ul id="activity-list" class="activity" aria-live="polite" aria-relevant="additions" style="padding: var(--space-2) 0;">
+      <ul id="activity-list" class="activity" aria-live="polite" aria-relevant="additions">
         <li class="empty" style="padding: var(--space-8) var(--space-6);">
           <div class="empty-icon"><span class="material-symbols-outlined">inbox</span></div>
           <div class="empty-title">Yükleniyor…</div>
@@ -122,7 +118,7 @@
 </div>
 
 <!-- ═══ Trend charts ═══ -->
-<div class="grid grid--2 stagger" style="margin-top: var(--space-6);">
+<div class="grid grid--2 stagger" style="margin-top: 16px;">
   <section class="card">
     <header class="card-head">
       <div>
@@ -151,7 +147,7 @@
 </div>
 
 <!-- ═══ Reklam + AdMob Gelir ═══ -->
-<div class="grid grid--2 stagger" style="margin-top: var(--space-6);">
+<div class="grid grid--2 stagger" style="margin-top: 16px;">
   <section class="card">
     <header class="card-head">
       <div>
