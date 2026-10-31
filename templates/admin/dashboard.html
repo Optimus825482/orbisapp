@@ -253,12 +253,12 @@
       }
     });
 
-    // Activity feed (premium kaldirildi)
+    // Activity feed
     const list = document.getElementById('activity-list');
     if (Array.isArray(s.activity) && s.activity.length) {
-      list.innerHTML = s.activity.slice(0, 8).map((a) => {
-        var dir = a.type === 'signup' ? 'up' : a.type === 'error' ? 'down' : 'info';
-        var icon = a.type === 'signup' ? 'person_add' : a.type === 'error' ? 'error' : 'info';
+      list.innerHTML = s.activity.slice(0, 10).map((a) => {
+        var dir = a.type === 'signup' ? 'up' : a.type === 'login' ? 'login' : a.type === 'error' ? 'down' : 'info';
+        var icon = a.type === 'signup' ? 'person_add' : a.type === 'login' ? 'login' : a.type === 'error' ? 'error' : 'info';
         return '<li class="activity-item">' +
           '<div class="activity-icon activity-icon--' + dir + '"><span class="material-symbols-outlined">' + icon + '</span></div>' +
           '<div class="activity-body">' +

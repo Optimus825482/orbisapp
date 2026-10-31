@@ -867,6 +867,17 @@ def api_user_login():
                 u_docs = list(firebase_service.db.collection('users').where('email', '==', email).limit(1).stream())
                 for u in u_docs:
                     u.reference.set(update_payload, merge=True)
+
+            # Aktivite akışı için giriş olayı kaydı
+            try:
+                firebase_service.db.collection('user_logins').add({
+                    'uid': uid or '',
+                    'email': email or '',
+                    'displayName': name or (email.split('@')[0] if email else 'Kullanıcı'),
+                    'timestamp': firestore.SERVER_TIMESTAMP
+                })
+            except Exception as login_log_err:
+                logger.debug(f"[API] user_logins add notice: {login_log_err}")
         except Exception as e:
             logger.warning(f"[API] Error updating user loginCount/lastLogin: {e}")
 

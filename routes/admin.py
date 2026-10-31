@@ -460,7 +460,70 @@ def _attach_activity() -> dict:
 
         items = []
 
-        # 1. Son kullanıcı kayıtları
+        # 1. Son kullanıcı girişleri (user_logins ve users.lastLogin)
+        try:
+            login_docs = list(firebase_service.db.collection('user_logins')
+                .order_by('timestamp', direction=Query.DESCENDING)
+                .limit(8).stream())
+            for d in login_docs:
+                l_data = d.to_dict() or {}
+                t = l_data.get('timestamp')
+                email = l_data.get('email', '')
+                name = l_data.get('displayName') or (email.split('@')[0] if email else 'Kullanıcı')
+                items.append({
+                    'type': 'login',
+                    'title': f'Giriş Yapıldı · {name}',
+                    'meta': email or 'Kullanıcı Girişi',
+                    'relative': format_rel(t),
+                    'timestamp': str(t) if t else '',
+                })
+
+            # Eğer user_logins henüz az kayıtlıysa users tablosundaki son login olanları da ekle
+            if len([x for x in items if x['type'] == 'login']) < 4:
+                try:
+                    active_users = list(firebase_service.db.collection('users')
+                        .order_by('lastLogin', direction=Query.DESCENDING)
+                        .limit(8).stream())
+                    for d in active_users:
+                        u = d.to_dict() or {}
+                        t = u.get('lastLogin') or u.get('lastSeen')
+                        if not t:
+                            continue
+                        email = u.get('email', '')
+                        name = u.get('displayName') or (email.split('@')[0] if email else 'Kullanıcı')
+                        if not any(x.get('meta') == email and x.get('type') == 'login' for x in items):
+                            items.append({
+                                'type': 'login',
+                                'title': f'Giriş Yapıldı · {name}',
+                                'meta': email or f"uid: {d.id[:10]}…",
+                                'relative': format_rel(t),
+                                'timestamp': str(t) if t else '',
+                            })
+                except Exception as inner_e:
+                    logger.debug(f"[Admin] Activity users lastLogin fetch notice: {inner_e}")
+        except Exception as e:
+            logger.debug(f"[Admin] Activity user login fetch notice: {e}")
+
+        # 2. Stats counter son giriş kaydı desteği
+        try:
+            from services.stats_counter import stats_counter
+            st = stats_counter.get_stats() or {}
+            last_email = st.get('last_login_email')
+            last_time = st.get('last_login_time')
+            if last_email and last_time:
+                last_name = st.get('last_login_name') or last_email.split('@')[0]
+                if not any(x.get('meta') == last_email for x in items):
+                    items.append({
+                        'type': 'login',
+                        'title': f'Giriş Yapıldı · {last_name}',
+                        'meta': last_email,
+                        'relative': format_rel(last_time),
+                        'timestamp': str(last_time),
+                    })
+        except Exception:
+            pass
+
+        # 3. Son kullanıcı kayıtları
         try:
             users_docs = list(firebase_service.db.collection('users')
                 .order_by('createdAt', direction=Query.DESCENDING)
@@ -480,7 +543,7 @@ def _attach_activity() -> dict:
         except Exception as e:
             logger.debug(f"[Admin] Activity user signup fetch notice: {e}")
 
-        # 2. Son admin işlem kayıtları (push gönderimi, ayar güncelleme vs.)
+        # 4. Son admin işlem kayıtları (push gönderimi, ayar güncelleme vs.)
         try:
             admin_docs = list(firebase_service.db.collection('admin_logs')
                 .order_by('timestamp', direction=Query.DESCENDING)
