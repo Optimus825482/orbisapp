@@ -267,14 +267,15 @@ endblock %} {% block head %} {{ super() }}
       </div>
 
       <!-- Submit Button -->
-      <button type="submit"
-        class="w-full group relative mt-8 py-6 px-6 min-h-[56px] bg-primary hover:bg-violet-600 text-white font-bold font-display tracking-[0.2em] uppercase text-xs transition-all duration-500 rounded-2xl shadow-[0_0_30px_rgba(91,43,238,0.3)] overflow-hidden active:scale-[0.98]">
+      <button type="submit" id="submitBtn"
+        class="w-full group relative mt-8 py-5 px-6 min-h-[60px] bg-gradient-to-r from-purple-600 via-primary to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-display tracking-[0.16em] uppercase text-xs sm:text-sm transition-all duration-300 rounded-2xl shadow-[0_0_35px_rgba(91,43,238,0.45)] hover:shadow-[0_0_45px_rgba(91,43,238,0.65)] overflow-hidden active:scale-[0.98] border border-purple-300/30 cursor-pointer">
         <div
-          class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
+          class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
         </div>
-        <span class="relative flex items-center justify-center gap-3">
-          ANALİZİ BAŞLAT
-          <span class="material-icons-round text-lg animate-pulse">auto_awesome</span>
+        <span class="relative flex items-center justify-center gap-2.5">
+          <span class="material-icons-round text-lg text-amber-300 animate-pulse">auto_awesome</span>
+          <span>HARİTAMI HESAPLA & ANALİZLERİ GÖR</span>
+          <span class="material-icons-round text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
         </span>
       </button>
     </form>

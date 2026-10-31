@@ -203,19 +203,23 @@ super() }}
 
   <!-- Content Tabs Navigation -->
   <div class="px-6 mb-6">
-    <div class="flex p-1 bg-surface-dark/50 rounded-2xl border border-white/5 glass-tab">
+    <div class="flex p-1.5 bg-surface-dark/70 rounded-2xl border border-white/10 glass-tab shadow-xl relative gap-1.5">
       <button onclick="switchResultTab('summary')" id="tab-summary-btn"
-        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn active bg-primary text-white shadow-lg shadow-primary/20">
-        Karakter
+        class="flex-1 py-3 px-2 rounded-xl text-xs uppercase tracking-wider font-bold transition-all duration-300 result-tab-btn active bg-primary text-white shadow-lg shadow-primary/25 flex items-center justify-center gap-1.5">
+        <span class="material-icons-round text-sm">person</span>
+        <span>Karakter</span>
       </button>
       <button onclick="switchResultTab('chart')" id="tab-chart-btn"
-        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200">
-        Harita
+        class="flex-1 py-3 px-2 rounded-xl text-xs uppercase tracking-wider font-bold transition-all duration-300 result-tab-btn text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
+        <span class="material-icons-round text-sm">auto_graph</span>
+        <span>Harita</span>
       </button>
+      <!-- Belirginleştirilmiş Analizler Butonu -->
       <button onclick="switchResultTab('ai')" id="tab-ai-btn"
-        class="flex-1 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all result-tab-btn text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1">
-        Analiz Merkezi
-        <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+        class="flex-1 py-3 px-2 rounded-xl text-xs uppercase tracking-wider font-bold transition-all duration-300 result-tab-btn text-purple-200 bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border border-purple-500/35 hover:border-purple-400 flex items-center justify-center gap-1.5 relative group shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+        <span class="material-icons-round text-base text-purple-400 group-hover:scale-110 transition-transform">auto_awesome</span>
+        <span>Analizler</span>
+        <span class="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 shadow-sm animate-pulse">15+</span>
       </button>
     </div>
   </div>
@@ -350,6 +354,97 @@ super() }}
       </div>
     </div>
 
+    <!-- 🔮 HIZLI ERİŞİM: AI ANALİZLER MERKEZİ HERO BANNER -->
+    <div class="relative p-6 rounded-3xl bg-gradient-to-br from-purple-950/80 via-slate-900/90 to-indigo-950/80 border-2 border-purple-500/40 shadow-[0_0_35px_rgba(124,58,237,0.25)] overflow-hidden group">
+      <!-- Glow effect -->
+      <div class="absolute -right-12 -top-12 w-48 h-48 bg-purple-500/20 blur-[60px] rounded-full pointer-events-none"></div>
+      <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-pink-500/15 blur-[60px] rounded-full pointer-events-none"></div>
+
+      <div class="relative z-10 space-y-4">
+        <!-- Top Badge & Title -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 p-0.5 shadow-lg shadow-purple-500/30 flex-shrink-0 animate-breathe">
+              <div class="w-full h-full rounded-[14px] bg-slate-950 flex items-center justify-center">
+                <span class="material-icons-round text-2xl text-purple-400 animate-pulse">psychology</span>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm">
+                  Kişisel Raporlar
+                </span>
+                <span class="text-[10px] text-purple-300 font-semibold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  15+ AI Analiz Aktif
+                </span>
+              </div>
+              <h3 class="text-base font-display font-bold text-white mt-1 leading-snug">
+                Detaylı Astroloji Analizleriniz
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-300 leading-relaxed font-light">
+          Doğum haritanız, güncel transitler, aşk uyumu, kariyer potansiyeli ve karmik döngüleriniz yapay zeka tarafından yorumlanmaya hazır.
+        </p>
+
+        <!-- Ana Büyük Eylem Butonu -->
+        <button onclick="switchResultTab('ai')"
+          class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:via-indigo-500 hover:to-pink-500 text-white font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_4px_25px_rgba(124,58,237,0.45)] hover:shadow-[0_6px_30px_rgba(124,58,237,0.6)] active:scale-[0.98] flex items-center justify-center gap-2.5 group/btn cursor-pointer">
+          <span class="material-icons-round text-lg text-amber-300 animate-pulse">auto_awesome</span>
+          <span>Analizler Bölümüne Git</span>
+          <span class="material-icons-round text-lg group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+
+        <!-- Hızlı Kategori Kısayolları (Tek Tıkla Doğrudan Analiz Aç) -->
+        <div class="pt-2">
+          <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2 flex items-center gap-1.5">
+            <span class="material-icons-round text-xs text-purple-400">touch_app</span>
+            Hızlı Başlangıç İçin Seçin:
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openAnalysisDirect('birth_chart')"
+              class="p-2.5 rounded-xl bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-400/50 transition-all text-left flex items-center gap-2.5 active:scale-95 group/chip">
+              <span class="text-base">✨</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-white group-hover/chip:text-purple-300 truncate">Doğum Haritası</p>
+                <p class="text-[9px] text-slate-400 truncate">Karakter & Yaşam</p>
+              </div>
+            </button>
+
+            <button onclick="openAnalysisDirect('relationship')"
+              class="p-2.5 rounded-xl bg-white/5 hover:bg-pink-500/20 border border-white/10 hover:border-pink-400/50 transition-all text-left flex items-center gap-2.5 active:scale-95 group/chip">
+              <span class="text-base">💖</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-white group-hover/chip:text-pink-300 truncate">Aşk & İlişkiler</p>
+                <p class="text-[9px] text-slate-400 truncate">Ruh Eşi & Bağlar</p>
+              </div>
+            </button>
+
+            <button onclick="openAnalysisDirect('career')"
+              class="p-2.5 rounded-xl bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/50 transition-all text-left flex items-center gap-2.5 active:scale-95 group/chip">
+              <span class="text-base">💼</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-white group-hover/chip:text-amber-300 truncate">Kariyer & Para</p>
+                <p class="text-[9px] text-slate-400 truncate">Meslek & Kazanç</p>
+              </div>
+            </button>
+
+            <button onclick="openAnalysisDirect('transits')"
+              class="p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400/50 transition-all text-left flex items-center gap-2.5 active:scale-95 group/chip">
+              <span class="text-base">🪐</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-white group-hover/chip:text-cyan-300 truncate">Transit Analizi</p>
+                <p class="text-[9px] text-slate-400 truncate">Gezegen Etkileri</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- AI ÖZET KARTI (YENİ) -->
     <div id="ai-summary-card"
       class="relative p-6 rounded-3xl bg-gradient-to-br from-accent/10 to-purple-900/20 border border-accent/20 overflow-hidden cursor-pointer group hover:border-accent/40 transition-all"
@@ -385,10 +480,10 @@ super() }}
                 <p class="text-[12px] text-white font-semibold">AI Yorumlarına Hazır!</p>
                 <p class="text-[10px] text-slate-400">Analizler sekmesinden istediğin yorumu seç</p>
               </div>
-              <button onclick="event.stopPropagation(); switchResultTab('analyses')"
-                class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/80 active:scale-95 rounded-2xl text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(91,43,238,0.3)]">
-                <span class="material-icons-round text-base">psychology</span>
-                Analiz Merkezine Git
+              <button onclick="event.stopPropagation(); switchResultTab('ai')"
+                class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 rounded-2xl text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(91,43,238,0.3)]">
+                <span class="material-icons-round text-base text-amber-300">psychology</span>
+                Analizler Bölümüne Git
               </button>
             </div>
           </div>
@@ -1877,6 +1972,17 @@ super() }}
   </div>
 </div>
 
+<!-- Floating Quick Access Pill for Analizler (visible when scrolling on Karakter or Harita) -->
+<div id="floating-analyses-pill" class="fixed bottom-24 right-4 z-40 transition-all duration-300 transform">
+  <button onclick="switchResultTab('ai')"
+    class="px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 via-primary to-indigo-600 text-white font-bold text-xs shadow-[0_4px_25px_rgba(124,58,237,0.55)] hover:shadow-[0_6px_30px_rgba(124,58,237,0.75)] flex items-center gap-2 border border-purple-400/40 active:scale-95 transition-all cursor-pointer backdrop-blur-md">
+    <span class="material-icons-round text-base text-amber-300 animate-pulse">auto_awesome</span>
+    <span class="tracking-wide">AI Analizler</span>
+    <span class="px-1.5 py-0.5 text-[8px] bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 rounded-full font-black">15+</span>
+    <span class="material-icons-round text-sm">arrow_forward</span>
+  </button>
+</div>
+
 {% endif %} {% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='js/results/ai-summary.js') }}"></script>
 <script>
@@ -1889,16 +1995,53 @@ super() }}
   window.modalFontSize = (!isNaN(_savedFontSize) && _savedFontSize >= 12 && _savedFontSize <= 28) ? _savedFontSize : 16;
   var modalFontSize = window.modalFontSize;
 
+  function updateFloatingAnalysesBtn( tabId ) {
+    const pill = document.getElementById( "floating-analyses-pill" );
+    if ( !pill ) return;
+    if ( tabId === "ai" ) {
+      pill.classList.add( "opacity-0", "pointer-events-none", "translate-y-4" );
+    } else {
+      pill.classList.remove( "opacity-0", "pointer-events-none", "translate-y-4" );
+    }
+  }
+
+  function openAnalysisDirect( analysisType ) {
+    switchResultTab( 'ai' );
+    setTimeout( () => {
+      if ( typeof interpretTab === 'function' ) {
+        interpretTab( analysisType );
+      }
+    }, 180 );
+  }
+
   function switchResultTab( tabId ) {
+    if ( tabId === 'analyses' || tabId === 'analizler' ) tabId = 'ai';
+
     $( ".tab-content" ).removeClass( "active" );
     $( "#tab-" + tabId ).addClass( "active" );
 
+    // Clear active classes from all buttons
     $( ".result-tab-btn" )
-      .removeClass( "active bg-primary text-white shadow-lg shadow-primary/20" )
-      .addClass( "text-slate-400" );
-    $( "#tab-" + tabId + "-btn" )
-      .addClass( "active bg-primary text-white shadow-lg shadow-primary/20" )
-      .removeClass( "text-slate-400" );
+      .removeClass( "active bg-primary text-white shadow-lg shadow-primary/20 bg-gradient-to-r from-purple-600 via-primary to-indigo-600 shadow-[0_0_20px_rgba(124,58,237,0.5)] border-purple-400 text-white" );
+
+    // Set inactive states
+    $( "#tab-summary-btn" ).addClass( "text-slate-400" );
+    $( "#tab-chart-btn" ).addClass( "text-slate-400" );
+    $( "#tab-ai-btn" ).removeClass( "text-white" ).addClass( "text-purple-200 bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border-purple-500/35" );
+
+    // Set active state
+    if ( tabId === "ai" ) {
+      $( "#tab-ai-btn" )
+        .addClass( "active bg-gradient-to-r from-purple-600 via-primary to-indigo-600 text-white shadow-[0_0_20px_rgba(124,58,237,0.5)] border-purple-400" )
+        .removeClass( "text-purple-200 bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border-purple-500/35" );
+    } else {
+      $( "#tab-" + tabId + "-btn" )
+        .addClass( "active bg-primary text-white shadow-lg shadow-primary/20" )
+        .removeClass( "text-slate-400" );
+    }
+
+    // Update floating pill
+    updateFloatingAnalysesBtn( tabId );
 
     // Scroll to top of results container
     window.scrollTo( { top: 0, behavior: "smooth" } );
