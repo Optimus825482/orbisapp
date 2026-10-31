@@ -683,16 +683,84 @@ Teknik terim kullanma:
             async with session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=120)) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    content = data["choices"][0]["message"]["content"]
-                    # Token limitinden dolayi kesilme kontrolu
+                    content = data["choices"][0]["message"].get("content")
                     finish_reason = data["choices"][0].get("finish_reason", "stop")
+
+                    # 1. Token limitinden dolayı kesilme kontrolü (finish_reason == "length")
                     if finish_reason == "length":
-                        logger.warning(f"[AI] ⚠️ {name} max_tokens'e ulasti, yanit kesilmis olabilir")
-                    # content None olabilir (API hatasi veya bos yanit)
+                        logger.warning(
+                            f"[AI] ⚠️ {name} max_tokens ({payload['max_tokens']}) sınırına ulaştı, "
+                            f"yanıt yarıda kesildi! Eksiksiz yeniden yorumlatma başlatılıyor..."
+                        )
+
+                        # Kullanıcı deneyimini korumak için eksiksiz ve öz tamamlama talimatıyla yeniden yorumlatma denemesi
+                        retry_messages = [
+                            {
+                                "role": "system",
+                                "content": (
+                                    f"{system_content}\n"
+                                    "ÖNEMLİ KURAL: Önceki yanıt token sınırına ulaştığı için yarıda kesildi. "
+                                    "Analizi hiçbir astrolojik bölümü atlamadan, doğrudan, akıcı ve öz bir dille, "
+                                    "kesinlikle yarım bırakmadan baştan sona eksiksiz tamamla."
+                                ),
+                            },
+                            {
+                                "role": "user",
+                                "content": f"{prompt}\n\n[DİKKAT: Lütfen analizi token sınırına takılmayacak şekilde öz ve eksiksiz olarak tamamla. Cümleler kesinlikle yarıda kesilmemelidir.]",
+                            },
+                        ]
+                        retry_payload = {
+                            "model": model,
+                            "messages": retry_messages,
+                            "temperature": 0.3,
+                            "max_tokens": 16384,
+                        }
+
+                        try:
+                            logger.info(f"[AI] 🔄 {name} token aşımı nedeniyle yeniden yorumlatılıyor...")
+                            async with session.post(
+                                url,
+                                json=retry_payload,
+                                headers=headers,
+                                timeout=aiohttp.ClientTimeout(total=120),
+                            ) as retry_resp:
+                                if retry_resp.status == 200:
+                                    retry_data = await retry_resp.json()
+                                    retry_choice = retry_data["choices"][0]
+                                    retry_content = retry_choice.get("message", {}).get("content")
+                                    retry_finish = retry_choice.get("finish_reason", "stop")
+
+                                    if retry_finish != "length" and retry_content:
+                                        logger.info(
+                                            f"[AI] ✅ {name} yeniden yorumlama başarılı (finish_reason={retry_finish}, len={len(retry_content)})"
+                                        )
+                                        return {
+                                            "success": True,
+                                            "interpretation": self.remove_emojis(retry_content),
+                                            "provider": name,
+                                        }
+                                    else:
+                                        logger.warning(
+                                            f"[AI] ❌ {name} yeniden denemede de token sınırına takıldı ({retry_finish})"
+                                        )
+                                else:
+                                    logger.warning(f"[AI] ❌ {name} yeniden yorumlatma HTTP hatası: {retry_resp.status}")
+                        except Exception as retry_err:
+                            logger.warning(f"[AI] ❌ {name} yeniden yorumlatma çağrısı hatası: {retry_err}")
+
+                        # Eğer yeniden denemede de sınır aşıldıysa yarım yanıtı kullanıcıya gösterme;
+                        # fallback zincirindeki bir sonraki sağlayıcıya devret.
+                        return {
+                            "success": False,
+                            "error": f"{name}: token sınırı aşıldı ve yanıt yarıda kesildi (sonraki sağlayıcı deneniyor)",
+                            "provider": name,
+                        }
+
+                    # content None olabilir (API hatası veya boş yanıt)
                     content_len = len(content) if content else 0
                     if not content:
-                        logger.warning(f"[AI] ❌ {name} boş yanit döndü (finish_reason={finish_reason})")
-                        return {"success": False, "error": f"{name}: boş yanit", "provider": name}
+                        logger.warning(f"[AI] ❌ {name} boş yanıt döndü (finish_reason={finish_reason})")
+                        return {"success": False, "error": f"{name}: boş yanıt", "provider": name}
                     logger.info(f"[AI] ✅ {name} başarılı (finish_reason={finish_reason}, len={content_len})")
                     return {"success": True, "interpretation": self.remove_emojis(content), "provider": name}
                 else:

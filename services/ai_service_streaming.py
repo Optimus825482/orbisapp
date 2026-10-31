@@ -89,6 +89,8 @@ class AIServiceStreaming:
                     raise Exception(f"HTTP {resp.status}: {error_text[:200]}")
 
                 logger.info(f"[AI] 🚀 {name} streaming başladı")
+                accumulated_chunks = []
+                reached_max_tokens = False
 
                 # Server-Sent Events (SSE) formatında gelir
                 async for raw_line in resp.content:
@@ -117,15 +119,63 @@ class AIServiceStreaming:
                             logger.info(f"[AI Stream] {name} finish_reason: {finish_reason}")
                             if finish_reason == "length":
                                 logger.warning(f"[AI Stream] ⚠️ {name} max_tokens sınırına ulaştı!")
+                                reached_max_tokens = True
 
                         delta = choice.get("delta", {})
                         content = delta.get("content", "")
 
                         if content:
+                            accumulated_chunks.append(content)
                             yield content
 
                     except json.JSONDecodeError:
                         continue
+
+                # Eğer stream max_tokens ("length") sınırına ulaştığı için kesildiyse:
+                # Kullanıcı deneyiminin yarım kalmaması için otomatik devam akışı (continuation) başlat
+                if reached_max_tokens and accumulated_chunks:
+                    logger.warning(f"[AI Stream] 🔄 {name} max_tokens nedeniyle kesildi, otomatik tamamlama akışı başlatılıyor...")
+                    continuation_payload = {
+                        "model": model,
+                        "messages": [
+                            {"role": "system", "content": AIServiceStreaming._build_system_prompt(interpretation_type)},
+                            {"role": "user", "content": prompt},
+                            {"role": "assistant", "content": "".join(accumulated_chunks)},
+                            {"role": "user", "content": "Önceki yanıtın uzunluk sınırına ulaştığı için yarıda kesildi. Lütfen analizi ve cümleni kaldığın yerden doğrudan devam ettirerek eksiksiz tamamla."},
+                        ],
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                        "stream": True,
+                    }
+                    try:
+                        async with session.post(
+                            url,
+                            json=continuation_payload,
+                            headers=headers,
+                            timeout=aiohttp.ClientTimeout(total=timeout)
+                        ) as cont_resp:
+                            if cont_resp.status == 200:
+                                async for raw_c_line in cont_resp.content:
+                                    c_line = raw_c_line.decode('utf-8', errors='replace').strip()
+                                    if not c_line:
+                                        continue
+                                    if c_line.startswith("data:"):
+                                        c_line = c_line[5:].strip()
+                                    if c_line == "[DONE]":
+                                        break
+                                    try:
+                                        c_chunk = json.loads(c_line)
+                                        c_choices = c_chunk.get("choices", [])
+                                        if c_choices:
+                                            c_delta = c_choices[0].get("delta", {})
+                                            c_content = c_delta.get("content", "")
+                                            if c_content:
+                                                yield c_content
+                                    except json.JSONDecodeError:
+                                        continue
+                                logger.info(f"[AI Stream] ✅ {name} otomatik tamamlama akışı başarıyla tamamlandı.")
+                    except Exception as cont_err:
+                        logger.warning(f"[AI Stream] ⚠️ {name} devam akışı hatası: {cont_err}")
 
         except asyncio.TimeoutError:
             logger.warning(f"[AI] ⏰ {name} timeout ({timeout}s)")
@@ -141,7 +191,8 @@ class AIServiceStreaming:
         prompt: str,
         max_tokens: int = 16384,
         timeout: int = 120,
-        temperature: float = 0.3
+        temperature: float = 0.3,
+        interpretation_type: str = ""
     ) -> dict:
         """
         Streaming kullanarak yanıtı topla ve döndür
@@ -152,7 +203,7 @@ class AIServiceStreaming:
 
         try:
             async for chunk in AIServiceStreaming.call_provider_streaming(
-                session, provider, prompt, max_tokens, timeout, temperature
+                session, provider, prompt, max_tokens, timeout, temperature, interpretation_type=interpretation_type
             ):
                 full_response.append(chunk)
 
