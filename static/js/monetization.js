@@ -120,44 +120,44 @@ class MonetizationManager {
     }
 
     updateBadgeUI() {
-        const pill = document.getElementById('cosmic-credit-pill');
-        const countEl = document.getElementById('cosmic-credit-count');
-        const labelEl = document.getElementById('cosmic-credit-label');
-        const iconEl = pill ? pill.querySelector('.material-icons-round') : null;
+        const pills = document.querySelectorAll('#cosmic-credit-pill, .cosmic-credit-pill-btn');
+        pills.forEach(pill => {
+            const countEl = pill.querySelector('#cosmic-credit-count, .cosmic-credit-count');
+            const labelEl = pill.querySelector('#cosmic-credit-label, .cosmic-credit-label');
+            const iconEl = pill.querySelector('.material-icons-round');
 
-        if (!pill || !countEl) return;
+            if (!countEl) return;
 
-        if (this.isAdFree) {
-            // Reklamsız Mod Rozeti (Canlı Yeşil/Cyan Kalkan)
-            pill.className = 'h-9 px-3 rounded-full bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 border border-emerald-400/40 flex items-center gap-1.5 text-emerald-300 hover:text-white transition-all active:scale-95 shadow-lg shadow-emerald-500/10 cursor-pointer';
-            if (iconEl) {
-                iconEl.textContent = 'verified_user';
-                iconEl.className = 'material-icons-round text-base text-emerald-400';
+            if (this.isAdFree) {
+                pill.className = 'h-8 sm:h-9 px-2.5 sm:px-3 rounded-full bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 border border-emerald-400/40 flex items-center gap-1.5 text-emerald-300 hover:text-white transition-all active:scale-95 shadow-lg shadow-emerald-500/10 cursor-pointer cosmic-credit-pill-btn';
+                if (iconEl) {
+                    iconEl.textContent = 'verified_user';
+                    iconEl.className = 'material-icons-round text-sm sm:text-base text-emerald-400';
+                }
+                countEl.textContent = 'Reklamsız';
+                countEl.className = 'text-[10px] sm:text-[11px] font-bold text-emerald-300 cosmic-credit-count';
+                if (labelEl) {
+                    labelEl.textContent = `(${this.formatRemainingTime(this.adFreeSeconds)})`;
+                    labelEl.className = 'text-[8px] sm:text-[9px] font-mono text-emerald-400/80 cosmic-credit-label';
+                }
+            } else {
+                pill.className = 'h-8 sm:h-9 px-2.5 sm:px-3 rounded-full bg-gradient-to-r from-amber-500/20 via-primary/20 to-amber-500/10 border border-amber-500/30 flex items-center gap-1.5 text-amber-300 hover:text-white hover:border-amber-400 transition-all active:scale-95 shadow-sm shadow-amber-500/10 cursor-pointer cosmic-credit-pill-btn';
+                if (iconEl) {
+                    iconEl.textContent = 'stars';
+                    iconEl.className = 'material-icons-round text-sm sm:text-base text-amber-400 animate-pulse';
+                }
+                countEl.textContent = this.credits;
+                countEl.className = 'text-xs font-bold font-mono text-amber-300 cosmic-credit-count';
+                if (labelEl) {
+                    labelEl.textContent = 'Kredi';
+                    labelEl.className = 'text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-amber-200/80 cosmic-credit-label hidden sm:inline';
+                }
             }
-            countEl.textContent = 'Reklamsız';
-            countEl.className = 'text-[11px] font-bold text-emerald-300';
-            if (labelEl) {
-                labelEl.textContent = `(${this.formatRemainingTime(this.adFreeSeconds)})`;
-                labelEl.className = 'text-[9px] font-mono text-emerald-400/80';
-            }
-        } else {
-            // Kozmik Kredi Rozeti (Altın/Mor Yıldız)
-            pill.className = 'h-9 px-3 rounded-full bg-gradient-to-r from-amber-500/20 via-primary/20 to-amber-500/10 border border-amber-500/30 flex items-center gap-1.5 text-amber-300 hover:text-white hover:border-amber-400 transition-all active:scale-95 shadow-sm shadow-amber-500/10 cursor-pointer';
-            if (iconEl) {
-                iconEl.textContent = 'stars';
-                iconEl.className = 'material-icons-round text-base text-amber-400 animate-pulse';
-            }
-            countEl.textContent = this.credits;
-            countEl.className = 'text-xs font-bold font-mono text-amber-300';
-            if (labelEl) {
-                labelEl.textContent = 'Kredi';
-                labelEl.className = 'text-[9px] font-bold uppercase tracking-wider text-amber-200/80 hidden sm:inline';
-            }
-        }
+        });
 
-        // In-feed Native Ads: Reklamsız modda gizle, normalde göster
+        // In-feed Native Ads: Reklamsız modda veya muaf hesapta gizle
         document.querySelectorAll('.in-feed-ad-card').forEach(el => {
-            el.style.display = this.isAdFree ? 'none' : 'block';
+            el.style.display = (this.isAdFree || this.isExemptUser()) ? 'none' : 'block';
         });
     }
 

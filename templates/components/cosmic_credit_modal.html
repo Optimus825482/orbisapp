@@ -1,0 +1,73 @@
+<!-- COSMIC CREDIT & 24H AD-FREE PASS MODAL (Shared Component) -->
+<div id="cosmic-credit-modal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md" onclick="window.monetization?.closeCreditModal()">
+  <div class="relative w-full max-w-sm bg-gradient-to-br from-slate-900 via-surface-dark to-slate-900 rounded-3xl border border-white/10 shadow-2xl p-6 text-white" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+          <span class="material-icons-round text-amber-400 text-xl">stars</span>
+        </div>
+        <div>
+          <h3 class="font-display font-bold text-base text-white">Kozmik Kredilerim</h3>
+          <p class="text-[10px] text-slate-400 uppercase tracking-widest">Ödüllü Seçenekler</p>
+        </div>
+      </div>
+      <button onclick="window.monetization?.closeCreditModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+        <span class="material-icons-round text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Status Info Card -->
+    <div class="mb-5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 grid grid-cols-2 gap-2 text-center">
+      <div class="p-2 rounded-xl bg-white/[0.02]">
+        <span class="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Mevcut Kredi</span>
+        <span id="modal-credit-current" class="text-xl font-bold font-mono text-amber-300">2</span>
+      </div>
+      <div class="p-2 rounded-xl bg-white/[0.02]">
+        <span class="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Reklamsız Mod</span>
+        <div id="modal-adfree-current" class="text-xs font-bold text-slate-300 pt-1">Pasif</div>
+      </div>
+    </div>
+
+    <!-- Reward Options -->
+    <div class="space-y-3">
+      <!-- Option 1: +2 Credits -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-white/[0.02] to-amber-500/5 border border-amber-500/20 hover:border-amber-500/40 transition-all flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-icons-round text-amber-400 text-lg">videocam</span>
+            <span class="text-xs font-bold text-white">1 Video = +2 Kozmik Kredi</span>
+          </div>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">+2 Kredi</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          Kısa bir video izleyerek kredinizi artırın. Dilediğiniz analizi dilediğiniz zaman reklamsız başlatın.
+        </p>
+        <button id="btn-watch-credits" type="button" onclick="window.monetization?.watchForCredits()"
+          class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 mt-1 cursor-pointer">
+          <span class="material-icons-round text-sm">play_circle</span>
+          <span>İzle ve 2 Kredi Al</span>
+        </button>
+      </div>
+
+      <!-- Option 2: 24h Ad-Free Pass -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-white/[0.02] to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-icons-round text-emerald-400 text-lg">verified_user</span>
+            <span class="text-xs font-bold text-white">2 Video = 24 Saat Reklamsız</span>
+          </div>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">24 Saat Pass</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          2 kısa video izleyin; sonraki 24 saat boyunca tüm analizleri, haritaları ve seslendirmeleri tamamen reklamsız kullanın.
+        </p>
+        <button id="btn-watch-adfree" type="button" onclick="window.monetization?.watchForAdFreePass()"
+          class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5 mt-1 cursor-pointer">
+          <span class="material-icons-round text-sm">bolt</span>
+          <span>24 Saat Reklamsız Yap</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
