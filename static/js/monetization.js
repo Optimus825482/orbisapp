@@ -126,6 +126,11 @@ class MonetizationManager {
                 labelEl.className = 'text-[9px] font-bold uppercase tracking-wider text-amber-200/80 hidden sm:inline';
             }
         }
+
+        // In-feed Native Ads: Reklamsız modda gizle, normalde göster
+        document.querySelectorAll('.in-feed-ad-card').forEach(el => {
+            el.style.display = this.isAdFree ? 'none' : 'block';
+        });
     }
 
     async claimReward(rewardType = 'credits') {
