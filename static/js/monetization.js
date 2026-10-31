@@ -413,6 +413,354 @@ class MonetizationManager {
             console.error('[Monetization] unlockTeaser error:', err);
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FAZ 4: INSTAGRAM STORY KARTI (9:16) EXPORT SİSTEMİ
+    // ═══════════════════════════════════════════════════════════════
+
+    async openStoryExportModal() {
+        const modal = document.getElementById('cosmic-story-modal');
+        if (!modal) return;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const spinner = document.getElementById('story-generating-spinner');
+        if (spinner) spinner.classList.remove('hidden');
+
+        // Canlı önizleme canvas'ını çiz
+        setTimeout(async () => {
+            try {
+                const canvas = await this.renderStoryCanvas();
+                const previewCanvas = document.getElementById('story-preview-canvas');
+                if (previewCanvas && canvas) {
+                    previewCanvas.width = canvas.width;
+                    previewCanvas.height = canvas.height;
+                    const pctx = previewCanvas.getContext('2d');
+                    pctx.drawImage(canvas, 0, 0);
+                }
+            } catch (err) {
+                console.error('[StoryExport] Preview render error:', err);
+            } finally {
+                if (spinner) spinner.classList.add('hidden');
+            }
+            this.updateStoryModalActions();
+        }, 100);
+    }
+
+    closeStoryModal() {
+        const modal = document.getElementById('cosmic-story-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    updateStoryModalActions() {
+        const container = document.getElementById('story-modal-actions');
+        if (!container) return;
+
+        const isFree = this.isAdFree || this.isExemptUser();
+
+        if (isFree) {
+            container.innerHTML = `
+                <button type="button" onclick="window.monetization?.executeStoryUnlock('free')"
+                    class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-icons-round text-base">download</span>
+                    <span>Story Kartını İndir & Paylaş (Ücretsiz)</span>
+                </button>
+            `;
+            return;
+        }
+
+        let html = '';
+        if (this.credits > 0) {
+            html += `
+                <button type="button" onclick="window.monetization?.executeStoryUnlock('credit')"
+                    class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-icons-round text-base">stars</span>
+                    <span>1 Kozmik Kredi ile İndir (Mevcut: ${this.credits})</span>
+                </button>
+            `;
+        }
+
+        html += `
+            <button type="button" onclick="window.monetization?.executeStoryUnlock('video')"
+                class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-purple-900/40 flex items-center justify-center gap-2 cursor-pointer">
+                <span class="material-icons-round text-base">play_circle</span>
+                <span>1 Kısa Video İzle & Ücretsiz İndir</span>
+            </button>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    async executeStoryUnlock(method) {
+        if (method === 'free') {
+            await this.downloadOrShareStory();
+            this.closeStoryModal();
+            return;
+        }
+
+        if (method === 'credit') {
+            const spend = await this.spendCredit(1, 'story_export');
+            if (spend && spend.success) {
+                await this.downloadOrShareStory();
+                this.closeStoryModal();
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Story kartınız başarıyla indirildi! 📸', 'success');
+                }
+            } else {
+                alert('Kredi harcanamadı veya yetersiz kredi.');
+            }
+            return;
+        }
+
+        if (method === 'video') {
+            let rewarded = true;
+            if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
+                const res = await window.MobileBridge.showBonusRewardedAd();
+                rewarded = res && res.success;
+            } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
+                rewarded = await window.MobileBridge.showRewardedAd();
+            }
+
+            if (rewarded) {
+                await this.downloadOrShareStory();
+                this.closeStoryModal();
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Tebrikler! Story kartınız oluşturuldu! 📸', 'success');
+                }
+            }
+        }
+    }
+
+    async renderStoryCanvas() {
+        const width = 1080;
+        const height = 1920;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Arka Plan: Koyu Kozmik Gradyan
+        const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+        bgGrad.addColorStop(0, '#060515');
+        bgGrad.addColorStop(0.35, '#120b2e');
+        bgGrad.addColorStop(0.7, '#1f0d3d');
+        bgGrad.addColorStop(1, '#09071c');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // 2. Nebula Işıltısı (Radial Glow)
+        const radGlow1 = ctx.createRadialGradient(width / 2, 600, 50, width / 2, 600, 600);
+        radGlow1.addColorStop(0, 'rgba(147, 51, 234, 0.25)');
+        radGlow1.addColorStop(0.5, 'rgba(236, 72, 153, 0.1)');
+        radGlow1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radGlow1;
+        ctx.fillRect(0, 0, width, height);
+
+        // 3. Prosedürel Yıldız Alanı (Starfield)
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 160; i++) {
+            const x = (i * 397 + 123) % width;
+            const y = (i * 853 + 456) % height;
+            const size = (i % 3 === 0) ? 2.5 : ((i % 5 === 0) ? 3.5 : 1.5);
+            const alpha = 0.2 + ((i % 10) / 10) * 0.7;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 4. Kutsal Geometri / Astroloji Çemberi
+        const centerX = width / 2;
+        const centerY = 980;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 380, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+        ctx.setLineDash([8, 12]);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 420, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Veri okuma
+        const astro = window.astroData || {};
+        const natal = astro.natal_planet_positions || {};
+        const sunSign = natal.Sun?.sign || 'Bilinmiyor';
+        const moonSign = natal.Moon?.sign || 'Bilinmiyor';
+        const ascSign = natal.Ascendant?.sign || 'Bilinmiyor';
+        const rawName = astro.user_name || astro.birth_info?.name || 'Kozmik Yolcu';
+        const userName = (rawName.length > 22 ? rawName.substring(0, 22) + '...' : rawName).toUpperCase();
+
+        const ZODIAC_MAP = {
+            'Koç': '♈︎', 'Aries': '♈︎',
+            'Boğa': '♉︎', 'Taurus': '♉︎',
+            'İkizler': '♊︎', 'Gemini': '♊︎',
+            'Yengeç': '♋︎', 'Cancer': '♋︎',
+            'Aslan': '♌︎', 'Leo': '♌︎',
+            'Başak': '♍︎', 'Virgo': '♍︎',
+            'Terazi': '♎︎', 'Libra': '♎︎',
+            'Akrep': '♏︎', 'Scorpio': '♏︎',
+            'Yay': '♐︎', 'Sagittarius': '♐︎',
+            'Oğlak': '♑︎', 'Capricorn': '♑︎',
+            'Kova': '♒︎', 'Aquarius': '♒︎',
+            'Balık': '♓︎', 'Pisces': '♓︎'
+        };
+
+        // 5. Üst Başlık & Marka Rozeti
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(216, 180, 254, 0.85)';
+        ctx.font = 'bold 24px monospace';
+        ctx.letterSpacing = '6px';
+        ctx.fillText('✦  O R B I S   A S T R O L O G Y  ✦', centerX, 180);
+
+        // Kullanıcı Adı
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 64px sans-serif';
+        ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+        ctx.shadowBlur = 24;
+        ctx.fillText(userName, centerX, 270);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+        ctx.font = '600 28px sans-serif';
+        ctx.fillText('Kozmik Profil & Doğum Haritası Özeti', centerX, 330);
+
+        // 6. Üçlü Kozmik Kartlar (Güneş, Ay, Yükselen)
+        const drawCard = (x, y, w, h, glyph, role, sign, desc, strokeColor, glowColor) => {
+            ctx.save();
+            ctx.fillStyle = 'rgba(15, 12, 35, 0.75)';
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 20;
+
+            // Yuvarlak kenar
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(x, y, w, h, 24);
+            } else {
+                ctx.rect(x, y, w, h);
+            }
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Glif / İkon
+            ctx.fillStyle = strokeColor;
+            ctx.font = 'bold 52px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(glyph, x + w / 2, y + 80);
+
+            // Rol Başlığı
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.font = 'bold 20px monospace';
+            ctx.fillText(role, x + w / 2, y + 125);
+
+            // Burç Adı
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText(sign, x + w / 2, y + 175);
+
+            // Alt Açıklama
+            ctx.fillStyle = 'rgba(203, 213, 225, 0.8)';
+            ctx.font = '500 20px sans-serif';
+            ctx.fillText(desc, x + w / 2, y + 225);
+            ctx.restore();
+        };
+
+        // Kart 1: Güneş (Sol Üst)
+        const sunGlyph = ZODIAC_MAP[sunSign] ? `☉ ${ZODIAC_MAP[sunSign]}` : '☉';
+        drawCard(100, 430, 410, 270, sunGlyph, 'GÜNEŞ BURCU', sunSign, 'Öz Benlik & Yaşam Gücü', '#f59e0b', 'rgba(245, 158, 11, 0.3)');
+
+        // Kart 2: Ay (Sağ Üst)
+        const moonGlyph = ZODIAC_MAP[moonSign] ? `☾ ${ZODIAC_MAP[moonSign]}` : '☾';
+        drawCard(570, 430, 410, 270, moonGlyph, 'AY BURCU', moonSign, 'Duygusal Dünya & Ruh', '#06b6d4', 'rgba(6, 182, 212, 0.3)');
+
+        // Kart 3: Yükselen (Geniş Orta)
+        const ascGlyph = ZODIAC_MAP[ascSign] ? `↑ ${ZODIAC_MAP[ascSign]}` : '↑';
+        drawCard(100, 740, 880, 260, ascGlyph, 'YÜKSELEN BURÇ (ASC)', ascSign, 'Dünyaya Yansıyan Işığınız & Sosyal Enerjiniz', '#ec4899', 'rgba(236, 72, 153, 0.3)');
+
+        // 7. İlham Verici Kozmik Alıntı Kutusu
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(100, 1060, 880, 220, 20);
+        } else {
+            ctx.rect(100, 1060, 880, 220);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'italic 28px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('"Yıldızlar sadece yolu aydınlatır,', centerX, 1140);
+        ctx.fillText('kendi kaderini adımlarınla sen yazarsın."', centerX, 1190);
+        ctx.restore();
+
+        // 8. Alt Bilgi & Doğum Detayı
+        const bInfo = astro.birth_info || {};
+        const dateStr = bInfo.date ? `Doğum Tarihi: ${bInfo.date} • ${bInfo.time || ''}` : 'Kaderin Geometrisi Analizi';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+        ctx.font = '22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(dateStr, centerX, 1720);
+
+        // 9. Alt Footer / URL
+        ctx.fillStyle = '#a855f7';
+        ctx.font = 'bold 26px monospace';
+        ctx.fillText('orbisapp.com  •  @orbisapp', centerX, 1780);
+
+        return canvas;
+    }
+
+    async downloadOrShareStory() {
+        try {
+            const canvas = await this.renderStoryCanvas();
+            const dataUrl = canvas.toDataURL('image/png');
+
+            // Web Share API dosya paylaşımı dene (Mobile Safari / Chrome)
+            if (navigator.canShare && typeof fetch === 'function') {
+                try {
+                    const blob = await (await fetch(dataUrl)).blob();
+                    const file = new File([blob], 'ORBIS_Kozmik_Story.png', { type: 'image/png' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'ORBIS Kozmik Kimlik Kartım',
+                            text: 'Kozmik Profilimi keşfedin! 🌌'
+                        });
+                        return;
+                    }
+                } catch (shareErr) {
+                    console.log('[StoryExport] Share API fallback to download:', shareErr);
+                }
+            }
+
+            // Doğrudan dosya indirme fallback
+            const link = document.createElement('a');
+            link.download = 'ORBIS_Kozmik_Kimlik.png';
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error('[StoryExport] download error:', e);
+            alert('Görsel oluşturulurken bir hata oluştu.');
+        }
+    }
 }
 
 // Global instance

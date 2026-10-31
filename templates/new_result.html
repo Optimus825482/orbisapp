@@ -317,6 +317,26 @@ super() }}
           </div>
         </div>
       </div>
+
+      <!-- 📸 Kozmik Story Kartı Hızlı Erişim -->
+      <div class="mt-4">
+        <button type="button" onclick="window.monetization?.openStoryExportModal?.()"
+          class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-900/40 to-purple-950/60 border border-purple-500/30 hover:border-purple-400/60 text-white text-xs font-semibold flex items-center justify-between transition-all active:scale-[0.98] group cursor-pointer shadow-lg shadow-purple-950/40">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-500/30 to-purple-600/30 border border-pink-500/40 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <span class="material-icons-round text-pink-400 text-sm">photo_camera</span>
+            </div>
+            <div class="text-left">
+              <p class="font-bold text-white text-xs flex items-center gap-1.5">
+                Kozmik Kimlik Story Kartı
+                <span class="px-1.5 py-0.2 text-[8px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">9:16 HD</span>
+              </p>
+              <p class="text-[10px] text-purple-300/70">Instagram & Durum için özel tasarımlı kartını indir</p>
+            </div>
+          </div>
+          <span class="material-icons-round text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all text-sm">chevron_right</span>
+        </button>
+      </div>
     </div>
 
     <!-- AI ÖZET KARTI (YENİ) -->
@@ -804,6 +824,16 @@ super() }}
         <div class="absolute bottom-4 right-6 text-[8px] text-slate-600 font-mono tracking-widest uppercase">
           ORBIS Cosmic Engine • {{ astro_data.birth_info.house_system }}
         </div>
+      </div>
+
+      <!-- 📸 Chart Story Export Butonu -->
+      <div class="flex items-center justify-center -mt-2">
+        <button type="button" onclick="window.monetization?.openStoryExportModal?.()"
+          class="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600/25 via-pink-600/20 to-amber-500/20 border border-purple-500/40 hover:border-purple-400 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-purple-900/30 cursor-pointer">
+          <span class="material-icons-round text-base text-pink-400">photo_camera</span>
+          <span>Doğum Haritasını Instagram Story Olarak İndir (9:16)</span>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-[9px] text-amber-300 font-semibold border border-amber-500/30">HD</span>
+        </button>
       </div>
 
       <!-- Harita Açıklama Kartları -->
@@ -1858,6 +1888,52 @@ super() }}
         </button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- COSMIC INSTAGRAM STORY EXPORT MODAL -->
+<div id="cosmic-story-modal" class="fixed inset-0 z-[130] hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md" onclick="window.monetization?.closeStoryModal()">
+  <div class="relative w-full max-w-sm bg-gradient-to-br from-slate-900 via-surface-dark to-slate-900 rounded-3xl border border-purple-500/25 shadow-2xl p-6 text-white" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 border border-purple-500/40 flex items-center justify-center">
+          <span class="material-icons-round text-pink-400 text-xl">photo_camera</span>
+        </div>
+        <div>
+          <h3 class="font-display font-bold text-base text-white">Kozmik Story Kartı</h3>
+          <p class="text-[10px] text-purple-300 uppercase tracking-widest">9:16 Instagram & Durum</p>
+        </div>
+      </div>
+      <button onclick="window.monetization?.closeStoryModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+        <span class="material-icons-round text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Live Preview Card -->
+    <div class="relative w-full aspect-[9/16] max-h-[320px] mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-inner bg-slate-950 flex items-center justify-center mb-4 group">
+      <canvas id="story-preview-canvas" class="w-full h-full object-contain"></canvas>
+      <div id="story-generating-spinner" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+        <span class="material-icons-round text-purple-400 animate-spin text-3xl">auto_awesome</span>
+        <span class="text-xs text-slate-300 font-mono">Story Hazırlanıyor...</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Action Buttons (Injected by JS) -->
+    <div id="story-modal-actions" class="space-y-2.5"></div>
+
+    <!-- Free Standard Share Fallback Link -->
+    <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-center">
+      <button type="button" onclick="navigator.clipboard?.writeText(window.location.href); alert('Rapor bağlantısı panoya kopyalandı! 📋');"
+        class="text-[10px] text-slate-400 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
+        <span class="material-icons-round text-xs">link</span>
+        <span>Sadece Rapor Bağlantısını Kopyala</span>
+      </button>
+    </div>
+
+    <p class="text-[9px] text-slate-500 text-center mt-2">
+      HD 1080x1920 • Doğrudan galeriye veya Instagram Hikayelere paylaşılır
+    </p>
   </div>
 </div>
 
@@ -3203,7 +3279,9 @@ super() }}
   } );
 
   function shareResults() {
-    if ( navigator.share ) {
+    if ( window.monetization && typeof window.monetization.openStoryExportModal === 'function' ) {
+      window.monetization.openStoryExportModal();
+    } else if ( navigator.share ) {
       navigator.share( {
         title: 'ORBIS Kozmik Raporum',
         text: 'Kaderin Geometrisi raporumu Keşfedin!',
