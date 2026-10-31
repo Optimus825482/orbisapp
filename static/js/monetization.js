@@ -12,7 +12,7 @@ class MonetizationManager {
         this.deviceId = this.getOrCreateDeviceId();
         this.usageData = null;
         this.API_BASE = '/api/monetization';
-        this.credits = 2;
+        this.credits = 0;
         this.isAdFree = false;
         this.adFreeSeconds = 0;
         this._passTimer = null;
@@ -78,7 +78,7 @@ class MonetizationManager {
             this.usageData = data;
 
             const u = data.usage || {};
-            this.credits = typeof u.cosmic_credits === 'number' ? u.cosmic_credits : (data.cosmic_credits ?? 2);
+            this.credits = typeof u.cosmic_credits === 'number' ? u.cosmic_credits : (data.cosmic_credits ?? 0);
             this.isAdFree = Boolean(u.is_ad_free || data.is_ad_free);
             this.adFreeSeconds = u.ad_free_seconds || data.ad_free_seconds || 0;
 
@@ -252,19 +252,28 @@ class MonetizationManager {
         if (btn) btn.disabled = true;
 
         try {
-            let rewarded = true;
+            let rewarded = false;
             if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
                 const adRes = await window.MobileBridge.showBonusRewardedAd();
-                rewarded = adRes && adRes.success;
+                rewarded = Boolean((adRes && adRes.success) || adRes === true);
             } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
-                rewarded = await window.MobileBridge.showRewardedAd();
+                const adRes = await window.MobileBridge.showRewardedAd();
+                rewarded = Boolean((adRes && adRes.success) || adRes === true);
             }
 
             if (rewarded) {
                 await this.claimReward('credits');
                 this.updateModalContent();
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Tebrikler! +2 Kozmik Kredi hesabınıza yüklendi! ⭐', 'success');
+                } else {
+                    alert('Tebrikler! +2 Kozmik Kredi hesabınıza yüklendi! ⭐');
+                }
             } else {
                 console.warn('[Monetization] Reklam tamamlanmadı veya kapatıldı.');
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Reklam tamamlanmadığı için kredi kazanılamadı.', 'warning');
+                }
             }
         } catch (err) {
             console.error('[Monetization] watchForCredits error:', err);
@@ -279,37 +288,44 @@ class MonetizationManager {
         if (btn) btn.disabled = true;
 
         try {
-            let firstOk = true;
+            let firstOk = false;
             if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
                 const res1 = await window.MobileBridge.showBonusRewardedAd();
-                firstOk = res1 && res1.success;
+                firstOk = Boolean((res1 && res1.success) || res1 === true);
             } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
-                firstOk = await window.MobileBridge.showRewardedAd();
+                const res1 = await window.MobileBridge.showRewardedAd();
+                firstOk = Boolean((res1 && res1.success) || res1 === true);
             }
 
             if (!firstOk) {
-                alert('İlk reklam tamamlanmadı. Reklamsız mod için 2 reklam izlenmelidir.');
+                alert('İlk reklam tamamlanmadı. Reklamsız mod için 2 reklam eksiksiz izlenmelidir.');
                 if (btn) btn.disabled = false;
                 return;
             }
 
             // İkinci reklam öncesi kısa bilgilendirme
-            alert('Harika! 1/2 tamamlandı. Şimdi son reklamı izleyerek 24 saatlik Reklamsız Modunuzu aktifleştirin.');
+            alert('Harika! 1/2 reklam tamamlandı. Şimdi 2. reklamı izleyerek 24 saatlik Reklamsız Modunuzu aktifleştirin.');
 
-            let secondOk = true;
+            let secondOk = false;
             if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
                 const res2 = await window.MobileBridge.showBonusRewardedAd();
-                secondOk = res2 && res2.success;
+                secondOk = Boolean((res2 && res2.success) || res2 === true);
             } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
-                secondOk = await window.MobileBridge.showRewardedAd();
+                const res2 = await window.MobileBridge.showRewardedAd();
+                secondOk = Boolean((res2 && res2.success) || res2 === true);
             }
 
             if (secondOk) {
                 await this.claimReward('ad_free_24h');
                 this.updateModalContent();
                 this.initTeasers();
+                if (typeof window.showToast === 'function') {
+                    window.showToast('24 Saat Reklamsız Mod başarıyla aktif edildi! 🛡️', 'success');
+                } else {
+                    alert('24 Saat Reklamsız Mod başarıyla aktif edildi! 🛡️');
+                }
             } else {
-                alert('İkinci reklam tamamlanamadı.');
+                alert('İkinci reklam tamamlanamadığı için 24 saatlik mod aktifleşmedi.');
             }
         } catch (err) {
             console.error('[Monetization] watchForAdFreePass error:', err);
@@ -392,12 +408,13 @@ class MonetizationManager {
 
         // 3. Kredisi yoksa veya video ile açmak isterse: Rewarded video izlet
         try {
-            let rewarded = true;
+            let rewarded = false;
             if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
                 const adRes = await window.MobileBridge.showBonusRewardedAd();
-                rewarded = adRes && adRes.success;
+                rewarded = Boolean((adRes && adRes.success) || adRes === true);
             } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
-                rewarded = await window.MobileBridge.showRewardedAd();
+                const adRes = await window.MobileBridge.showRewardedAd();
+                rewarded = Boolean((adRes && adRes.success) || adRes === true);
             }
 
             if (rewarded) {
@@ -516,12 +533,13 @@ class MonetizationManager {
         }
 
         if (method === 'video') {
-            let rewarded = true;
+            let rewarded = false;
             if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
                 const res = await window.MobileBridge.showBonusRewardedAd();
-                rewarded = res && res.success;
+                rewarded = Boolean((res && res.success) || res === true);
             } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
-                rewarded = await window.MobileBridge.showRewardedAd();
+                const res = await window.MobileBridge.showRewardedAd();
+                rewarded = Boolean((res && res.success) || res === true);
             }
 
             if (rewarded) {

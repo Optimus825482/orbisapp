@@ -1144,24 +1144,140 @@ const OrbisBridge = {
   },
 
   /**
+   * Web platformu için gerçek 15 saniyelik ödüllü video simülasyonu.
+   * Kullanıcı 15 saniye dolmadan kapatırsa ödül KESİNLİKLE verilmez.
+   * Yalnızca 15 saniyelik süre tamamlandığında resolve({ success: true }) döner.
+   */
+  showWebRewardedAdPlayer(options = {}) {
+    const duration = options.duration || 15;
+    const title = options.title || "Ödüllü Reklam";
+
+    return new Promise((resolve) => {
+      // Mevcut açık reklam varsa temizle
+      const existing = document.getElementById('web-rewarded-player-overlay');
+      if (existing) existing.remove();
+
+      let remaining = duration;
+      let timerId = null;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'web-rewarded-player-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:16px;';
+      overlay.innerHTML = `
+        <div style="width:100%;max-width:390px;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border:1px solid rgba(124,58,237,0.35);border-radius:24px;padding:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);color:#fff;text-align:center;position:relative;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;">
+          <!-- Top progress bar -->
+          <div style="position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.1);">
+            <div id="web-ad-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#ec4899);transition:width 1s linear;"></div>
+          </div>
+
+          <!-- Header badge -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:4px;">
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(124,58,237,0.2);color:#c084fc;padding:4px 10px;border-radius:9999px;border:1px solid rgba(124,58,237,0.3);">
+              📺 Sponsor Reklamı
+            </span>
+            <span id="web-ad-timer-badge" style="font-size:12px;font-weight:700;font-family:monospace;background:rgba(255,255,255,0.12);padding:4px 10px;border-radius:9999px;color:#fde047;">
+              ⏱️ ${remaining}s
+            </span>
+          </div>
+
+          <!-- Video Simulation Screen -->
+          <div style="width:100%;height:150px;background:linear-gradient(180deg,#090d16 0%,#161329 100%);border-radius:16px;border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px;position:relative;overflow:hidden;">
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#06b6d4);display:grid;place-items:center;box-shadow:0 0 24px rgba(124,58,237,0.6);margin-bottom:10px;">
+              <span class="material-icons-round" style="font-size:28px;color:#fff;">play_arrow</span>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#f8fafc;letter-spacing:-0.01em;">ORBIS Kozmik Harita & Transitler</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Ödüllü Sponsor Yayını</div>
+          </div>
+
+          <!-- Information -->
+          <h4 id="web-ad-status-title" style="font-size:15px;font-weight:700;margin:0 0 6px;color:#fff;">
+            Reklam Oynatılıyor...
+          </h4>
+          <p id="web-ad-status-desc" style="font-size:12px;color:#94a3b8;margin:0 0 16px;line-height:1.45;">
+            Ödülünüzün tanımlanması için lütfen videonun tamamlanmasını bekleyin. Erken kapatırsanız ödül verilmez.
+          </p>
+
+          <!-- Action buttons -->
+          <div id="web-ad-action-wrap">
+            <button id="web-ad-cancel-btn" type="button" style="width:100%;padding:10px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+              Reklamı Kapat (Ödül İptal)
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      const progressEl = document.getElementById('web-ad-progress');
+      const timerBadge = document.getElementById('web-ad-timer-badge');
+      const statusTitle = document.getElementById('web-ad-status-title');
+      const statusDesc = document.getElementById('web-ad-status-desc');
+      const cancelBtn = document.getElementById('web-ad-cancel-btn');
+
+      // Erken iptal kontrolü - Ödül KESİNLİKLE verilmez
+      const handleEarlyCancel = () => {
+        if (timerId) clearInterval(timerId);
+        overlay.remove();
+        console.warn("[ORBIS] Web reklam erken kapatıldı — ödül verilmedi.");
+        resolve({ success: false, reason: "user_closed_early" });
+      };
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', handleEarlyCancel);
+      }
+
+      // Saniye saniye geri sayım
+      timerId = setInterval(() => {
+        remaining -= 1;
+        const pct = Math.min(100, Math.round(((duration - remaining) / duration) * 100));
+        if (progressEl) progressEl.style.width = pct + '%';
+        if (timerBadge) timerBadge.textContent = '⏱️ ' + remaining + 's';
+
+        if (remaining <= 0) {
+          clearInterval(timerId);
+          if (progressEl) progressEl.style.width = '100%';
+          if (timerBadge) {
+            timerBadge.textContent = '✅ Bitti';
+            timerBadge.style.color = '#34d399';
+          }
+          if (statusTitle) {
+            statusTitle.innerHTML = '<span style="color:#34d399;">✅ Reklam Tamamlandı!</span>';
+          }
+          if (statusDesc) {
+            statusDesc.textContent = 'Tebrikler! Ödülünüz tanımlanıyor, lütfen bekleyin...';
+          }
+          const actionWrap = document.getElementById('web-ad-action-wrap');
+          if (actionWrap) {
+            actionWrap.innerHTML = `
+              <div style="padding:10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:12px;color:#34d399;font-size:12px;font-weight:700;">
+                ⭐ Ödül Onaylandı!
+              </div>
+            `;
+          }
+
+          setTimeout(() => {
+            overlay.remove();
+            console.log("[ORBIS] Web reklam tamamlandı — ödül onaylandı.");
+            this.trackEvent("ad_impression", { ad_type: "rewarded_web_player" });
+            this.trackEvent("ad_reward", { ad_type: "rewarded_web_player" });
+            resolve({ success: true, reason: "completed" });
+          }, 800);
+        }
+      }, 1000);
+    });
+  },
+
+  /**
    * Bonus Rewarded reklami gosterir — analiz sonrasi "ek yorum" kazandirir.
    * @returns {Promise<{success: boolean, reason: string|null}>}
    */
   async showBonusRewardedAd() {
-    if (this.isExemptUser()) {
-      console.log("[ORBIS] 🛡️ Geliştirici hesabı - Bonus reklam izlenmiş sayılıyor.");
-      return Promise.resolve({ success: true, reason: "exempt_owner" });
+    if (!this.state.isNative) {
+      return this.showWebRewardedAdPlayer({ duration: 15, title: "Bonus Ödül Reklamı" });
     }
 
     return new Promise(async (resolve) => {
       try {
-        if (!this.state.isNative) {
-          // Web'de basit onay modal
-          const ok = confirm("Bonus AI yorum kazanmak icin reklam izleyin (web fallback)");
-          resolve({ success: ok, reason: ok ? "web_fallback" : "user_cancelled" });
-          return;
-        }
-
         const { AdMob } = Capacitor.Plugins;
         if (!AdMob) {
           resolve({ success: false, reason: "admob_unavailable" });
@@ -1289,6 +1405,10 @@ const OrbisBridge = {
   },
 
   async showRewardedAd() {
+    if (!this.state.isNative) {
+      return this.showWebRewardedAdPlayer({ duration: 15, title: "Kozmik Reklam" });
+    }
+
     if (this.isExemptUser()) {
       console.log("[ORBIS] 🛡️ Geliştirici hesabı - Rewarded reklam doğrudan onaylandı.");
       return Promise.resolve({ success: true, reason: "exempt_owner" });
@@ -1296,72 +1416,6 @@ const OrbisBridge = {
 
     return new Promise(async (resolve) => {
       try {
-        // ═════════════════════════════════════════════════════════
-        // WEB / WEBVIEW PLATFORM
-        // ═════════════════════════════════════════════════════════
-        if (!this.state.isNative) {
-          console.log("[ORBIS] Web platform - reklam modal gösteriliyor...");
-          
-          // Modal HTML oluştur
-          const modal = document.createElement('div');
-          modal.id = 'ad-reward-overlay';
-          modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
-          modal.innerHTML = `
-            <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 w-full max-w-sm mx-4 border border-white/10 shadow-2xl text-center animate-fade-in">
-              <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-                <span class="material-icons-round text-4xl text-primary">play_circle</span>
-              </div>
-              <h3 class="text-xl font-bold text-white mb-2">Reklam İzle</h3>
-              <p class="text-sm text-slate-400 mb-6 leading-relaxed">
-                AI yorumun kilidini acmak icin lutfen kisa bir reklam izleyin.
-                Uygulamamiz tamamen ucretsizdir.
-              </p>
-              <div class="flex flex-col gap-3">
-                <button id="ad-reward-watch-btn" class="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">
-                  <span class="material-icons-round">play_arrow</span>
-                  Reklam İzle ve Devam Et
-                </button>
-                <button id="ad-reward-cancel-btn" class="w-full py-3 text-slate-500 hover:text-slate-300 text-sm transition-colors">
-                  Vazgeç
-                </button>
-              </div>
-            </div>
-          `;
-          document.body.appendChild(modal);
-
-          // Buton event'leri
-          const watchBtn = document.getElementById('ad-reward-watch-btn');
-          const cancelBtn = document.getElementById('ad-reward-cancel-btn');
-
-          // İzle butonu
-          watchBtn.addEventListener('click', () => {
-            console.log("[ORBIS] Web reklam izlendi - analiz devam");
-            this.trackEvent("ad_impression", { ad_type: "rewarded_web" });
-            this.trackEvent("ad_reward", { ad_type: "rewarded_web", reward_type: "analysis_credit" });
-            modal.remove();
-            resolve({ success: true, reason: null });
-          });
-
-          // Premium butonu kaldirildi (premium artik yok).
-          // Geriye uyumluluk: eski 'ad-reward-premium-btn' varsa tiklama no-op yapar.
-          const legacyPremiumBtn = document.getElementById('ad-reward-premium-btn');
-          if (legacyPremiumBtn) {
-            legacyPremiumBtn.addEventListener('click', () => {
-              console.info("[ORBIS] Legacy premium buton ignored (premium removed).");
-              modal.remove();
-              resolve({ success: false, reason: "user_cancelled" });
-            });
-          }
-
-          // İptal butonu
-          cancelBtn.addEventListener('click', () => {
-            console.log("[ORBIS] Web reklam iptal edildi");
-            modal.remove();
-            resolve({ success: false, reason: "user_cancelled" });
-          });
-
-          return;
-        }
 
         // ═════════════════════════════════════════════════════════
         // NATIVE PLATFORM - Capacitor AdMob ile reklam
@@ -1478,9 +1532,11 @@ const OrbisBridge = {
         const rewardedAdId =
           adConfig.REWARDED_ANALIZ || adConfig.REWARDED || "ca-app-pub-2444093901783574/9994253824";
 
-        console.log(`[ORBIS] Rewarded ad yükleniyor (ID: ${rewardedAdId})`);
-        this.trackEvent("ad_impression", { ad_type: "rewarded" });
-        await AdMob.showRewardVideoAd();
+        console.log(`[ORBIS] Rewarded ad hazırlanıyor (ID: ${rewardedAdId})`);
+        await AdMob.prepareRewardVideoAd({
+          adId: rewardedAdId,
+          isTesting: this.CONFIG.IS_TESTING,
+        });
 
         // Ödül kazanıldı
         const rl = await AdMob.addListener("onRewardedVideoAdReward", () => {

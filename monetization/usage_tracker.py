@@ -136,12 +136,12 @@ class UsageTracker:
                 if doc.exists:
                     user_data = doc.to_dict()
                 else:
-                    # Yeni kullanıcı oluştur - 2 hoş geldin kredisi tanımla
+                    # Yeni kullanıcı oluştur - 0 kredi ile başla (reklam izleyerek kazanılır)
                     user_data = {
                         "device_id": device_id,
                         "email": email,
                         "usage": {},
-                        "cosmic_credits": 2,
+                        "cosmic_credits": 0,
                         "ad_free_until": None,
                         "created_at": now.isoformat()
                     }
@@ -150,7 +150,7 @@ class UsageTracker:
                 logger.debug(f"[UsageTracker] Firestore error: {e}")
                 user_data = self._memory_storage.get(device_id, {
                     "usage": {},
-                    "cosmic_credits": 2,
+                    "cosmic_credits": 0,
                     "ad_free_until": None
                 })
         else:
@@ -158,7 +158,7 @@ class UsageTracker:
             if device_id not in data:
                 data[device_id] = {
                     "usage": {},
-                    "cosmic_credits": 2,
+                    "cosmic_credits": 0,
                     "ad_free_until": None,
                     "created_at": now.isoformat()
                 }
@@ -168,7 +168,7 @@ class UsageTracker:
         today_usage = user_data.get("usage", {}).get(today, 0)
         credits = user_data.get("cosmic_credits")
         if credits is None:
-            credits = 2  # Geriye uyumluluk: eski kayıtlara 2 kredi tanımla
+            credits = 0  # Başlangıç: 0 kredi
 
         is_ad_free, ad_free_seconds = self._parse_ad_free_status(user_data)
 
@@ -271,7 +271,7 @@ class UsageTracker:
 
         now = datetime.now()
         user_usage = self.get_user_usage(device_id, email)
-        cur_credits = user_usage.get("cosmic_credits", 2)
+        cur_credits = user_usage.get("cosmic_credits", 0)
         cur_until_str = user_usage.get("ad_free_until")
 
         new_credits = cur_credits
@@ -443,7 +443,7 @@ class UsageTracker:
             data = self._load_data()
 
             if device_id not in data:
-                data[device_id] = {"usage": {}, "cosmic_credits": 2, "ad_free_until": None}
+                data[device_id] = {"usage": {}, "cosmic_credits": 0, "ad_free_until": None}
 
             if "usage" not in data[device_id]:
                 data[device_id]["usage"] = {}

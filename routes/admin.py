@@ -13,6 +13,7 @@ from exceptions import (
 import os
 import json
 import logging
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Union
 
 from google.cloud.firestore_v1.base_query import FieldFilter
@@ -919,220 +920,311 @@ def _personalize_text(text: str, name: str) -> str:
 
 @admin_bp.route('/api/push/send', methods=['POST'])
 @admin_required
-@handle_errors("Push bildirim gönderilemedi")
 def send_push_notification():
     """Push ve uygulama içi bildirim gönder (kişiselleştirme ve tek kullanıcı / aktif kullanıcı desteği ile)."""
-    data = request.get_json(silent=True) or {}
-    
-    target_type = data.get('targetType')  # user, active, topic, all, token
-    target = data.get('target')  # userId, email, token veya topic adı
-    title = data.get('title')
-    body = data.get('body')
-    extra_data = data.get('data', {}) or {}
-    send_in_app = bool(data.get('sendInApp', False))
-    user_name_override = data.get('userName')
-    
-    if not all([target_type, title, body]):
-        return jsonify({
-            'success': False,
-            'error': 'MISSING_PARAMS',
-            'message': 'targetType, title ve body gerekli'
-        }), 400
-    
-    db = firebase_service.db
-    from firebase_admin import firestore
-    has_name_tag = any(tag in (title + body).lower() for tag in ['{name}', '{isim}', '{ad}', '{displayname}', '{kullanici}'])
-    result = None
-    sent_count = 0
-    in_app_count = 0
-    
-    # ── 1. TEK KULLANICIYA ÖZEL GÖNDERİM ────────────────────────
-    if target_type == 'user':
-        actual_uid = target
-        user_data = {}
-        if db:
-            # Önce doc id olarak ara
-            u_doc = db.collection('users').document(target).get()
-            if u_doc.exists:
-                user_data = u_doc.to_dict() or {}
-            elif '@' in str(target):
-                # E-posta ile ara
-                matches = list(db.collection('users').where('email', '==', str(target).strip()).limit(1).stream())
-                if matches:
-                    actual_uid = matches[0].id
-                    user_data = matches[0].to_dict() or {}
-
-        first_name = user_name_override or _extract_first_name(
-            user_data.get('displayName'),
-            user_data.get('email') or (target if '@' in str(target) else None)
-        )
-        p_title = _personalize_text(title, first_name)
-        p_body = _personalize_text(body, first_name)
-
-        # Tokenları getir
-        tokens = firebase_service.get_user_tokens(actual_uid)
-        if not tokens and db:
-            # push_subscribers koleksiyonundan kontrol et
-            sub_docs = list(db.collection('push_subscribers').where('userId', '==', actual_uid).stream())
-            tokens = [s.to_dict().get('token') for s in sub_docs if s.to_dict().get('token')]
-            if not tokens and user_data.get('email'):
-                email_sub_docs = list(db.collection('push_subscribers').where('email', '==', user_data.get('email')).stream())
-                tokens = [s.to_dict().get('token') for s in email_sub_docs if s.to_dict().get('token')]
-
-        if tokens:
-            result = firebase_service.send_push_to_multiple(tokens, p_title, p_body, extra_data)
-            sent_count = len(tokens)
-        else:
-            # Token yoksa bile uygulama içi bildirim gönderilebilir
-            if not send_in_app:
-                return jsonify({
-                    'success': False,
-                    'error': 'NO_TOKENS',
-                    'message': f"{first_name} adlı kullanıcının kayıtlı push token'ı bulunamadı. Uygulama içi bildirim seçeneği ile gönderebilirsiniz."
-                }), 404
-
-        # Uygulama içi (In-App) bildirim kaydı
-        if send_in_app and db:
-            try:
-                notif_payload = {
-                    'userId': actual_uid,
-                    'title': p_title,
-                    'body': p_body,
-                    'data': extra_data,
-                    'read': False,
-                    'type': 'in_app',
-                    'createdAt': firestore.SERVER_TIMESTAMP,
-                    'adminEmail': session.get('admin_email')
-                }
-                db.collection('in_app_notifications').add(notif_payload)
-                db.collection('users').document(actual_uid).collection('in_app_notifications').add(notif_payload)
-                in_app_count += 1
-            except Exception as ie:
-                logger.warning(f"[Push] In-app notification write error: {ie}")
-
-        result = result or {'in_app_only': True, 'success_count': in_app_count}
-
-    # ── 2. ŞU AN AKTİF (ONLINE) KULLANICILARA GÖNDERİM ──────────
-    elif target_type == 'active':
-        from services.stats_counter import stats_counter
-        online_users = stats_counter.get_online_users(within_minutes=15) or []
-        today_active_users = []
+    try:
+        data = request.get_json(silent=True) or {}
         
-        # Eğer heartbeat listesi boşsa bugün login olanlara fallback
-        if not online_users and db:
-            today_str = datetime.now().strftime("%Y-%m-%d")
-            u_docs = list(db.collection('users').where('dailyUsage.date', '==', today_str).limit(100).stream())
-            for ud in u_docs:
-                u_dict = ud.to_dict() or {}
-                today_active_users.append({
-                    'userId': ud.id,
-                    'email': u_dict.get('email'),
-                    'display_name': u_dict.get('displayName')
-                })
-
-        targets_to_send = online_users or today_active_users
-        if not targets_to_send:
+        target_type = data.get('targetType')  # user, active, topic, all, token
+        target = data.get('target')  # userId, email, token veya topic adı
+        title = data.get('title')
+        body = data.get('body')
+        extra_data = data.get('data', {}) or {}
+        send_in_app = bool(data.get('sendInApp', False))
+        user_name_override = data.get('userName')
+        
+        if not all([target_type, title, body]):
             return jsonify({
                 'success': False,
-                'error': 'NO_ACTIVE_USERS',
-                'message': 'Şu an aktif veya bugün giriş yapmış kullanıcı bulunamadı.'
-            }), 404
+                'error': 'MISSING_PARAMS',
+                'message': 'targetType, title ve body gerekli'
+            }), 400
+        
+        db = firebase_service.db
+        has_name_tag = any(tag in (title + body).lower() for tag in ['{name}', '{isim}', '{ad}', '{displayname}', '{kullanici}'])
+        result = None
+        sent_count = 0
+        in_app_count = 0
+        now_utc = datetime.now(timezone.utc)
+        
+        # ── 1. TEK KULLANICIYA ÖZEL GÖNDERİM ────────────────────────
+        if target_type == 'user':
+            actual_uid = target
+            user_data = {}
+            if db:
+                try:
+                    u_doc = db.collection('users').document(target).get()
+                    if u_doc.exists:
+                        user_data = u_doc.to_dict() or {}
+                    elif '@' in str(target):
+                        matches = list(db.collection('users').where('email', '==', str(target).strip()).limit(1).stream())
+                        if matches:
+                            actual_uid = matches[0].id
+                            user_data = matches[0].to_dict() or {}
+                except Exception as de:
+                    logger.warning(f"[Push] User fetch error: {de}")
 
-        for user_info in targets_to_send:
-            u_email = user_info.get('email')
-            u_name = user_info.get('display_name') or user_info.get('name')
-            first_name = _extract_first_name(u_name, u_email)
+            first_name = user_name_override or _extract_first_name(
+                user_data.get('displayName'),
+                user_data.get('email') or (target if '@' in str(target) else None)
+            )
             p_title = _personalize_text(title, first_name)
             p_body = _personalize_text(body, first_name)
 
-            # User tokens
-            u_tokens = []
-            uid = user_info.get('userId')
-            if uid:
-                u_tokens = firebase_service.get_user_tokens(uid)
-            if not u_tokens and db and u_email:
-                sub_docs = list(db.collection('push_subscribers').where('email', '==', u_email).stream())
-                u_tokens = [s.to_dict().get('token') for s in sub_docs if s.to_dict().get('token')]
+            # Tokenları getir
+            tokens = []
+            try:
+                tokens = firebase_service.get_user_tokens(actual_uid)
+            except Exception as te:
+                logger.warning(f"[Push] Token lookup error: {te}")
 
-            if u_tokens:
-                firebase_service.send_push_to_multiple(u_tokens, p_title, p_body, extra_data)
-                sent_count += len(u_tokens)
-
-            if send_in_app and db and (uid or u_email):
+            if not tokens and db:
                 try:
-                    db.collection('in_app_notifications').add({
-                        'userId': uid,
-                        'email': u_email,
+                    sub_docs = list(db.collection('push_subscribers').where('userId', '==', actual_uid).stream())
+                    tokens = [s.to_dict().get('token') for s in sub_docs if s.to_dict().get('token')]
+                    if not tokens and user_data.get('email'):
+                        email_sub_docs = list(db.collection('push_subscribers').where('email', '==', user_data.get('email')).stream())
+                        tokens = [s.to_dict().get('token') for s in email_sub_docs if s.to_dict().get('token')]
+                except Exception as se:
+                    logger.warning(f"[Push] Push subscribers lookup error: {se}")
+
+            if tokens:
+                try:
+                    result = firebase_service.send_push_to_multiple(tokens, p_title, p_body, extra_data)
+                    sent_count = len(tokens)
+                except Exception as pe:
+                    logger.error(f"[Push] send_push_to_multiple error: {pe}")
+            else:
+                if not send_in_app:
+                    return jsonify({
+                        'success': False,
+                        'error': 'NO_TOKENS',
+                        'message': f"{first_name} adlı kullanıcının kayıtlı push token'ı bulunamadı. Uygulama içi bildirim seçeneği ile gönderebilirsiniz."
+                    }), 404
+
+            # Uygulama içi (In-App) bildirim kaydı
+            if send_in_app and db:
+                try:
+                    notif_payload = {
+                        'userId': actual_uid,
                         'title': p_title,
                         'body': p_body,
                         'data': extra_data,
                         'read': False,
                         'type': 'in_app',
-                        'createdAt': firestore.SERVER_TIMESTAMP,
+                        'createdAt': now_utc,
+                        'adminEmail': session.get('admin_email')
+                    }
+                    db.collection('in_app_notifications').add(notif_payload)
+                    db.collection('users').document(actual_uid).collection('in_app_notifications').add(notif_payload)
+                    in_app_count += 1
+                except Exception as ie:
+                    logger.warning(f"[Push] In-app notification write error: {ie}")
+
+            result = result or {'in_app_only': True, 'success_count': in_app_count}
+
+        # ── 2. ŞU AN AKTİF (ONLINE) KULLANICILARA GÖNDERİM ──────────
+        elif target_type == 'active':
+            from services.stats_counter import stats_counter
+            online_users = stats_counter.get_online_users(within_minutes=15) or []
+            today_active_users = []
+            
+            # Eğer heartbeat listesi boşsa bugün login olanlara fallback
+            if not online_users and db:
+                try:
+                    today_str = now_utc.strftime("%Y-%m-%d")
+                    u_docs = list(db.collection('users').where('dailyUsage.date', '==', today_str).limit(100).stream())
+                    for ud in u_docs:
+                        u_dict = ud.to_dict() or {}
+                        today_active_users.append({
+                            'userId': ud.id,
+                            'email': u_dict.get('email'),
+                            'display_name': u_dict.get('displayName')
+                        })
+                except Exception as ae:
+                    logger.warning(f"[Push] Active users fetch error: {ae}")
+
+            targets_to_send = online_users or today_active_users
+            if not targets_to_send:
+                return jsonify({
+                    'success': False,
+                    'error': 'NO_ACTIVE_USERS',
+                    'message': 'Şu an aktif veya bugün giriş yapmış kullanıcı bulunamadı.'
+                }), 404
+
+            for user_info in targets_to_send:
+                u_email = user_info.get('email')
+                u_name = user_info.get('display_name') or user_info.get('name')
+                first_name = _extract_first_name(u_name, u_email)
+                p_title = _personalize_text(title, first_name)
+                p_body = _personalize_text(body, first_name)
+
+                # User tokens
+                u_tokens = []
+                uid = user_info.get('userId')
+                if uid:
+                    try:
+                        u_tokens = firebase_service.get_user_tokens(uid)
+                    except Exception:
+                        pass
+                if not u_tokens and db and u_email:
+                    try:
+                        sub_docs = list(db.collection('push_subscribers').where('email', '==', u_email).stream())
+                        u_tokens = [s.to_dict().get('token') for s in sub_docs if s.to_dict().get('token')]
+                    except Exception:
+                        pass
+
+                if u_tokens:
+                    try:
+                        firebase_service.send_push_to_multiple(u_tokens, p_title, p_body, extra_data)
+                        sent_count += len(u_tokens)
+                    except Exception:
+                        pass
+
+                if send_in_app and db and (uid or u_email):
+                    try:
+                        db.collection('in_app_notifications').add({
+                            'userId': uid,
+                            'email': u_email,
+                            'title': p_title,
+                            'body': p_body,
+                            'data': extra_data,
+                            'read': False,
+                            'type': 'in_app',
+                            'createdAt': now_utc,
+                        })
+                        in_app_count += 1
+                    except Exception:
+                        pass
+
+            result = {'success_count': sent_count, 'active_users_count': len(targets_to_send), 'in_app_count': in_app_count}
+
+        # ── 3. TOPIC GÖNDERİMİ ──────────────────────────────────────
+        elif target_type == 'topic':
+            try:
+                result = firebase_service.send_push_to_topic(target, title, body, extra_data)
+            except Exception as te:
+                logger.error(f"[Push] send_push_to_topic error: {te}")
+
+            if send_in_app and db:
+                try:
+                    db.collection('in_app_notifications').add({
+                        'target': target,
+                        'title': title,
+                        'body': body,
+                        'data': extra_data,
+                        'read': False,
+                        'type': 'in_app_topic',
+                        'createdAt': now_utc,
+                        'adminEmail': session.get('admin_email')
                     })
                     in_app_count += 1
                 except Exception:
                     pass
 
-        result = {'success_count': sent_count, 'active_users_count': len(targets_to_send), 'in_app_count': in_app_count}
+        # ── 4. HERKESE (ALL) GÖNDERİM ───────────────────────────────
+        elif target_type == 'all':
+            # Eğer metinde {name} kişiselleştirme etiketi varsa her aboneye kendi adıyla ilet
+            if has_name_tag and db:
+                try:
+                    subscribers = []
+                    try:
+                        subscribers = list(db.collection('push_subscribers').where('active', '==', True).limit(500).stream())
+                    except Exception:
+                        # Index veya where hatası durumunda tümünü al
+                        subscribers = list(db.collection('push_subscribers').limit(500).stream())
 
-    # ── 3. TOPIC GÖNDERİMİ ──────────────────────────────────────
-    elif target_type == 'topic':
-        result = firebase_service.send_push_to_topic(target, title, body, extra_data)
+                    for s in subscribers:
+                        s_data = s.to_dict() or {}
+                        token = s_data.get('token')
+                        if not token:
+                            continue
+                        first_name = _extract_first_name(s_data.get('displayName'), s_data.get('email'))
+                        p_title = _personalize_text(title, first_name)
+                        p_body = _personalize_text(body, first_name)
+                        try:
+                            firebase_service.send_push_to_multiple([token], p_title, p_body, extra_data)
+                            sent_count += 1
+                        except Exception:
+                            pass
 
-    # ── 4. HERKESE (ALL) GÖNDERİM ───────────────────────────────
-    elif target_type == 'all':
-        # Eğer metinde {name} kişiselleştirme etiketi varsa her aboneye kendi adıyla ilet
-        if has_name_tag and db:
+                    if sent_count > 0:
+                        result = {'success_count': sent_count, 'personalized': True}
+                    else:
+                        result = firebase_service.send_push_to_topic('all_users', _personalize_text(title, 'Dostumuz'), _personalize_text(body, 'Dostumuz'), extra_data)
+                except Exception as pe:
+                    logger.warning(f"[Push] Personalized bulk push fallback: {pe}")
+                    result = firebase_service.send_push_to_topic('all_users', _personalize_text(title, 'Dostumuz'), _personalize_text(body, 'Dostumuz'), extra_data)
+            else:
+                try:
+                    result = firebase_service.send_push_to_topic('all_users', title, body, extra_data)
+                except Exception as te:
+                    logger.error(f"[Push] all_users topic push error: {te}")
+
+            # Herkese gönderimde Uygulama İçi (In-App) bildirim kaydı
+            if send_in_app and db:
+                try:
+                    db.collection('in_app_notifications').add({
+                        'target': 'all',
+                        'title': title,
+                        'body': body,
+                        'data': extra_data,
+                        'read': False,
+                        'type': 'in_app_broadcast',
+                        'createdAt': now_utc,
+                        'adminEmail': session.get('admin_email')
+                    })
+                    in_app_count += 1
+                except Exception as ie:
+                    logger.warning(f"[Push] In-app broadcast write error: {ie}")
+
+        # ── 5. TEK TOKEN GÖNDERİMİ ──────────────────────────────────
+        elif target_type == 'token':
             try:
-                subscribers = list(db.collection('push_subscribers').where('active', '==', True).limit(500).stream())
-                for s in subscribers:
-                    s_data = s.to_dict() or {}
-                    token = s_data.get('token')
-                    if not token:
-                        continue
-                    first_name = _extract_first_name(s_data.get('displayName'), s_data.get('email'))
-                    p_title = _personalize_text(title, first_name)
-                    p_body = _personalize_text(body, first_name)
-                    firebase_service.send_push_to_multiple([token], p_title, p_body, extra_data)
-                    sent_count += 1
-                result = {'success_count': sent_count, 'personalized': True}
+                result = firebase_service.send_push_to_multiple([target], title, body, extra_data)
+                sent_count = 1
             except Exception as pe:
-                logger.warning(f"[Push] Personalized bulk push fallback: {pe}")
-                result = firebase_service.send_push_to_topic('all_users', _personalize_text(title, 'Dostumuz'), _personalize_text(body, 'Dostumuz'), extra_data)
-        else:
-            result = firebase_service.send_push_to_topic('all_users', title, body, extra_data)
+                logger.error(f"[Push] Single token push error: {pe}")
 
-    # ── 5. TEK TOKEN GÖNDERİMİ ──────────────────────────────────
-    elif target_type == 'token':
-        result = firebase_service.send_push_to_multiple([target], title, body, extra_data)
+        # Admin log kaydet
+        if db:
+            try:
+                db.collection('admin_logs').add({
+                    'action': 'push_sent',
+                    'adminEmail': session.get('admin_email'),
+                    'details': {
+                        'targetType': target_type,
+                        'target': str(target)[:100] if target else None,
+                        'title': title,
+                        'hasPersonalization': has_name_tag,
+                        'sendInApp': send_in_app,
+                        'sentCount': sent_count,
+                        'inAppCount': in_app_count
+                    },
+                    'timestamp': now_utc
+                })
+            except Exception:
+                pass
+        
+        logger.info(f"Push notification sent by {session.get('admin_email')}: {target_type} - {title}")
+        
+        is_success = (result is not None) or (sent_count > 0) or (in_app_count > 0)
+        
+        return jsonify({
+            'success': is_success,
+            'result': result if isinstance(result, dict) else {'messageId': result},
+            'sentCount': sent_count,
+            'inAppCount': in_app_count,
+            'message': 'Bildirim başarıyla gönderildi.' if is_success else 'FCM servisi yanıt vermedi ancak işlem günlüğe kaydedildi.'
+        })
 
-    # Admin log kaydet
-    if db:
-        try:
-            db.collection('admin_logs').add({
-                'action': 'push_sent',
-                'adminEmail': session.get('admin_email'),
-                'details': {
-                    'targetType': target_type,
-                    'target': str(target)[:100] if target else None,
-                    'title': title,
-                    'hasPersonalization': has_name_tag,
-                    'sendInApp': send_in_app
-                },
-                'timestamp': firestore.SERVER_TIMESTAMP
-            })
-        except Exception:
-            pass
-    
-    logger.info(f"Push notification sent by {session.get('admin_email')}: {target_type} - {title}")
-    
-    return jsonify({
-        'success': result is not None,
-        'result': result if isinstance(result, dict) else {'messageId': result},
-        'sentCount': sent_count,
-        'inAppCount': in_app_count
-    })
+    except Exception as e:
+        logger.exception(f"[Push] send_push_notification critical error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'PUSH_FAILED',
+            'message': f"Bildirim gönderilirken bir hata oluştu: {str(e)}"
+        }), 200
 
 
 @admin_bp.route('/api/push/subscribers', methods=['GET'])
