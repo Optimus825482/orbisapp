@@ -61,6 +61,17 @@ super() }}
     color: #94a3b8;
   }
 
+  /* ORBIS AI Talking Sound Wave Animation */
+  @keyframes orbisSoundBarPulse {
+    0%, 100% { height: 6px; opacity: 0.4; transform: scaleY(0.7); }
+    50% { height: 20px; opacity: 1; transform: scaleY(1.3); }
+  }
+  .animate-sound-bar {
+    animation: orbisSoundBarPulse 0.65s ease-in-out infinite;
+    display: inline-block;
+    transform-origin: center;
+  }
+
   .chart-selector-pill.active {
     background: #5b2bee;
     color: white;
@@ -2547,9 +2558,39 @@ super() }}
     $( '#ai-modal-container' ).css( 'transform', 'translateY(100%)' );
     setTimeout( () => {
       $( '#ai-modal' ).addClass( 'hidden' );
-      TTS.stop();
-      TTS.showPlayer(); // Re-show global player if still playing elsewhere
+      if ( typeof TTS !== 'undefined' ) {
+        if ( typeof TTS.stopGreeting === 'function' ) TTS.stopGreeting();
+        TTS.stop();
+        TTS.showPlayer(); // Re-show global player if still playing elsewhere
+      }
     }, 300 );
+  }
+
+  function toggleGreetingVoice( e ) {
+    if ( e ) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const isMuted = localStorage.getItem( 'orbis-voice-muted' ) === 'true';
+    const newMuted = !isMuted;
+    localStorage.setItem( 'orbis-voice-muted', newMuted ? 'true' : 'false' );
+
+    const icon = document.getElementById( 'ai-voice-toggle-icon' );
+    if ( icon ) icon.textContent = newMuted ? 'volume_off' : 'volume_up';
+
+    const waves = document.getElementById( 'ai-voice-waves' );
+    if ( newMuted ) {
+      if ( waves ) waves.style.opacity = '0.35';
+      if ( typeof TTS !== 'undefined' && typeof TTS.stopGreeting === 'function' ) {
+        TTS.stopGreeting();
+      }
+    } else {
+      if ( waves ) waves.style.opacity = '1';
+      const userName = astroData?.user_name || 'Sevgili Kullanıcı';
+      if ( typeof TTS !== 'undefined' && typeof TTS.speakGreeting === 'function' ) {
+        TTS.speakGreeting( `Merhaba ${userName}! Ben Orbis. Senin için gökyüzünü inceliyorum.` );
+      }
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2859,48 +2900,85 @@ super() }}
 
     $( '#ai-modal-title' ).text( topicName );
 
-    // Yeni loading state - AI Avatar ve kişiselleştirilmiş mesaj (sabit yükseklik, katlanmayı önler)
+    const isVoiceMuted = localStorage.getItem( 'orbis-voice-muted' ) === 'true';
+
+    // Yeni loading state - AI Avatar, Ses Dalgaları ve Canlı Selamlama
     $body.html( `
-            <div id="ai-loading-avatar" class="flex flex-col items-center justify-center py-8 px-4 transition-all duration-300">
+            <div id="ai-loading-avatar" class="flex flex-col items-center justify-center py-6 px-4 transition-all duration-300">
                 <!-- AI Avatar - Büyük ve Animasyonlu -->
-                <div class="relative mb-8">
+                <div class="relative mb-7">
                     <!-- Dış halka - yavaş dönen -->
-                    <div class="absolute inset-[-20px] border-2 border-primary/20 rounded-full animate-spin" style="animation-duration: 8s;"></div>
+                    <div class="absolute inset-[-20px] border-2 border-primary/25 rounded-full animate-spin" style="animation-duration: 8s;"></div>
                     <!-- Orta halka - ters dönen -->
-                    <div class="absolute inset-[-12px] border-2 border-accent/30 rounded-full animate-spin" style="animation-duration: 5s; animation-direction: reverse;"></div>
+                    <div class="absolute inset-[-12px] border-2 border-accent/35 rounded-full animate-spin" style="animation-duration: 5s; animation-direction: reverse;"></div>
                     <!-- İç halka - hızlı dönen -->
-                    <div class="absolute inset-[-4px] border border-primary/40 rounded-full animate-spin" style="animation-duration: 3s;"></div>
+                    <div class="absolute inset-[-4px] border border-primary/45 rounded-full animate-spin" style="animation-duration: 3s;"></div>
                     
+                    <!-- Parlama efekti / Konuşma Aurası -->
+                    <div id="ai-speaking-aura" class="absolute -inset-2 rounded-full bg-gradient-to-tr from-primary/30 via-accent/30 to-pink-500/30 blur-md animate-pulse"></div>
+
                     <!-- Avatar -->
-                    <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/60 shadow-2xl shadow-primary/30 animate-pulse" style="animation-duration: 2s;">
+                    <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-primary/60 shadow-2xl shadow-primary/30 animate-pulse" style="animation-duration: 2s;">
                         <img src="{{ url_for('static', filename='ai-avatar-R.png') }}" alt="ORBIS AI" class="w-full h-full object-cover">
                     </div>
-                    
-                    <!-- Parlama efekti -->
-                    <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-transparent animate-pulse"></div>
+
+                    <!-- Ses Aç/Kapat Butonu -->
+                    <button type="button" onclick="toggleGreetingVoice(event)" id="ai-voice-toggle-btn"
+                      class="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-surface-dark/95 border border-white/20 text-slate-300 hover:text-white flex items-center justify-center shadow-lg transition-transform active:scale-90 cursor-pointer z-20"
+                      title="Sesi Aç/Kapat">
+                      <span class="material-icons-round text-sm" id="ai-voice-toggle-icon">${isVoiceMuted ? 'volume_off' : 'volume_up'}</span>
+                    </button>
+
+                    <!-- Canlı Ses Dalgası (Audio Waveform Bars) -->
+                    <div id="ai-voice-waves" class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-primary/40 rounded-full px-3 py-1 flex items-center gap-1 shadow-xl z-20 backdrop-blur-md" style="opacity: ${isVoiceMuted ? '0.35' : '1'};">
+                        <span class="w-1 bg-primary rounded-full animate-sound-bar" style="height: 8px; animation-delay: 0.1s;"></span>
+                        <span class="w-1 bg-accent rounded-full animate-sound-bar" style="height: 18px; animation-delay: 0.25s;"></span>
+                        <span class="w-1 bg-pink-400 rounded-full animate-sound-bar" style="height: 7px; animation-delay: 0.4s;"></span>
+                        <span class="w-1 bg-primary rounded-full animate-sound-bar" style="height: 19px; animation-delay: 0.15s;"></span>
+                        <span class="w-1 bg-accent rounded-full animate-sound-bar" style="height: 11px; animation-delay: 0.3s;"></span>
+                        <span class="text-[9px] font-bold text-amber-300 ml-1.5 uppercase tracking-wider font-mono">Orbis</span>
+                    </div>
                 </div>
                 
                 <!-- Kişiselleştirilmiş Selamlama -->
-                <p class="text-primary font-semibold text-base mb-2">Merhaba ${userName}! 👋</p>
+                <p class="text-primary font-semibold text-base mb-1.5 flex items-center gap-1.5">
+                  <span>Merhaba ${userName}!</span>
+                  <span class="animate-bounce">👋</span>
+                </p>
                 
                 <!-- Analiz Başlığı -->
-                <h3 class="text-white font-bold text-lg mb-3 text-center">${topicName}</h3>
+                <h3 class="text-white font-bold text-lg mb-2 text-center">${topicName}</h3>
                 
                 <!-- Analiz Açıklaması -->
-                <p class="text-slate-400 text-sm text-center leading-relaxed max-w-sm mb-8">${topicDesc}</p>
+                <p class="text-slate-400 text-sm text-center leading-relaxed max-w-sm mb-6">${topicDesc}</p>
                 
                 <!-- Loading indicator - 3 nokta -->
                 <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0s;"></div>
-                    <div class="w-3 h-3 bg-accent rounded-full animate-bounce" style="animation-delay: 0.15s;"></div>
-                    <div class="w-3 h-3 bg-primary rounded-full animate-bounce" style="animation-delay: 0.3s;"></div>
+                    <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                    <div class="w-2.5 h-2.5 bg-accent rounded-full animate-bounce" style="animation-delay: 0.15s;"></div>
+                    <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style="animation-delay: 0.3s;"></div>
                 </div>
-                <p id="ai-loading-status" class="text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-medium">Senin için hazırlıyorum...</p>
+                <p id="ai-loading-status" class="text-[10px] text-slate-500 mt-3 uppercase tracking-widest font-medium">Senin için gökyüzünü inceliyorum...</p>
             </div>
             <div id="streaming-content" class="leading-relaxed hidden"></div>
         `);
 
     openAIModal();
+
+    // 🎙️ ORBIS Sesli Selamlama Konuşmasını Başlat
+    if ( !isVoiceMuted ) {
+      const greetingPhrases = [
+        `Merhaba ${userName}! Ben Orbis. Gökyüzü konumlarını ve doğum haritanı senin için inceliyorum, analizini hazırlıyorum.`,
+        `Hoş geldin ${userName}! Ben Orbis. Gezegenlerin enerjilerini ve bugünkü transitleri senin için inceliyorum.`,
+        `Merhaba ${userName}! Ben kozmik rehberin Orbis. Yıldızların sana özel mesajlarını hazırlıyorum.`
+      ];
+      const selectedGreeting = greetingPhrases[Math.floor( Math.random() * greetingPhrases.length )];
+      setTimeout( () => {
+        if ( typeof TTS !== 'undefined' && typeof TTS.speakGreeting === 'function' ) {
+          TTS.speakGreeting( selectedGreeting );
+        }
+      }, 350 );
+    }
 
     // 🎯 REKLAM İZLEME KONTROLÜ - YENİ STRATEJİ
     let deviceId = localStorage.getItem( 'orbis_device_id' );
@@ -3798,6 +3876,66 @@ super() }}
         $btn.removeClass( 'bg-red-500' ).addClass( 'bg-primary' );
         $icon.text( 'volume_up' );
         $text.text( 'Dinle' );
+      }
+    },
+
+    async speakGreeting( text, onEnd ) {
+      if ( localStorage.getItem( 'orbis-voice-muted' ) === 'true' ) {
+        if ( typeof onEnd === 'function' ) onEnd();
+        return;
+      }
+      try {
+        await this.stop();
+        this.status = 'greeting';
+        const cleaned = this.cleanTextForSpeech( text );
+        console.log( '[TTS] Greeting speaking:', cleaned );
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test( navigator.userAgent );
+
+        if ( this.isNative && this.nativeTTS ) {
+          try {
+            await this.nativeTTS.speak( {
+              text: cleaned,
+              lang: 'tr-TR',
+              rate: 1.0,
+              pitch: isMobile ? 1.0 : 1.1,
+              volume: 1.0,
+              voice: this.selectedVoice !== null ? this.selectedVoice : undefined
+            } );
+            if ( typeof onEnd === 'function' ) onEnd();
+          } catch ( e ) {
+            console.warn( '[TTS] Native greeting notice:', e );
+            if ( typeof onEnd === 'function' ) onEnd();
+          }
+        } else if ( typeof speechSynthesis !== 'undefined' ) {
+          speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance( cleaned );
+          utterance.lang = 'tr-TR';
+          utterance.rate = 1.02;
+          utterance.pitch = isMobile ? 0.95 : 1.05;
+          utterance.volume = 1.0;
+          if ( this.selectedVoice ) {
+            utterance.voice = this.selectedVoice;
+          }
+          utterance.onend = () => {
+            if ( this.status === 'greeting' ) this.status = 'idle';
+            if ( typeof onEnd === 'function' ) onEnd();
+          };
+          utterance.onerror = () => {
+            if ( this.status === 'greeting' ) this.status = 'idle';
+            if ( typeof onEnd === 'function' ) onEnd();
+          };
+          speechSynthesis.speak( utterance );
+        }
+      } catch ( err ) {
+        console.warn( '[TTS] Greeting error:', err );
+        if ( typeof onEnd === 'function' ) onEnd();
+      }
+    },
+
+    stopGreeting() {
+      if ( this.status === 'greeting' ) {
+        this.stop();
       }
     }
   };
