@@ -101,7 +101,10 @@
   <section class="card col-span-4">
     <header class="card-head">
       <div>
-        <h2 class="card-title">Son aktivite</h2>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h2 class="card-title">Son aktivite</h2>
+          <span class="badge badge--dot badge--success" style="font-size: 11px; padding: 2px 8px;"><span class="pulse-dot"></span>Canlı</span>
+        </div>
         <p class="card-subtitle">Operasyonel olaylar</p>
       </div>
       <a href="{{ url_for('admin.users') }}" class="btn btn--ghost btn--sm">Tümü <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span></a>
@@ -187,7 +190,59 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  // Bootstrap charts (data-chart attribute)
+  // ─── Activity List Renderer ─────────────────────────────────
+  function renderActivityItemHtml(a) {
+    var dir = a.type === 'signup' ? 'up' : a.type === 'login' ? 'login' : a.type === 'error' ? 'down' : 'info';
+    var icon = a.type === 'signup' ? 'person_add' : a.type === 'login' ? 'login' : a.type === 'error' ? 'error' : 'info';
+    return '<li class="activity-item">' +
+      '<div class="activity-icon activity-icon--' + dir + '"><span class="material-symbols-outlined">' + icon + '</span></div>' +
+      '<div class="activity-body">' +
+        '<div class="activity-title">' + escapeHtml(a.title || '') + '</div>' +
+        '<div class="activity-meta">' + escapeHtml(a.meta || '') + '</div>' +
+      '</div>' +
+      '<div class="activity-time">' + escapeHtml(a.relative || '') + '</div>' +
+    '</li>';
+  }
+
+  let lastActivityHash = '';
+  function renderActivityList(items) {
+    const list = document.getElementById('activity-list');
+    if (!list) return;
+    if (Array.isArray(items) && items.length) {
+      list.innerHTML = items.slice(0, 10).map(renderActivityItemHtml).join('');
+    } else {
+      list.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);">' +
+        '<div class="empty-icon"><span class="material-symbols-outlined">inbox</span></div>' +
+        '<div class="empty-title">Henüz aktivite yok</div>' +
+        '<div class="empty-meta" style="font-size: 12px; color: var(--ink-faint); margin-top: 4px;">Yeni giriş, kayıt ve etkileşim olayları buraya canlı düşer</div>' +
+      '</li>';
+    }
+  }
+
+  // Canlı Arka Plan Yoklayıcı (Sekme aktifken 4 saniyede bir otomatik kontrol)
+  async function pollLiveActivity() {
+    if (document.hidden) return;
+    try {
+      const res = await fetch('/admin/api/activity/stream', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && Array.isArray(json.activity)) {
+        const hash = json.activity.map(x => (x.timestamp || '') + (x.title || '') + (x.relative || '')).join('|');
+        if (hash !== lastActivityHash) {
+          lastActivityHash = hash;
+          renderActivityList(json.activity);
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 4 saniyede bir arka planda canlı aktivite kontrolü
+  setInterval(pollLiveActivity, 4000);
+
+  // Sekmeye geri dönüldüğünde anında yenile
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) pollLiveActivity();
+  });
   if (window.OrbisCharts) {
     document.querySelectorAll('[data-chart]').forEach(function (el) {
       try {
@@ -254,27 +309,11 @@
     });
 
     // Activity feed
-    const list = document.getElementById('activity-list');
-    if (Array.isArray(s.activity) && s.activity.length) {
-      list.innerHTML = s.activity.slice(0, 10).map((a) => {
-        var dir = a.type === 'signup' ? 'up' : a.type === 'login' ? 'login' : a.type === 'error' ? 'down' : 'info';
-        var icon = a.type === 'signup' ? 'person_add' : a.type === 'login' ? 'login' : a.type === 'error' ? 'error' : 'info';
-        return '<li class="activity-item">' +
-          '<div class="activity-icon activity-icon--' + dir + '"><span class="material-symbols-outlined">' + icon + '</span></div>' +
-          '<div class="activity-body">' +
-            '<div class="activity-title">' + escapeHtml(a.title || '') + '</div>' +
-            '<div class="activity-meta">' + escapeHtml(a.meta || '') + '</div>' +
-          '</div>' +
-          '<div class="activity-time">' + escapeHtml(a.relative || '') + '</div>' +
-        '</li>';
-      }).join('');
+    if (Array.isArray(s.activity)) {
+      lastActivityHash = s.activity.map(x => (x.timestamp || '') + (x.title || '') + (x.relative || '')).join('|');
+      renderActivityList(s.activity);
     } else {
-      // Veri yoksa loading yerine empty state göster
-      list.innerHTML = '<li class="empty" style="padding: var(--space-8) var(--space-6);">' +
-        '<div class="empty-icon"><span class="material-symbols-outlined">inbox</span></div>' +
-        '<div class="empty-title">Henüz aktivite yok</div>' +
-        '<div class="empty-meta" style="font-size: 12px; color: var(--ink-faint); margin-top: 4px;">Yeni signup ve etkilesim olaylari buraya duser</div>' +
-      '</li>';
+      renderActivityList([]);
     }
 
     // Update charts from API

@@ -44,6 +44,8 @@ def admin_required(f):
         # Session'dan admin kontrolü
         admin_email = (session.get('admin_email') or '').strip().lower()
         if not admin_email or admin_email not in ADMIN_EMAILS:
+            if request.path.startswith('/admin/api/') or request.is_json:
+                return jsonify({'success': False, 'error': 'UNAUTHORIZED', 'message': 'Admin oturumu gerekli'}), 401
             return redirect(url_for('admin.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -593,6 +595,23 @@ def _attach_activity() -> dict:
         return {'activity': items[:10]} if items else {}
     except Exception:
         return {}
+
+
+# ─── Canlı Aktivite Akışı (Polling / Live Feed) ─────────────
+@admin_bp.route('/api/activity/stream', methods=['GET'])
+@admin_required
+def api_activity_stream():
+    """Son aktiviteleri arka planda canlı çeken hafif endpoint"""
+    try:
+        data = _attach_activity()
+        return jsonify({
+            'success': True,
+            'activity': data.get('activity', []),
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        })
+    except Exception as e:
+        logger.error(f"[Admin] activity stream error: {e}")
+        return jsonify({'success': False, 'activity': [], 'error': str(e)}), 500
 
 
 # ─── GA4 + AdMob standalone endpoints (deep link için) ─────
