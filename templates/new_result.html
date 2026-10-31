@@ -3433,14 +3433,38 @@ super() }}
     },
 
     findBestTurkishVoice( voices ) {
-      const trVoices = voices.filter( v => v.lang.includes( 'tr' ) );
+      const trVoices = voices.filter( v => v.lang && v.lang.toLowerCase().includes( 'tr' ) );
 
-      // Kadın sesi tercih et (sabit)
-      const femaleNames = ['Seda', 'Emel', 'Asli', 'Filiz', 'Gul', 'Zehra', 'Google', 'Female'];
-      const femaleVoice = trVoices.find( v =>
-        femaleNames.some( name => v.name.toLowerCase().includes( name.toLowerCase() ) )
+      if ( !trVoices.length ) {
+        // Türkçe bulunamazsa en azından kadın sesi bulmaya çalış
+        const femaleAny = voices.find( v => v.name && ( v.name.toLowerCase().includes( 'female' ) || v.name.toLowerCase().includes( 'natural' ) ) );
+        return femaleAny || voices[0];
+      }
+
+      // Öncelikli Türkçe Kadın Sesleri (Microsoft Emel, Fatma, Gül, Seda, Aslı, Filiz, İpek, Yelda, Google TR)
+      const femaleNames = [
+        'emel', 'fatma', 'seda', 'filiz', 'asli', 'aslı', 'gul', 'gül',
+        'ipek', 'yelda', 'dilara', 'zehra', 'yasemin', 'google', 'female', 'kadin', 'kadın'
+      ];
+
+      // 1. Doğrudan kadın ismi içeren Türkçe ses
+      const matchedFemale = trVoices.find( v =>
+        femaleNames.some( name => v.name.toLowerCase().includes( name ) )
       );
-      return femaleVoice || trVoices[0] || voices.find( v => v.lang.includes( 'en' ) ) || voices[0];
+      if ( matchedFemale ) return matchedFemale;
+
+      // 2. Çevrimiçi Natural ses (Edge'de çok kalitelidir)
+      const naturalVoice = trVoices.find( v => v.name.toLowerCase().includes( 'natural' ) );
+      if ( naturalVoice ) return naturalVoice;
+
+      // 3. Fallback: Sistemde tek ses varsa (Örn: Windows Microsoft Tolga)
+      return trVoices[0];
+    },
+
+    isVoiceMale( voice ) {
+      if ( !voice || !voice.name ) return false;
+      const name = voice.name.toLowerCase();
+      return name.includes( 'tolga' ) || name.includes( 'male' ) || name.includes( 'ahmet' ) || name.includes( 'david' ) || name.includes( 'george' );
     },
 
     changeSpeed( delta ) {
@@ -3782,7 +3806,8 @@ super() }}
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test( navigator.userAgent );
 
       utterance.rate = this.rate;
-      utterance.pitch = isMobile ? 0.4 : 0.8;
+      const isMaleVoice = this.isVoiceMale( this.selectedVoice );
+      utterance.pitch = isMaleVoice ? 1.22 : 1.05;
       utterance.volume = 1.0;
       utterance.lang = 'tr-TR';
 
@@ -3912,7 +3937,8 @@ super() }}
           const utterance = new SpeechSynthesisUtterance( cleaned );
           utterance.lang = 'tr-TR';
           utterance.rate = 1.02;
-          utterance.pitch = isMobile ? 0.95 : 1.05;
+          const isGreetingMale = this.isVoiceMale( this.selectedVoice );
+          utterance.pitch = isGreetingMale ? 1.25 : 1.08;
           utterance.volume = 1.0;
           if ( this.selectedVoice ) {
             utterance.voice = this.selectedVoice;
