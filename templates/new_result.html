@@ -6,6 +6,7 @@ super() }}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <!-- Results Page Modular CSS (cached) -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/monetization.css') }}">
 <style>
   #chart-paper {
     width: 100%;
@@ -388,6 +389,62 @@ super() }}
           </button>
         </div>
         
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FAZ 2: MERAK UYANDIRICI KİLİTLİ TEASER KART (GÖLGE GÜÇ & POTANSİYEL)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div id="teaser-shadow-power" class="teaser-box relative p-5 bg-gradient-to-br from-purple-950/30 via-slate-900/40 to-slate-950 border border-purple-500/30 rounded-3xl overflow-hidden shadow-xl shadow-purple-950/20">
+      <!-- Glow effect -->
+      <div class="absolute -right-6 -top-6 w-28 h-28 bg-purple-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+
+      <!-- Header (Açık ve Merak Uyandırıcı) -->
+      <div class="flex items-center justify-between mb-3 relative z-10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+            <span class="material-icons-round text-purple-400 text-lg">psychology_alt</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span>Gizli Gölge Güç Analizi</span>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-widest">Özel</span>
+            </h4>
+            <p class="text-[10px] text-purple-300/70">Haritanızda henüz tam açığa çıkmamış dönüştürücü potansiyel</p>
+          </div>
+        </div>
+        <span class="material-icons-round text-purple-400/50 text-base">auto_awesome</span>
+      </div>
+
+      <!-- Teaser Preview Text (Okunabilir Giriş) -->
+      <p class="text-xs text-slate-300 leading-relaxed mb-3 relative z-10 font-light">
+        Doğum haritanızdaki derin akslar ve retro/gizli göstergeler, kriz ve değişim anlarında sizi diğer insanlardan ayıran nadir bir sezgisel stratejiye işaret ediyor:
+      </p>
+
+      <!-- Kilitli Alan (Blur Efekti) -->
+      <div class="teaser-locked-blur p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2 text-xs text-slate-200 leading-relaxed font-light">
+        <p>
+          Haritanızdaki dönüştürücü içsel dinamikler, başkalarının paniklediği yüksek baskı ortamlarında soğukkanlılığınızı koruyarak kaosu fırsata çevirme kabiliyeti sunuyor. Bu gücün önündeki tek gölge engel: <strong>her şeyi tek başına kontrol etme dürtüsü</strong>.
+        </p>
+        <p class="text-purple-300/90 font-medium">
+          Kozmik Eylem Tavsiyesi: Kontrolü serbest bırakıp stratejik işbirliklerine alan açtığınız anda, kariyer ve maddi alanınızda sıçrama etkisi yaratacak kapılar aralanacak.
+        </p>
+      </div>
+
+      <!-- Kilit Kaplaması (Overlay) -->
+      <div class="teaser-lock-overlay">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500/30 to-amber-500/20 border border-purple-400/30 flex items-center justify-center mb-3 shadow-lg shadow-purple-500/20 animate-pulse">
+          <span class="material-icons-round text-2xl text-amber-300">lock</span>
+        </div>
+        <h5 class="text-sm font-bold text-white mb-1">Gölge Güç Yorumunu Keşfet</h5>
+        <p class="text-[11px] text-slate-300 max-w-xs mb-4 leading-relaxed">
+          Kişisel haritanızın derin analizini 1 Kozmik Kredi veya 1 kısa video izleyerek hemen açın.
+        </p>
+        <button type="button" onclick="window.monetization?.unlockTeaser('teaser-shadow-power')"
+          class="px-5 py-2.5 bg-gradient-to-r from-purple-600 via-primary to-accent hover:from-purple-500 hover:to-accent text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-purple-500/30 flex items-center gap-2 cursor-pointer">
+          <span class="material-icons-round text-base">lock_open</span>
+          <span>Kilidi Aç (1 Kredi / Video İzle)</span>
+        </button>
       </div>
     </div>
 
@@ -2998,6 +3055,7 @@ super() }}
 
                   currentInterpretationText = streamingContent;
                   $body.find( '.animate-spin' ).parent().remove();
+                  appendTeaserIfEligible(tabId);
                   $( '#ai-modal-footer' ).removeClass( 'hidden' );
                   applyModalFontSize();
 
@@ -3034,6 +3092,7 @@ super() }}
             currentInterpretationText = streamingContent;
             $body.find( '.animate-spin' ).parent().remove();
             $( '#streaming-content' ).html( marked.parse( streamingContent ) );
+            appendTeaserIfEligible(tabId);
             $( '#ai-modal-footer' ).removeClass( 'hidden' );
             applyModalFontSize();
           }
@@ -3042,6 +3101,39 @@ super() }}
           console.error( '[ORBIS] Streaming error:', error );
           $body.html( '<div class="text-center py-8"><p class="text-red-400 text-xs mb-2">Baglanti Hatasi</p><p class="text-slate-400 text-[10px]">' + ( error.message || 'Bilinmeyen hata' ) + '</p></div>' );
         } );
+  }
+
+  function appendTeaserIfEligible(tabId) {
+    if (tabId === 'daily' && !$('#teaser-daily-lucky-hours').length) {
+      const luckyTeaserHtml = `
+        <div id="teaser-daily-lucky-hours" class="teaser-box relative mt-6 p-4 bg-gradient-to-br from-amber-950/20 via-surface-dark to-slate-900 border border-amber-500/30 rounded-2xl overflow-hidden shadow-lg shadow-amber-950/20">
+          <div class="flex items-center justify-between mb-2 relative z-10">
+            <div class="flex items-center gap-2">
+              <span class="material-icons-round text-amber-400 text-lg">wb_twilight</span>
+              <h5 class="text-xs font-bold text-white">Günün En Şanslı 2 Saati & Fırsat Penceresi</h5>
+            </div>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">Özel Kilit</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed mb-2 relative z-10">
+            Bugün gökyüzü konumlarınıza göre inisiyatif almak ve önemli adımlar atmak için en elverişli zaman penceresi:
+          </p>
+          <div class="teaser-locked-blur p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[11px] text-amber-200/90 leading-relaxed">
+            <strong>14:20 - 16:45 Arası:</strong> Güneş-Jüpiter uyumu en tepe noktada. Bu 2 saatlik aralıkta ertelediğiniz görüşmeleri yapabilir, önemli imzalar atabilir veya finansal planlamalarınızı başlatabilirsiniz.
+          </div>
+          <div class="teaser-lock-overlay">
+            <span class="material-icons-round text-amber-400 text-xl mb-1">lock</span>
+            <p class="text-xs font-bold text-white mb-0.5">Şanslı Saatlerin Kilidini Aç</p>
+            <p class="text-[10px] text-slate-400 mb-2">1 Kozmik Kredi veya 1 kısa video ile açın</p>
+            <button type="button" onclick="window.monetization?.unlockTeaser('teaser-daily-lucky-hours')" class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-md shadow-amber-500/20 flex items-center gap-1 cursor-pointer">
+              <span class="material-icons-round text-xs">lock_open</span>
+              <span>Kilidi Aç</span>
+            </button>
+          </div>
+        </div>
+      `;
+      $('#streaming-content').append(luckyTeaserHtml);
+      window.monetization?.initTeasers();
+    }
   }
 
   function formatAIResponse( text ) {
@@ -3058,6 +3150,7 @@ super() }}
   // Sayfa yüklendiğinde
   $( document ).ready( function () {
     applyModalFontSize();
+    window.monetization?.initTeasers();
     // Harita sekmesi aktifse hemen çiz
     if ( $( "#tab-chart" ).hasClass( "active" ) ) {
       setTimeout( renderAstroChart, 200 );

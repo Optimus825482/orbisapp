@@ -56,6 +56,7 @@ class MonetizationManager {
 
             this.updateBadgeUI();
             this._startPassCountdown();
+            this.initTeasers();
             return data;
         } catch (error) {
             console.error('[Monetization] checkUsage error:', error);
@@ -273,6 +274,7 @@ class MonetizationManager {
             if (secondOk) {
                 await this.claimReward('ad_free_24h');
                 this.updateModalContent();
+                this.initTeasers();
             } else {
                 alert('İkinci reklam tamamlanamadı.');
             }
@@ -280,6 +282,95 @@ class MonetizationManager {
             console.error('[Monetization] watchForAdFreePass error:', err);
         } finally {
             if (btn) btn.disabled = false;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FAZ 2: MERAK UYANDIRICI KİLİTLİ İÇERİK (BLUR TEASER & UNLOCK)
+    // ═══════════════════════════════════════════════════════════════
+
+    getUnlockedTeasers() {
+        const today = new Date().toISOString().split('T')[0];
+        try {
+            const raw = localStorage.getItem(`orbis_unlocked_teasers_${today}`);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    markTeaserUnlocked(teaserId) {
+        const today = new Date().toISOString().split('T')[0];
+        const list = this.getUnlockedTeasers();
+        if (!list.includes(teaserId)) {
+            list.push(teaserId);
+            try {
+                localStorage.setItem(`orbis_unlocked_teasers_${today}`, JSON.stringify(list));
+            } catch (e) {}
+        }
+    }
+
+    initTeasers() {
+        const unlockedList = this.getUnlockedTeasers();
+        document.querySelectorAll('.teaser-box').forEach(box => {
+            const id = box.id;
+            if (this.isAdFree || unlockedList.includes(id)) {
+                box.classList.add('teaser-unlocked');
+            }
+        });
+    }
+
+    async unlockTeaser(teaserId) {
+        const box = document.getElementById(teaserId);
+        if (!box) return;
+
+        // 1. Reklamsız mod aktifse hemen aç
+        if (this.isAdFree) {
+            box.classList.add('teaser-unlocked');
+            this.markTeaserUnlocked(teaserId);
+            if (typeof window.showToast === 'function') {
+                window.showToast('Reklamsız mod aktif olduğu için kilit doğrudan açıldı!', 'success');
+            }
+            return;
+        }
+
+        // 2. Kredisi varsa kullanıcıya sorarak 1 kredi harca veya video izle
+        if (this.credits > 0) {
+            const useCredit = confirm(`Bu gizli kozmik analizin kilidini 1 Kozmik Kredi harcayarak hemen açmak ister misiniz?\n(Mevcut Krediniz: ${this.credits})`);
+            if (useCredit) {
+                const spendRes = await this.spendCredit(1, `teaser_${teaserId}`);
+                if (spendRes && spendRes.success) {
+                    box.classList.add('teaser-unlocked');
+                    this.markTeaserUnlocked(teaserId);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Kozmik Kredi kullanıldı, kilit açıldı! 🔓', 'success');
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 3. Kredisi yoksa veya video ile açmak isterse: Rewarded video izlet
+        try {
+            let rewarded = true;
+            if (window.MobileBridge && typeof window.MobileBridge.showBonusRewardedAd === 'function') {
+                const adRes = await window.MobileBridge.showBonusRewardedAd();
+                rewarded = adRes && adRes.success;
+            } else if (window.MobileBridge && typeof window.MobileBridge.showRewardedAd === 'function') {
+                rewarded = await window.MobileBridge.showRewardedAd();
+            }
+
+            if (rewarded) {
+                box.classList.add('teaser-unlocked');
+                this.markTeaserUnlocked(teaserId);
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Tebrikler! Özel kozmik analizin kilidi açıldı! 🔓', 'success');
+                } else {
+                    alert('Tebrikler! Özel kozmik analizin kilidi açıldı! 🔓');
+                }
+            }
+        } catch (err) {
+            console.error('[Monetization] unlockTeaser error:', err);
         }
     }
 }

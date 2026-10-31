@@ -145,3 +145,54 @@
     cursor: pointer;
     font-size: 14px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FAZ 2: MERAK UYANDIRICI KİLİTLİ İÇERİK (BLUR TEASER & UNLOCK)
+   ═══════════════════════════════════════════════════════════════ */
+.teaser-box {
+    position: relative;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.teaser-locked-blur {
+    filter: blur(6px);
+    -webkit-filter: blur(6px);
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+    opacity: 0.65;
+    transition: filter 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+}
+
+.teaser-unlocked .teaser-locked-blur {
+    filter: blur(0px) !important;
+    -webkit-filter: blur(0px) !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+}
+
+.teaser-lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 10;
+    padding: 1.5rem;
+    text-align: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.teaser-unlocked .teaser-lock-overlay {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
