@@ -13,6 +13,7 @@ from exceptions import (
 import os
 import json
 import logging
+from typing import Optional, Dict, Any, List, Union
 
 from google.cloud.firestore_v1.base_query import FieldFilter
 
